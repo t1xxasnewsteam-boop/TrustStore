@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оформление заказа - Trust Store</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .checkout-page {
+            padding: 60px 0 100px;
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+        
+        .checkout-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            padding: 50px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        }
+        
+        .checkout-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .checkout-header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+        
+        .checkout-header p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .order-summary {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .order-summary h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+        }
+        
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .order-item:last-child {
+            border-bottom: none;
+            margin-top: 10px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(102, 126, 234, 0.3);
+        }
+        
+        .order-item-name {
+            font-size: 16px;
+            color: #1a1a1a;
+        }
+        
+        .order-item-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .order-total {
+            font-size: 24px !important;
+            font-weight: 700 !important;
+            color: #1a1a1a !important;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+        }
+        
+        .form-section h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-group .hint {
+            font-size: 13px;
+            color: #999;
+            margin-top: 5px;
+        }
+        
+        .payment-methods {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .payment-method {
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .payment-method:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .payment-method.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        }
+        
+        .payment-method-icon {
+            font-size: 32px;
+        }
+        
+        .payment-method-info {
+            flex: 1;
+        }
+        
+        .payment-method-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 3px;
+        }
+        
+        .payment-method-desc {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .btn-pay {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            margin-top: 20px;
+        }
+        
+        .btn-pay:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+        }
+        
+        .btn-pay:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .security-note {
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+            margin-top: 20px;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            transform: translateX(-5px);
+        }
+        
+        @media (max-width: 768px) {
+            .checkout-container {
+                padding: 30px 20px;
+                border-radius: 20px;
+            }
+            
+            .checkout-header h1 {
+                font-size: 28px;
+            }
+            
+            .order-summary {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" style="text-decoration: none;">
+                    <div class="logo">
+                        <img src="logo.png" alt="Trust Store" class="logo-image">
+                        <h1>Trust Store</h1>
+                    </div>
+                </a>
+                <nav class="nav">
+                    <a href="index.html" class="nav-link">Главная</a>
+                    <a href="catalog.html" class="nav-link">Каталог</a>
+                    <a href="#" class="nav-link">О нас</a>
+                    <a href="#" class="nav-link">Контакты</a>
+                </nav>
+                <div class="header-actions">
+                    <button class="btn-icon">🔍</button>
+                    <button class="btn-icon">🛒 <span class="badge">0</span></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Checkout Page -->
+    <section class="checkout-page">
+        <div class="container">
+            <a href="javascript:history.back()" class="back-link">← Вернуться назад</a>
+            
+            <div class="checkout-container">
+                <div class="checkout-header">
+                    <h1>💳 Оформление заказа</h1>
+                    <p>Заполните форму для завершения покупки</p>
+                </div>
+                
+                <!-- Order Summary -->
+                <div class="order-summary">
+                    <h2>📦 Ваш заказ</h2>
+                    <div class="order-item">
+                        <div class="order-item-name" id="product-name">ChatGPT Plus</div>
+                        <div class="order-item-price" id="product-duration">1 месяц</div>
+                    </div>
+                    <div class="order-item">
+                        <div class="order-item-name order-total">Итого к оплате:</div>
+                        <div class="order-item-price order-total" id="total-price">2 250 ₽</div>
+                    </div>
+                </div>
+                
+                <!-- Customer Info Form -->
+                <form id="checkout-form">
+                    <div class="form-section">
+                        <h3>👤 Контактные данные</h3>
+                        <div class="form-group">
+                            <label for="customer-name">Имя *</label>
+                            <input type="text" id="customer-name" name="name" required placeholder="Иван Иванов">
+                        </div>
+                        <div class="form-group">
+                            <label for="customer-email">Email *</label>
+                            <input type="email" id="customer-email" name="email" required placeholder="example@mail.ru">
+                            <div class="hint">На этот email придет товар</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="customer-phone">Телефон (опционально)</label>
+                            <input type="tel" id="customer-phone" name="phone" placeholder="+7 (999) 123-45-67">
+                        </div>
+                        <div class="form-group">
+                            <label for="customer-comment">Комментарий к заказу (опционально)</label>
+                            <textarea id="customer-comment" name="comment" placeholder="Укажите дополнительную информацию, если необходимо"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Method -->
+                    <div class="form-section">
+                        <h3>💰 Способ оплаты</h3>
+                        <div class="payment-methods">
+                            <div class="payment-method selected" data-method="yoomoney">
+                                <div class="payment-method-icon">🟣</div>
+                                <div class="payment-method-info">
+                                    <div class="payment-method-name">ЮMoney (YooMoney)</div>
+                                    <div class="payment-method-desc">Быстрая оплата картой или через кошелёк</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-pay">
+                        Перейти к оплате →
+                    </button>
+                    
+                    <div class="security-note">
+                        🔒 Безопасная оплата через защищённое соединение
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Trust Store</h3>
+                    <p>Ваш надежный магазин цифровых товаров</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Компания</h4>
+                    <a href="#">О нас</a>
+                    <a href="#">Контакты</a>
+                    <a href="#">Вакансии</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Помощь</h4>
+                    <a href="#">FAQ</a>
+                    <a href="#">Доставка</a>
+                    <a href="#">Возврат</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Связь</h4>
+                    <a href="#">Email</a>
+                    <a href="#">Telegram</a>
+                    <a href="#">WhatsApp</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Trust Store. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="tracking.js"></script>
+    <script src="payment-config.js"></script>
+    <script>
+        // Получаем данные из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const productName = urlParams.get('product') || 'Товар';
+        const productPrice = urlParams.get('price') || '0';
+        const productDuration = urlParams.get('duration') || '';
+        
+        // Обновляем информацию на странице
+        document.getElementById('product-name').textContent = productName;
+        document.getElementById('product-duration').textContent = productDuration;
+        document.getElementById('total-price').textContent = productPrice + ' ₽';
+        
+        // Обработка формы
+        document.getElementById('checkout-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('customer-name').value;
+            const email = document.getElementById('customer-email').value;
+            const phone = document.getElementById('customer-phone').value;
+            const comment = document.getElementById('customer-comment').value;
+            
+            // Проверка заполнения обязательных полей
+            if (!name || !email) {
+                alert('❌ Пожалуйста, заполните все обязательные поля');
+                return;
+            }
+            
+            // Формируем данные для оплаты
+            const paymentData = {
+                receiver: YOOMONEY_CONFIG.receiver, // Из payment-config.js
+                quickpay_form: 'shop',
+                targets: `${productName} - ${productDuration}`,
+                paymentType: 'AC', // AC - любой способ, PC - кошелек, AC - карта
+                sum: productPrice.replace(/\s/g, ''),
+                label: `order_${Date.now()}`,
+                successURL: window.location.origin + '/success.html',
+                // Дополнительная информация
+                customerName: name,
+                customerEmail: email,
+                customerPhone: phone,
+                comment: comment
+            };
+            
+            // Создаем форму для отправки в ЮMoney
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'https://yoomoney.ru/quickpay/confirm.xml';
+            
+            // Добавляем поля
+            for (let key in paymentData) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = paymentData[key];
+                form.appendChild(input);
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+        });
+        
+        // Обработка выбора способа оплаты
+        document.querySelectorAll('.payment-method').forEach(method => {
+            method.addEventListener('click', function() {
+                document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+    </script>
+</body>
+</html>
+

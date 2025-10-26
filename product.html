@@ -367,7 +367,7 @@
                         <div id="promo-message" style="margin-top: 8px; font-size: 13px; display: none;"></div>
                     </div>
                     
-                    <button class="btn-buy-large">Купить сейчас</button>
+                    <button class="btn-buy-large" onclick="goToCheckout()">Купить сейчас</button>
                     
                     <h3>Что входит:</h3>
                     <ul class="features-list">
@@ -506,6 +506,28 @@
                 messageElement.textContent = '❌ Неверный промокод';
             }
         }
+        
+        // Функция для перехода на страницу оформления заказа
+        let selectedDuration = '1 месяц'; // По умолчанию
+        
+        function goToCheckout() {
+            const productName = 'ChatGPT Plus';
+            const finalPrice = document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '');
+            const duration = selectedDuration;
+            
+            // Формируем URL с параметрами
+            const checkoutURL = `checkout.html?product=${encodeURIComponent(productName)}&price=${finalPrice}&duration=${encodeURIComponent(duration)}`;
+            
+            // Переходим на страницу оформления
+            window.location.href = checkoutURL;
+        }
+        
+        // Обновляем функцию selectPlan, чтобы сохранять выбранный срок
+        const originalSelectPlan = selectPlan;
+        selectPlan = function(element, price, duration) {
+            originalSelectPlan(element, price, duration);
+            selectedDuration = duration;
+        };
     </script>
 </body>
 </html>
