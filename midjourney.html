@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Midjourney - Trust Store</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .comparison-btn:hover {
+            background: #667eea !important;
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .plan-buy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        @keyframes strikethrough {
+            from {
+                text-decoration: none;
+                opacity: 1;
+            }
+            to {
+                text-decoration: line-through;
+                opacity: 0.6;
+            }
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes priceUpdate {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.15);
+                color: #26de81;
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        .product-page {
+            padding: 40px 0 80px;
+            background: white;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            transform: translateX(-5px);
+        }
+        
+        .product-detail {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            margin-top: 40px;
+        }
+        
+        .product-image-large {
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: visible;
+        }
+        
+        .badge-container {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+            z-index: 10;
+        }
+        
+        .badge-container .product-badge {
+            position: static;
+        }
+        
+        .product-detail-info h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+        }
+        
+        .product-detail-desc {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 25px;
+        }
+        
+        .price-large {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        
+        .product-detail-info h3 {
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .features-list {
+            list-style: none;
+            margin: 10px 0 20px 0;
+        }
+        
+        .features-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 16px;
+            color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .features-list li:before {
+            content: "✓";
+            color: #667eea;
+            font-weight: 700;
+            font-size: 20px;
+        }
+        
+        .btn-buy-large {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 60px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .btn-buy-large:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+        }
+        
+        .info-block {
+            background: #f8f9ff;
+            padding: 30px;
+            border-radius: 20px;
+            margin-top: 30px;
+        }
+        
+        .info-block h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1a1a1a;
+        }
+        
+        .info-block p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .pricing-options {
+            margin: 30px 0;
+        }
+        
+        .pricing-options h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .pricing-option {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .pricing-option:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+        }
+        
+        .pricing-option.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+        
+        .pricing-option.popular::after {
+            content: "Популярно";
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            background: #FFD700;
+            color: #1a1a1a;
+            padding: 4px 12px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .pricing-duration {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 6px;
+        }
+        
+        .pricing-price {
+            font-size: 22px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .pricing-per-month {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+        
+        @media (max-width: 768px) {
+            .product-detail {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .product-detail-info h1 {
+                font-size: 32px;
+            }
+            
+            .price-large {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" style="text-decoration: none;">
+                    <div class="logo">
+                        <img src="logo.png" alt="Trust Store" class="logo-image">
+                        <h1>Trust Store</h1>
+                    </div>
+                </a>
+                <nav class="nav">
+                    <a href="index.html" class="nav-link">Главная</a>
+                    <a href="catalog.html" class="nav-link">Каталог</a>
+                    <a href="#" class="nav-link">О нас</a>
+                    <a href="#" class="nav-link">Контакты</a>
+                </nav>
+                <div class="header-actions">
+                    <button class="btn-icon">🔍</button>
+                    <button class="btn-icon">🛒 <span class="badge">0</span></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Product Page -->
+    <section class="product-page">
+        <div class="container">
+            <a href="index.html" class="back-link">← Назад к каталогу</a>
+            
+            <div class="product-detail">
+                <div class="product-image-large" style="position: relative;">
+                    <img src="midjourney-image.png" alt="Midjourney" style="max-width: 80%; max-height: 80%; object-fit: contain; transform: translateY(-20px); border-radius: 20px;">
+                    <div style="position: absolute; top: 35px; right: 60px; z-index: 10;">
+                        <div class="product-badge badge-category" style="white-space: nowrap;">AI Генерация</div>
+                    </div>
+                </div>
+                
+                <div class="product-detail-info">
+                    <h1>Midjourney</h1>
+                    <p class="product-detail-desc">Подписка на нейросеть для генерации изображений</p>
+                    
+                    <div id="pricing-section" class="pricing-options">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 style="margin: 0;">Выберите план подписки:</h3>
+                            <a href="#plan-comparison" class="comparison-btn" style="background: white; border: 2px solid #667eea; color: #667eea; padding: 8px 16px; border-radius: 20px; text-decoration: none; font-size: 13px; font-weight: 600; transition: all 0.3s ease; display: inline-block;">
+                                ❓ Чем отличаются?
+                            </a>
+                        </div>
+                        <div class="pricing-grid">
+                            <div class="pricing-option active" onclick="selectPlan(this, 500, 'Standard Plan')">
+                                <div class="pricing-duration">Standard Plan (Общий)</div>
+                                <div class="pricing-price">500 ₽</div>
+                                <div class="pricing-per-month">всего 500 ₽/мес</div>
+                            </div>
+                            
+                            <div class="pricing-option popular" onclick="selectPlan(this, 2500, 'Pro Plan')">
+                                <div class="pricing-duration">Pro Plan (Общий)</div>
+                                <div class="pricing-price">2 500 ₽</div>
+                                <div class="pricing-per-month">всего 2 500 ₽/мес</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+                        <div class="price-large" id="selected-price">500 ₽</div>
+                        <div id="old-price" style="display: none; font-size: 28px; font-weight: 600; color: #999; text-decoration: line-through; animation: strikethrough 0.5s ease;"></div>
+                        <div id="discount-badge" style="display: none; background: #26de81; color: white; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; animation: scaleIn 0.5s ease;">-10%</div>
+                    </div>
+                    
+                    <!-- Promo Code -->
+                    <div style="margin: 20px 0;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input 
+                                type="text" 
+                                id="promo-code" 
+                                placeholder="Введите промокод" 
+                                style="flex: 1; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 14px; transition: all 0.3s ease; font-family: 'Inter', sans-serif;"
+                                onfocus="this.style.borderColor='#667eea'"
+                                onblur="this.style.borderColor='#e0e0e0'"
+                            >
+                            <button 
+                                onclick="applyPromoCode()" 
+                                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; white-space: nowrap;"
+                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.4)'"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"
+                            >
+                                Применить
+                            </button>
+                        </div>
+                        <div id="promo-message" style="margin-top: 8px; font-size: 13px; display: none;"></div>
+                    </div>
+                    
+                    <button class="btn-buy-large">Купить сейчас</button>
+                    
+                    <h3>Что входит:</h3>
+                    <ul class="features-list">
+                        <li>🎨 Доступ к нейросети Midjourney</li>
+                        <li>✨ Генерация изображений по текстовому описанию</li>
+                        <li>⭐ Высокое качество изображений</li>
+                        <li>⚡ Быстрая генерация</li>
+                        <li>💼 Коммерческое использование</li>
+                        <li>💬 Поддержка 24/7</li>
+                    </ul>
+                    
+                    <div class="info-block">
+                        <h3>📦 Как получить товар?</h3>
+                        <p>После оплаты вы получите инструкцию на email. Активация займет 5-10 минут. Все безопасно и конфиденциально!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Plan Comparison -->
+            <div id="plan-comparison" style="margin-top: 60px;">
+                <h2 style="text-align: center; font-size: 28px; margin-bottom: 40px;">Чем отличаются подписки?</h2>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 900px; margin: 0 auto;">
+                    <!-- Standard Plan -->
+                    <div style="background: #f8f9ff; padding: 30px; border-radius: 20px; border: 2px solid #e0e0e0;">
+                        <h3 style="font-size: 22px; margin-bottom: 20px; color: #667eea;">⭐ Standard Plan</h3>
+                        <ul style="list-style: none; padding: 0; margin: 0;">
+                            <li style="padding: 12px 0; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #667eea; font-size: 18px;">✓</span>
+                                <span>Общий аккаунт</span>
+                            </li>
+                            <li style="padding: 12px 0; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #667eea; font-size: 18px;">✓</span>
+                                <span><strong>Безлимитные генерации фото</strong></span>
+                            </li>
+                            <li style="padding: 12px 0; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #999; font-size: 18px;">✗</span>
+                                <span style="color: #999;">Генерация видео</span>
+                            </li>
+                            <li style="padding: 12px 0; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #667eea; font-size: 18px;">✓</span>
+                                <span>Высокое качество</span>
+                            </li>
+                            <li style="padding: 12px 0; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #667eea; font-size: 18px;">✓</span>
+                                <span>Поддержка 24/7</span>
+                            </li>
+                        </ul>
+                        <div style="margin-top: 20px; text-align: center; font-size: 24px; font-weight: 700; color: #667eea;">
+                            500 ₽/мес
+                        </div>
+                        <a href="#pricing-section" class="plan-buy-btn" style="display: block; margin-top: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; padding: 14px 0; border-radius: 12px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">
+                            Купить
+                        </a>
+                    </div>
+                    
+                    <!-- Pro Plan -->
+                    <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); padding: 30px; border-radius: 20px; border: 2px solid #667eea; position: relative;">
+                        <div style="position: absolute; top: -12px; right: 20px; background: #FFD700; color: #1a1a1a; padding: 6px 16px; border-radius: 12px; font-size: 12px; font-weight: 600;">Популярно</div>
+                        <h3 style="font-size: 22px; margin-bottom: 20px; color: #667eea;">🚀 Pro Plan</h3>
+                        <ul style="list-style: none; padding: 0; margin: 0;">
+                            <li style="padding: 12px 0; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #667eea; font-size: 18px;">✓</span>
+                                <span>Общий аккаунт</span>
+                            </li>
+                            <li style="padding: 12px 0; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #667eea; font-size: 18px;">✓</span>
+                                <span><strong>Безлимитные генерации фото</strong></span>
+                            </li>
+                            <li style="padding: 12px 0; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #667eea; font-size: 18px;">✓</span>
+                                <span><strong>Безлимитные генерации видео 🎬</strong></span>
+                            </li>
+                            <li style="padding: 12px 0; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #667eea; font-size: 18px;">✓</span>
+                                <span><strong>Максимальное качество</strong></span>
+                            </li>
+                            <li style="padding: 12px 0; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #667eea; font-size: 18px;">✓</span>
+                                <span>Поддержка 24/7</span>
+                            </li>
+                        </ul>
+                        <div style="margin-top: 20px; text-align: center; font-size: 24px; font-weight: 700; color: #667eea;">
+                            2 500 ₽/мес
+                        </div>
+                        <a href="#pricing-section" class="plan-buy-btn" style="display: block; margin-top: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; padding: 14px 0; border-radius: 12px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">
+                            Купить
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Trust Store</h3>
+                    <p>Ваш надежный магазин цифровых товаров</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Компания</h4>
+                    <a href="#">О нас</a>
+                    <a href="#">Контакты</a>
+                    <a href="#">Вакансии</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Помощь</h4>
+                    <a href="#">FAQ</a>
+                    <a href="#">Доставка</a>
+                    <a href="#">Возврат</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Связь</h4>
+                    <a href="#">Email</a>
+                    <a href="#">Telegram</a>
+                    <a href="#">WhatsApp</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Trust Store. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="tracking.js"></script>
+    <script>
+        let currentPrice = 500;
+        let discountApplied = false;
+        
+        function selectPlan(element, price, duration) {
+            // Убрать active со всех опций
+            document.querySelectorAll('.pricing-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            // Добавить active к выбранной опции
+            element.classList.add('active');
+            
+            // Сохранить текущую цену
+            currentPrice = price;
+            
+            // Обновить цену (учитываем скидку если применена)
+            updatePrice();
+        }
+        
+        function updatePrice() {
+            const priceElement = document.getElementById('selected-price');
+            const oldPriceElement = document.getElementById('old-price');
+            const discountBadge = document.getElementById('discount-badge');
+            let finalPrice = currentPrice;
+            
+            if (discountApplied) {
+                finalPrice = Math.round(currentPrice * 0.9); // 10% скидка
+                
+                // Показываем старую цену зачеркнутой
+                oldPriceElement.textContent = currentPrice.toLocaleString('ru-RU') + ' ₽';
+                oldPriceElement.style.display = 'block';
+                
+                // Показываем бейдж со скидкой
+                discountBadge.style.display = 'block';
+                
+                // Анимация новой цены
+                priceElement.style.animation = 'priceUpdate 0.6s ease';
+                setTimeout(() => {
+                    priceElement.style.animation = '';
+                }, 600);
+            } else {
+                oldPriceElement.style.display = 'none';
+                discountBadge.style.display = 'none';
+            }
+            
+            priceElement.textContent = finalPrice.toLocaleString('ru-RU') + ' ₽';
+        }
+        
+        function applyPromoCode() {
+            const promoInput = document.getElementById('promo-code');
+            const promoCode = promoInput.value.trim().toUpperCase();
+            const messageElement = document.getElementById('promo-message');
+            
+            // Список валидных промокодов
+            const validCodes = {
+                'GPT5': 10
+            };
+            
+            if (promoCode === '') {
+                messageElement.style.display = 'block';
+                messageElement.style.color = '#ff6b6b';
+                messageElement.textContent = '❌ Введите промокод';
+                return;
+            }
+            
+            if (validCodes[promoCode]) {
+                const discount = validCodes[promoCode];
+                discountApplied = true;
+                updatePrice();
+                
+                messageElement.style.display = 'block';
+                messageElement.style.color = '#26de81';
+                messageElement.textContent = `✓ Промокод применен! Скидка ${discount}%`;
+                
+                promoInput.disabled = true;
+                promoInput.style.backgroundColor = '#f0f0f0';
+            } else {
+                messageElement.style.display = 'block';
+                messageElement.style.color = '#ff6b6b';
+                messageElement.textContent = '❌ Неверный промокод';
+            }
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Каталог - Trust Store</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" style="text-decoration: none;">
+                    <div class="logo">
+                        <img src="logo.png" alt="Trust Store" class="logo-image">
+                        <h1>Trust Store</h1>
+                    </div>
+                </a>
+                <nav class="nav">
+                    <a href="index.html" class="nav-link">Главная</a>
+                    <a href="catalog.html" class="nav-link">Каталог</a>
+                    <a href="#" class="nav-link">О нас</a>
+                    <a href="#" class="nav-link">Контакты</a>
+                </nav>
+                <div class="header-actions">
+                    <button class="btn-icon">🔍</button>
+                    <button class="btn-icon">🛒 <span class="badge">0</span></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Catalog Hero Section -->
+    <section class="hero" style="padding: 60px 0 40px;">
+        <div class="container">
+            <div class="hero-content" style="text-align: center;">
+                <h2 class="hero-title" style="font-size: 42px;">Полный каталог товаров</h2>
+                <p class="hero-subtitle" style="animation: none;">Все доступные цифровые товары в одном месте</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Grid -->
+    <section class="products-section" style="padding-top: 40px;">
+        <div class="container">
+            <div class="products-grid">
+                <!-- Product Card 1 - ChatGPT -->
+                <div class="product-card" onclick="window.location.href='product.html';" style="cursor: pointer;">
+                    <div class="product-image">
+                        <div class="product-badge badge-hit">🔥 Хит</div>
+                        <div class="product-badge badge-category">Подписка</div>
+                        <div class="product-img-placeholder" style="background: transparent;">
+                            <img src="gpt-image.png" alt="ChatGPT Plus" class="product-img" style="width: 100%; height: 100%; object-fit: contain; border-radius: 30px;">
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">ChatGPT Plus</h3>
+                        <p class="product-description">Оформление на ваш аккаунт</p>
+                        <div class="product-footer">
+                            <div class="product-price">
+                                <span class="price-current">от 2 250 ₽</span>
+                            </div>
+                            <a href="product.html" class="btn-buy" style="text-decoration: none; text-align: center; display: inline-block;">Купить</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Card 2 - Midjourney -->
+                <div class="product-card" onclick="window.location.href='midjourney.html';" style="cursor: pointer;">
+                    <div class="product-image">
+                        <div class="product-badge badge-category" style="white-space: nowrap;">AI Генерация</div>
+                        <div class="product-img-placeholder" style="background: transparent;">
+                            <img src="midjourney-image.png" alt="Midjourney" class="product-img" style="width: 100%; height: 100%; object-fit: contain; border-radius: 30px;">
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">Midjourney</h3>
+                        <p class="product-description">Подписка на нейросеть для генерации изображений</p>
+                        <div class="product-footer">
+                            <div class="product-price">
+                                <span class="price-current">от 500 ₽</span>
+                            </div>
+                            <a href="midjourney.html" class="btn-buy" style="text-decoration: none; text-align: center; display: inline-block;">Купить</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Card 3 - VPN -->
+                <div class="product-card" onclick="window.location.href='vpn.html';" style="cursor: pointer;">
+                    <div class="product-image">
+                        <div class="product-badge badge-category">Безопасность</div>
+                        <div class="product-img-placeholder" style="background: transparent;">
+                            <img src="vpn-image.png" alt="Личный VPN" class="product-img" style="width: 100%; height: 100%; object-fit: contain; border-radius: 30px;">
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">Личный VPN</h3>
+                        <p class="product-description">Персональный и безопасный сервис для всех платформ</p>
+                        <div class="product-footer">
+                            <div class="product-price">
+                                <span class="price-current">от 500 ₽</span>
+                            </div>
+                            <a href="vpn.html" class="btn-buy" style="text-decoration: none; text-align: center; display: inline-block;">Купить</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Card 4 -->
+                <div class="product-card" onclick="window.location.href='gemini.html';" style="cursor: pointer;">
+                    <div class="product-image">
+                        <div class="product-badge badge-category" style="white-space: nowrap;">AI Генерация</div>
+                        <div class="product-img-placeholder" style="background: transparent;">
+                            <img src="gemini-image.png" alt="Google Gemini + Veo 3" class="product-img" style="width: 100%; height: 100%; object-fit: contain; border-radius: 30px;">
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">Google Gemini + Veo 3</h3>
+                        <p class="product-description">Индивидуальная подписка Google AI Pro на ваш аккаунт</p>
+                        <div class="product-footer">
+                            <div class="product-price">
+                                <span class="price-current">от 2 250 ₽</span>
+                            </div>
+                            <a href="gemini.html" class="btn-buy" style="text-decoration: none; text-align: center; display: inline-block;">Купить</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Card 5 -->
+                <div class="product-card" onclick="window.location.href='cursor.html';" style="cursor: pointer;">
+                    <div class="product-image">
+                        <div class="product-badge badge-category" style="white-space: nowrap;">AI Генерация</div>
+                        <div class="product-img-placeholder" style="background: transparent;">
+                            <img src="cursor-image.png" alt="Cursor AI" class="product-img" style="width: 100%; height: 100%; object-fit: contain; border-radius: 30px;">
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">Cursor AI</h3>
+                        <p class="product-description">Нейросеть для вайб-кодеров и всех, кто ценит время</p>
+                        <div class="product-footer">
+                            <div class="product-price">
+                                <span class="price-current">от 2 250 ₽</span>
+                            </div>
+                            <a href="cursor.html" class="btn-buy" style="text-decoration: none; text-align: center; display: inline-block;">Купить</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Card 6 -->
+                <div class="product-card" onclick="window.location.href='claude.html';" style="cursor: pointer;">
+                    <div class="product-image">
+                        <div class="product-badge badge-category" style="white-space: nowrap;">AI Генерация</div>
+                        <div class="product-img-placeholder" style="background: transparent;">
+                            <img src="claude-image.png" alt="Claude AI" class="product-img" style="width: 100%; height: 100%; object-fit: contain; border-radius: 30px;">
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">Claude AI Pro</h3>
+                        <p class="product-description">Нейросеть для тех, кто пишет код и ценит скорость</p>
+                        <div class="product-footer">
+                            <div class="product-price">
+                                <span class="price-current">от 2 250 ₽</span>
+                            </div>
+                            <a href="claude.html" class="btn-buy" style="text-decoration: none; text-align: center; display: inline-block;">Купить</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Card 7 -->
+                <div class="product-card" onclick="window.location.href='youtube.html';" style="cursor: pointer;">
+                    <div class="product-image">
+                        <div class="product-badge badge-category">Видео</div>
+                        <div class="product-img-placeholder" style="background: transparent;">
+                            <img src="youtube-image.png" alt="YouTube Premium" class="product-img" style="width: 100%; height: 100%; object-fit: contain; border-radius: 30px;">
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">YouTube Premium</h3>
+                        <p class="product-description">Подписка Premium на ваш аккаунт</p>
+                        <div class="product-footer">
+                            <div class="product-price">
+                                <span class="price-current">от 800 ₽</span>
+                            </div>
+                            <a href="youtube.html" class="btn-buy" style="text-decoration: none; text-align: center; display: inline-block;">Купить</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Card 8 -->
+                <div class="product-card" onclick="window.location.href='adobe.html';" style="cursor: pointer;">
+                    <div class="product-image">
+                        <div class="product-badge badge-category">Дизайн</div>
+                        <div class="product-img-placeholder" style="background: transparent;">
+                            <img src="adobe-image.png" alt="Adobe Creative Cloud" class="product-img" style="width: 100%; height: 100%; object-fit: contain; border-radius: 30px;">
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">Adobe Creative Cloud</h3>
+                        <p class="product-description">Все инструменты для творчества в одном месте</p>
+                        <div class="product-footer">
+                            <div class="product-price">
+                                <span class="price-current">от 1 700 ₽</span>
+                            </div>
+                            <a href="adobe.html" class="btn-buy" style="text-decoration: none; text-align: center; display: inline-block;">Купить</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Card 9 -->
+                <div class="product-card" onclick="window.location.href='capcut.html';" style="cursor: pointer;">
+                    <div class="product-image">
+                        <div class="product-badge badge-category">Монтаж</div>
+                        <div class="product-img-placeholder" style="background: transparent;">
+                            <img src="capcut-image.png" alt="CapCut Pro" class="product-img" style="width: 100%; height: 100%; object-fit: contain; border-radius: 30px;">
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">CapCut Pro</h3>
+                        <p class="product-description">Все инструменты для видео и креатива</p>
+                        <div class="product-footer">
+                            <div class="product-price">
+                                <span class="price-current">от 1 250 ₽</span>
+                            </div>
+                            <a href="capcut.html" class="btn-buy" style="text-decoration: none; text-align: center; display: inline-block;">Купить</a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Trust Store</h3>
+                    <p>Ваш надежный магазин цифровых товаров</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Компания</h4>
+                    <a href="#">О нас</a>
+                    <a href="#">Контакты</a>
+                    <a href="#">Вакансии</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Помощь</h4>
+                    <a href="#">FAQ</a>
+                    <a href="#">Доставка</a>
+                    <a href="#">Возврат</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Связь</h4>
+                    <a href="#">Email</a>
+                    <a href="#">Telegram</a>
+                    <a href="#">WhatsApp</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Trust Store. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="tracking.js"></script>
+</body>
+</html>
+
