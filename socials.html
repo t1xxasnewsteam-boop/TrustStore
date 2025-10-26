@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мы в соцсетях - Trust Store</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="chat-widget.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .socials-page {
+            padding: 40px 0 50px;
+            background: white;
+        }
+        
+        .socials-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .socials-header h1 {
+            font-size: 48px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 15px;
+        }
+        
+        .socials-header p {
+            font-size: 18px;
+            color: #666;
+        }
+        
+        .socials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+            padding-bottom: 0;
+        }
+        
+        .social-card-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .social-card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 0;
+            padding-left: 5px;
+        }
+        
+        .social-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .social-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.12);
+        }
+        
+        .social-icon {
+            width: 55px;
+            height: 55px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+            flex-shrink: 0;
+        }
+        
+        .telegram-icon {
+            background: linear-gradient(135deg, #0088cc 0%, #229ED9 100%);
+            color: white;
+        }
+        
+        .telegram-icon img,
+        .youtube-icon img,
+        .partner-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 15px;
+        }
+        
+        .youtube-icon {
+            background: linear-gradient(135deg, #FF0000 0%, #CC0000 100%);
+            color: white;
+        }
+        
+        .social-card-info {
+            flex: 1;
+        }
+        
+        .social-card-info h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+        }
+        
+        .social-card-info p {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* Секция "Наши партнёры" */
+        .partners-section {
+            margin-top: 0;
+            padding: 50px 0 60px;
+            background: #f8f9fa;
+        }
+        
+        .partners-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .partners-header h2 {
+            font-size: 38px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+        
+        .partners-header p {
+            font-size: 16px;
+            color: #666;
+        }
+        
+        .partners-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .partner-card-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .partner-card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 0;
+            padding-left: 5px;
+        }
+        
+        .partner-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .partner-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.12);
+        }
+        
+        .partner-icon {
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+            flex-shrink: 0;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+        }
+        
+        .admin-icon {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .partner-info {
+            flex: 1;
+        }
+        
+        .partner-info h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+        }
+        
+        .partner-info p {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .socials-header h1 {
+                font-size: 36px;
+            }
+            
+            .socials-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .social-card {
+                padding: 20px;
+            }
+            
+            .partners-header h2 {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" style="text-decoration: none;">
+                    <div class="logo">
+                        <img src="logo.png" alt="Trust Store" class="logo-image">
+                        <h1>Trust Store</h1>
+                    </div>
+                </a>
+                <nav class="nav">
+                    <a href="index.html" class="nav-link">Главная</a>
+                    <a href="catalog.html" class="nav-link">Каталог</a>
+                    <a href="socials.html" class="nav-link">Мы в соцсетях</a>
+                </nav>
+                <div class="header-actions">
+                    <button class="btn-icon">🔍</button>
+                    <button class="btn-icon">🛒 <span class="badge">0</span></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Socials Page -->
+    <section class="socials-page">
+        <div class="container">
+            <div class="socials-header">
+                <h1>🌐 Мы в соцсетях</h1>
+                <p>Подписывайтесь на наши каналы и будьте в курсе всех новостей и акций!</p>
+            </div>
+            
+            <div class="socials-grid">
+                <!-- Telegram -->
+                <div class="social-card-wrapper">
+                    <h3 class="social-card-title">Мы в Telegram</h3>
+                    <a href="https://t.me/truststoreru" target="_blank" class="social-card">
+                        <div class="social-icon telegram-icon">
+                            <img src="telegram-avatar.png" alt="Telegram">
+                        </div>
+                        <div class="social-card-info">
+                            <h2>Trust Store</h2>
+                            <p>16 000+ подписчиков</p>
+                        </div>
+                    </a>
+                </div>
+                
+                <!-- YouTube -->
+                <div class="social-card-wrapper">
+                    <h3 class="social-card-title">Мы в YouTube</h3>
+                    <a href="https://www.youtube.com/@TrustStoreRU" target="_blank" class="social-card">
+                        <div class="social-icon youtube-icon">
+                            <img src="youtube-avatar.png" alt="YouTube">
+                        </div>
+                        <div class="social-card-info">
+                            <h2>Trust Store</h2>
+                            <p>2 000+ подписчиков</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Partners Section -->
+    <section class="partners-section">
+        <div class="container">
+            <div class="partners-header">
+                <h2>🤝 Наши партнёры</h2>
+                <p>Сотрудничество, которым мы гордимся</p>
+            </div>
+            
+            <div class="partners-grid">
+                <!-- Partner: twiceglow -->
+                <div class="partner-card-wrapper">
+                    <h3 class="partner-card-title">🤝 Наши партнёры</h3>
+                    <a href="https://www.youtube.com/@twiceglow" target="_blank" class="partner-card">
+                        <div class="partner-icon">
+                            <img src="partner-avatar.png" alt="twiceglow">
+                        </div>
+                        <div class="partner-info">
+                            <h3>twiceglow</h3>
+                            <p>2 000+ подписчиков</p>
+                        </div>
+                    </a>
+                </div>
+                
+                <!-- Admin: Trust Seller -->
+                <div class="partner-card-wrapper">
+                    <h3 class="partner-card-title">👤 Наш администратор</h3>
+                    <a href="https://t.me/truststore_admin" target="_blank" class="partner-card">
+                        <div class="partner-icon admin-icon">
+                            <img src="admin-avatar.png" alt="Trust Seller">
+                        </div>
+                        <div class="partner-info">
+                            <h3>Trust Seller (Артём)</h3>
+                            <p>Отвечает 24/7</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Trust Store</h3>
+                    <p>Ваш надежный магазин цифровых товаров</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Компания</h4>
+                    <a href="socials.html">Мы в соцсетях</a>
+                    <a href="catalog.html">Каталог</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Помощь</h4>
+                    <a href="#">FAQ</a>
+                    <a href="#">Доставка</a>
+                    <a href="#">Возврат</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Связь</h4>
+                    <a href="https://t.me/truststoreru" target="_blank">Telegram</a>
+                    <a href="https://www.youtube.com/@TrustStoreRU" target="_blank">YouTube</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Trust Store. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="tracking.js"></script>
+    <script src="chat-widget.js"></script>
+</body>
+</html>
+
