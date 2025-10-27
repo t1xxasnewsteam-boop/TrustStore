@@ -507,6 +507,17 @@ body {
 .btn-buy:hover {
     background: #333;
     transform: scale(1.05);
+    color: white;
+}
+
+.btn-buy:visited {
+    background: #1a1a1a;
+    color: white;
+}
+
+.btn-buy:active {
+    background: #1a1a1a;
+    color: white;
 }
 
 .btn-show-more:hover {
