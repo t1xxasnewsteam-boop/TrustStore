@@ -492,8 +492,8 @@ body {
 }
 
 .btn-buy {
-    background: #1a1a1a;
-    color: white;
+    background: #1a1a1a !important;
+    color: white !important;
     border: none;
     padding: 12px 28px;
     border-radius: 12px;
@@ -502,22 +502,29 @@ body {
     cursor: pointer;
     box-shadow: none;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none !important;
 }
 
 .btn-buy:hover {
-    background: #333;
+    background: #333 !important;
     transform: scale(1.05);
-    color: white;
+    color: white !important;
 }
 
 .btn-buy:visited {
-    background: #1a1a1a;
-    color: white;
+    background: #1a1a1a !important;
+    color: white !important;
 }
 
 .btn-buy:active {
-    background: #1a1a1a;
-    color: white;
+    background: #1a1a1a !important;
+    color: white !important;
+}
+
+.btn-buy:focus {
+    background: #1a1a1a !important;
+    color: white !important;
+    outline: none;
 }
 
 .btn-show-more:hover {
