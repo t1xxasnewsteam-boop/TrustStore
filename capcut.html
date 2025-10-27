@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CapCut Pro - Trust Store</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="search.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -300,7 +301,7 @@
                 </nav>
                 <div class="header-actions">
                     <button class="btn-icon">🔍</button>
-                    <button class="btn-icon">🛒 <span class="badge">0</span></button>
+                    <button class="btn-icon cart-button" onclick="window.location.href='cart.html'">🛒 <span class="badge cart-count">0</span></button>
                 </div>
             </div>
         </div>
@@ -386,7 +387,10 @@
                         <div id="promo-message" style="margin-top: 8px; font-size: 13px; display: none;"></div>
                     </div>
                     
-                    <button class="btn-buy-large">Купить сейчас</button>
+                    <div style="display: flex; gap: 15px; margin-bottom: 30px;">
+                        <button class="btn-buy-large" onclick="goToCheckout()">Купить сейчас</button>
+                        <button class="btn-add-cart" onclick="addProductToCart()">🛒 В корзину</button>
+                    </div>
                     
                     <h3>✨ Что входит:</h3>
                     <ul class="features-list">
@@ -546,6 +550,25 @@
             }
         }
     </script>
+    
+    <!-- Search Modal -->
+    <div id="search-modal">
+        <div class="search-modal-content">
+            <div class="search-modal-header">
+                <h2>🔍 Поиск</h2>
+                <button id="close-search">✕</button>
+            </div>
+            <div class="search-modal-body">
+                <div class="search-input-wrapper">
+                    <span class="search-input-icon">🔍</span>
+                    <input type="text" id="search-input" placeholder="Введите название товара...">
+                </div>
+                <div id="search-results"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="search.js"></script>
 </body>
 </html>
 

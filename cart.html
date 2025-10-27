@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корзина - Trust Store</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="search.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        
+        .cart-page {
+            padding: 60px 0 80px;
+            min-height: calc(100vh - 200px);
+        }
+        
+        .cart-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .cart-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .cart-header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+        
+        .cart-header p {
+            font-size: 16px;
+            color: #666;
+        }
+        
+        .cart-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+        }
+        
+        .cart-items {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        }
+        
+        .cart-item {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            border-radius: 15px;
+            background: #f8f9fa;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .cart-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .cart-item-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .cart-item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+        
+        .cart-item-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .cart-item-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+        }
+        
+        .cart-item-duration {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .cart-item-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .cart-item-price {
+            font-size: 22px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .btn-remove {
+            background: none;
+            border: none;
+            color: #ff4757;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-remove:hover {
+            background: #fff0f0;
+            color: #e03e4a;
+        }
+        
+        .cart-summary {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+        
+        .cart-summary h3 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+        
+        .cart-summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .cart-summary-row.total {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+        
+        .btn-checkout {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            margin-top: 20px;
+        }
+        
+        .btn-checkout:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+        }
+        
+        .empty-cart {
+            text-align: center;
+            padding: 80px 20px;
+        }
+        
+        .empty-cart-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .empty-cart h2 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+        
+        .empty-cart p {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .btn-continue {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-continue:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+        }
+        
+        @media (max-width: 768px) {
+            .cart-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .cart-summary {
+                position: static;
+                top: auto;
+            }
+            
+            .cart-item {
+                flex-direction: column;
+            }
+            
+            .cart-item-image {
+                width: 100%;
+                height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" style="text-decoration: none;">
+                    <div class="logo">
+                        <img src="logo.png" alt="Trust Store" class="logo-image">
+                        <h1>Trust Store</h1>
+                    </div>
+                </a>
+                <nav class="nav">
+                    <a href="index.html" class="nav-link">Главная</a>
+                    <a href="catalog.html" class="nav-link">Каталог</a>
+                    <a href="socials.html" class="nav-link">Мы в соцсетях</a>
+                </nav>
+                <div class="header-actions">
+                    <button class="btn-icon">🔍</button>
+                    <button class="btn-icon cart-button" onclick="window.location.href='cart.html'">🛒 <span class="badge cart-count">0</span></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Cart Page -->
+    <section class="cart-page">
+        <div class="container cart-container">
+            <div class="cart-header">
+                <h1>🛒 Ваша корзина</h1>
+                <p>Проверьте выбранные товары и оформите заказ</p>
+            </div>
+
+            <!-- Cart Items (will be populated by JavaScript) -->
+            <div id="cart-items-container">
+                <!-- JavaScript will insert cart items here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Trust Store</h3>
+                    <p>Ваш надежный магазин цифровых товаров</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Компания</h4>
+                    <a href="#">О нас</a>
+                    <a href="#">Контакты</a>
+                    <a href="#">Вакансии</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Помощь</h4>
+                    <a href="#">FAQ</a>
+                    <a href="#">Доставка</a>
+                    <a href="#">Возврат</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Связь</h4>
+                    <a href="#">Email</a>
+                    <a href="#">Telegram</a>
+                    <a href="#">WhatsApp</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Trust Store. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Chat Widget -->
+    <div id="chatWidget"></div>
+
+    <!-- Search Modal -->
+    <div id="searchModal" class="search-modal">
+        <div class="search-modal-content">
+            <div class="search-modal-header">
+                <h2>🔍 Поиск товаров</h2>
+                <button class="search-modal-close">&times;</button>
+            </div>
+            <input type="text" id="searchInput" class="search-input" placeholder="Введите название товара..." autocomplete="off">
+            <div id="searchResults" class="search-results"></div>
+        </div>
+    </div>
+
+    <script src="tracking.js"></script>
+    <script src="script.js"></script>
+    <script src="chat-widget.js"></script>
+    <script src="search.js"></script>
+    <script src="cart.js"></script>
+    
+    <script>
+        // Display cart items
+        function displayCart() {
+            const cart = getCart();
+            const container = document.getElementById('cart-items-container');
+            
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-cart">
+                        <div class="empty-cart-icon">🛒</div>
+                        <h2>Корзина пуста</h2>
+                        <p>Добавьте товары из каталога, чтобы оформить заказ</p>
+                        <a href="catalog.html" class="btn-continue">Перейти в каталог</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            let totalPrice = 0;
+            const itemsHTML = cart.map((item, index) => {
+                totalPrice += item.price;
+                return `
+                    <div class="cart-item" data-index="${index}">
+                        <div class="cart-item-image">
+                            <img src="${item.image || 'logo.png'}" alt="${item.name}">
+                        </div>
+                        <div class="cart-item-info">
+                            <div>
+                                <div class="cart-item-title">${item.name}</div>
+                                <div class="cart-item-duration">${item.duration}</div>
+                            </div>
+                            <div class="cart-item-actions">
+                                <div class="cart-item-price">${item.price.toLocaleString('ru-RU')} ₽</div>
+                                <button class="btn-remove" onclick="removeFromCartByIndex(${index})">🗑️ Удалить</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = `
+                <div class="cart-content">
+                    <div class="cart-items">
+                        ${itemsHTML}
+                    </div>
+                    <div class="cart-summary">
+                        <h3>Итого</h3>
+                        <div class="cart-summary-row">
+                            <span>Товары (${cart.length})</span>
+                            <span>${totalPrice.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                        <div class="cart-summary-row">
+                            <span>Доставка</span>
+                            <span>Моментально</span>
+                        </div>
+                        <div class="cart-summary-row total">
+                            <span>К оплате</span>
+                            <span>${totalPrice.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                        <button class="btn-checkout" onclick="proceedToCheckout()">Оформить заказ</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Remove item from cart by index
+        function removeFromCartByIndex(index) {
+            const cart = getCart();
+            cart.splice(index, 1);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            displayCart();
+            updateCartCount();
+            
+            // Show notification
+            const notification = document.createElement('div');
+            notification.innerHTML = `
+                <div style="position: fixed; bottom: 90px; right: 20px; background: white; padding: 15px 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 10001; animation: slideIn 0.5s ease;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 24px;">✅</span>
+                        <span style="font-weight: 600; color: #1a1a1a;">Товар удалён из корзины</span>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+        
+        // Proceed to checkout
+        function proceedToCheckout() {
+            const cart = getCart();
+            if (cart.length === 0) return;
+            
+            // For now, redirect to checkout with first item
+            // In future, handle multiple items
+            const firstItem = cart[0];
+            window.location.href = `checkout.html?product=${encodeURIComponent(firstItem.name)}&price=${firstItem.price}&duration=${encodeURIComponent(firstItem.duration)}`;
+        }
+        
+        // Initialize cart display
+        displayCart();
+    </script>
+</body>
+</html>

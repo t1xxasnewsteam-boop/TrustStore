@@ -6,6 +6,7 @@
     <title>Мы в соцсетях - Trust Store</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="chat-widget.css">
+    <link rel="stylesheet" href="search.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -372,9 +373,28 @@
         </div>
     </footer>
 
+    <!-- Search Modal -->
+    <div id="search-modal">
+        <div class="search-modal-content">
+            <div class="search-modal-header">
+                <h2>🔍 Поиск</h2>
+                <button id="close-search">✕</button>
+            </div>
+            <div class="search-modal-body">
+                <div class="search-input-wrapper">
+                    <span class="search-input-icon">🔍</span>
+                    <input type="text" id="search-input" placeholder="Введите название товара...">
+                </div>
+                <div id="search-results"></div>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
     <script src="tracking.js"></script>
     <script src="chat-widget.js"></script>
+    <script src="search.js"></script>
+    <script src="cart.js"></script>
 </body>
 </html>
 
