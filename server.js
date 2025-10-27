@@ -342,12 +342,12 @@ try {
     console.error('❌ Ошибка миграции:', error.message);
 }
 
-// Создаем дефолтного админа (username: admin, password: admin123)
-const checkAdmin = db.prepare('SELECT * FROM admins WHERE username = ?').get('admin');
+// Создаем дефолтного админа (username: t1xxas, password: Gaga00723)
+const checkAdmin = db.prepare('SELECT * FROM admins WHERE username = ?').get('t1xxas');
 if (!checkAdmin) {
-    const hashedPassword = bcrypt.hashSync('admin123', 10);
-    db.prepare('INSERT INTO admins (username, password) VALUES (?, ?)').run('admin', hashedPassword);
-    console.log('✅ Создан дефолтный админ: admin / admin123');
+    const hashedPassword = bcrypt.hashSync('Gaga00723', 10);
+    db.prepare('INSERT INTO admins (username, password) VALUES (?, ?)').run('t1xxas', hashedPassword);
+    console.log('✅ Создан дефолтный админ: t1xxas / Gaga00723');
 }
 
 // Добавляем товары если их нет
@@ -1264,8 +1264,8 @@ app.listen(PORT, () => {
     console.log(`
     ✅ Сервер запущен на http://localhost:${PORT}
     📊 Админ-панель: http://localhost:${PORT}/t1xxas
-    👤 Логин: admin
-    🔑 Пароль: admin123
+    👤 Логин: t1xxas
+    🔑 Пароль: Gaga00723
     `);
 });
 
