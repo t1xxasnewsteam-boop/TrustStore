@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="chat-widget.css">
     <link rel="stylesheet" href="search.css">
+    <link rel="stylesheet" href="cart-widget.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -243,20 +244,23 @@
     <header class="header">
         <div class="container">
             <div class="header-content">
-                <a href="index.html" style="text-decoration: none;">
-                    <div class="logo">
-                        <img src="logo.png" alt="Trust Store" class="logo-image">
-                        <h1>Trust Store</h1>
-                    </div>
-                </a>
+                <div style="display: flex; flex-direction: column; gap: 0px;">
+                    <a href="/" style="text-decoration: none;">
+                        <div class="logo">
+                            <img src="logo.png" alt="Trust Store" class="logo-image">
+                            <h1>Trust Store</h1>
+                        </div>
+                    </a>
+                    <span class="logo-subtitle" style="pointer-events: none;">магазин цифровых товаров</span>
+                </div>
                 <nav class="nav">
-                    <a href="index.html" class="nav-link">Главная</a>
-                    <a href="catalog.html" class="nav-link">Каталог</a>
-                    <a href="socials.html" class="nav-link">Мы в соцсетях</a>
+                    <a href="/" class="nav-link">Главная</a>
+                    <a href="/catalog" class="nav-link">Каталог</a>
+                    <a href="/socials" class="nav-link">Мы в соцсетях</a>
                 </nav>
                 <div class="header-actions">
-                    <button class="btn-icon">🔍</button>
-                    <button class="btn-icon">🛒 <span class="badge">0</span></button>
+                    <button class="btn-icon search-button">🔍</button>
+                    <button class="btn-icon cart-button" onclick="toggleCartWidget()">🛒 <span class="badge cart-count">0</span></button>
                 </div>
             </div>
         </div>
@@ -352,8 +356,8 @@
                 </div>
                 <div class="footer-section">
                     <h4>Компания</h4>
-                    <a href="socials.html">Мы в соцсетях</a>
-                    <a href="catalog.html">Каталог</a>
+                    <a href="/socials">Мы в соцсетях</a>
+                    <a href="/catalog">Каталог</a>
                 </div>
                 <div class="footer-section">
                     <h4>Помощь</h4>
@@ -390,11 +394,34 @@
         </div>
     </div>
 
+    <div id="cartWidgetOverlay" class="cart-widget-overlay"></div>
+    
+    <!-- Cart Widget -->
+    <div id="cartWidget" class="cart-widget">
+        <div class="cart-widget-header">
+            <h3>🛒 Корзина</h3>
+            <button class="cart-widget-close" onclick="closeCartWidget()">×</button>
+        </div>
+        <div class="cart-widget-items" id="cartWidgetItems"></div>
+        <div class="cart-widget-footer" id="cartWidgetFooter">
+            <div class="cart-widget-total">
+                <span class="cart-widget-total-label">Итого:</span>
+                <span class="cart-widget-total-price" id="cartWidgetTotalPrice">0 ₽</span>
+            </div>
+            <div class="cart-widget-actions">
+                <button class="btn-view-full-cart" onclick="window.location.href='cart.html'">Открыть корзину</button>
+                <button class="btn-cart-checkout" onclick="checkoutFromWidget()">Оформить</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
     <script src="tracking.js"></script>
     <script src="chat-widget.js"></script>
     <script src="search.js"></script>
     <script src="cart.js"></script>
+    <script src="cart-widget.js"></script>
+    <script src="notification.js"></script>
 </body>
 </html>
 

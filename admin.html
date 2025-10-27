@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Админ-панель - Trust Store</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -15,190 +15,313 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: #f5f5f5;
-        }
-
-        .login-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .login-box h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
+            background: #f8f9fc;
             color: #1a1a1a;
         }
 
-        .login-box p {
-            color: #666;
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, #1a1f36 0%, #0f1419 100%);
+            padding: 30px 20px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .logo-admin {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo-admin img {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+        }
+
+        .logo-admin h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .menu-section {
             margin-bottom: 30px;
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
+        .menu-section-title {
+            font-size: 11px;
             font-weight: 600;
-            color: #1a1a1a;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            padding-left: 15px;
         }
 
-        .form-group input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 14px;
-            font-family: 'Inter', sans-serif;
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            border-radius: 10px;
+            margin-bottom: 5px;
             transition: all 0.3s ease;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
         }
 
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
         }
 
-        .btn-login {
-            width: 100%;
+        .menu-item.active {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        .menu-item-icon {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
         }
 
-        .error-message {
-            color: #e74c3c;
-            background: #ffe4e1;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
+            min-height: 100vh;
         }
 
-        .dashboard {
-            display: none;
-        }
-
-        .header {
-            background: white;
-            padding: 20px 40px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        .top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .header h1 {
-            font-size: 24px;
-            color: #1a1a1a;
-        }
-
-        .btn-logout {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-logout:hover {
-            background: #c0392b;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
             margin-bottom: 40px;
-        }
-
-        .stat-card {
             background: white;
-            padding: 30px;
+            padding: 20px 30px;
             border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
-        .stat-card h3 {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .stat-card .number {
-            font-size: 36px;
+        .page-title {
+            font-size: 28px;
             font-weight: 700;
             color: #1a1a1a;
         }
 
+        .top-bar-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .stat-title {
+            font-size: 14px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .stat-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .stat-icon.purple { background: linear-gradient(135deg, #667eea20, #764ba220); }
+        .stat-icon.green { background: linear-gradient(135deg, #56ab2f20, #a8e06320); }
+        .stat-icon.orange { background: linear-gradient(135deg, #f7971e20, #ffd20020); }
+        .stat-icon.blue { background: linear-gradient(135deg, #2196f320, #21cbf320); }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+
+        .stat-change {
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stat-change.positive { color: #10b981; }
+        .stat-change.negative { color: #ef4444; }
+
+        /* Charts */
         .charts-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: 2fr 1fr;
             gap: 20px;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         .chart-card {
             background: white;
-            padding: 30px;
+            padding: 25px;
             border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
-        .chart-card h3 {
-            font-size: 18px;
-            font-weight: 600;
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 700;
             color: #1a1a1a;
         }
 
+        .chart-filter {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        /* Table */
         .table-card {
             background: white;
-            padding: 30px;
+            padding: 25px;
             border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
         }
 
-        .table-card h3 {
-            font-size: 18px;
-            font-weight: 600;
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
+        }
+
+        .table-title {
+            font-size: 18px;
+            font-weight: 700;
             color: #1a1a1a;
+        }
+
+        .search-box {
+            padding: 10px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 14px;
+            width: 250px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
         }
 
         table {
@@ -207,19 +330,20 @@
         }
 
         th {
-            background: #f8f9fa;
-            padding: 12px;
+            background: #f8f9fc;
+            padding: 15px;
             text-align: left;
-            font-weight: 600;
+            font-weight: 700;
             color: #666;
             font-size: 12px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         td {
-            padding: 12px;
+            padding: 15px;
             border-bottom: 1px solid #f0f0f0;
-            color: #666;
+            color: #1a1a1a;
             font-size: 14px;
         }
 
@@ -227,263 +351,1521 @@
             border-bottom: none;
         }
 
-        .device-badge {
+        tr:hover {
+            background: #f8f9fc;
+        }
+
+        .status-badge {
             display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
+            padding: 6px 12px;
+            border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
         }
 
-        .device-badge.desktop {
-            background: #e3f2fd;
-            color: #1976d2;
+        .status-badge.completed { background: #d1fae5; color: #065f46; }
+        .status-badge.pending { background: #fef3c7; color: #92400e; }
+        .status-badge.cancelled { background: #fee2e2; color: #991b1b; }
+        .status-badge.processing { background: #dbeafe; color: #1e40af; }
+
+        .product-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        .device-badge.mobile {
-            background: #f3e5f5;
-            color: #7b1fa2;
+        .product-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #f0f0f0;
+        }
+
+        /* Hidden sections */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading Animation */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .btn-action {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-action:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .quick-stat {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fc;
+            border-radius: 10px;
+        }
+
+        .quick-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .quick-stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
-    <!-- Форма входа -->
-    <div id="login-container" class="login-container">
-        <div class="login-box">
-            <h1>🔐 Вход в админ-панель</h1>
-            <p>Trust Store Analytics</p>
-            
-            <div id="error-message" class="error-message"></div>
-            
-            <form id="login-form">
-                <div class="form-group">
-                    <label>Логин</label>
-                    <input type="text" id="username" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Пароль</label>
-                    <input type="password" id="password" required>
-                </div>
-                
-                <button type="submit" class="btn-login">Войти</button>
-            </form>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo-admin">
+            <img src="logo.png" alt="Trust Store">
+            <h1>Trust Store</h1>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-section-title">Основное</div>
+            <a class="menu-item active" data-section="dashboard">
+                <span class="menu-item-icon">📊</span>
+                <span>Дашборд</span>
+            </a>
+            <a class="menu-item" data-section="analytics">
+                <span class="menu-item-icon">📈</span>
+                <span>Аналитика</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-section-title">Магазин</div>
+            <a class="menu-item" data-section="orders">
+                <span class="menu-item-icon">📦</span>
+                <span>Заказы</span>
+            </a>
+            <a class="menu-item" data-section="products">
+                <span class="menu-item-icon">🛍️</span>
+                <span>Товары</span>
+            </a>
+            <a class="menu-item" data-section="customers">
+                <span class="menu-item-icon">👥</span>
+                <span>Клиенты</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-section-title">Финансы</div>
+            <a class="menu-item" data-section="revenue">
+                <span class="menu-item-icon">💰</span>
+                <span>Выручка</span>
+            </a>
+            <a class="menu-item" data-section="payments">
+                <span class="menu-item-icon">💳</span>
+                <span>Платежи</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-section-title">Трафик</div>
+            <a class="menu-item" data-section="traffic">
+                <span class="menu-item-icon">🌐</span>
+                <span>Посещения</span>
+            </a>
+            <a class="menu-item" data-section="geography">
+                <span class="menu-item-icon">🗺️</span>
+                <span>География</span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-section-title">Поддержка</div>
+            <a class="menu-item" data-section="support">
+                <span class="menu-item-icon">💬</span>
+                <span>Тикеты</span>
+                <span class="badge" id="unread-tickets-badge" style="display: none; margin-left: auto; background: #ef4444; color: white; font-size: 11px; padding: 2px 6px; border-radius: 10px;"></span>
+            </a>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-section-title">Система</div>
+            <a class="menu-item" data-section="settings">
+                <span class="menu-item-icon">⚙️</span>
+                <span>Настройки</span>
+            </a>
         </div>
     </div>
 
-    <!-- Дашборд -->
-    <div id="dashboard" class="dashboard">
-        <div class="header">
-            <h1>📊 Аналитика Trust Store</h1>
-            <button class="btn-logout" onclick="logout()">Выйти</button>
-        </div>
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="content-section active">
+            <div class="top-bar">
+                <h1 class="page-title">📊 Дашборд</h1>
+                <div class="top-bar-actions">
+                    <button class="btn-primary">📥 Экспорт отчета</button>
+                    <div class="user-info">
+                        <div class="user-avatar">A</div>
+                        <span>Admin</span>
+                    </div>
+                </div>
+            </div>
 
-        <div class="container">
-            <!-- Статистика -->
+            <!-- Stats Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <h3>Всего посещений</h3>
-                    <div class="number" id="total-visits">0</div>
+                    <div class="stat-header">
+                        <div class="stat-title">💰 Общая выручка</div>
+                        <div class="stat-icon purple">💵</div>
+                    </div>
+                    <div class="stat-value" id="total-revenue">0 ₽</div>
+                    <div class="stat-change positive">
+                        <span>↗</span>
+                        <span id="revenue-change">+0%</span> за последние 30 дней
+                    </div>
                 </div>
-                
+
                 <div class="stat-card">
-                    <h3>Уникальных посетителей</h3>
-                    <div class="number" id="unique-visitors">0</div>
+                    <div class="stat-header">
+                        <div class="stat-title">📦 Заказы</div>
+                        <div class="stat-icon green">📊</div>
+                    </div>
+                    <div class="stat-value" id="total-orders">0</div>
+                    <div class="stat-change positive">
+                        <span>↗</span>
+                        <span id="orders-change">+0%</span> за последние 30 дней
+                    </div>
                 </div>
-                
+
                 <div class="stat-card">
-                    <h3>Desktop</h3>
-                    <div class="number" id="desktop-count">0</div>
+                    <div class="stat-header">
+                        <div class="stat-title">👥 Клиенты</div>
+                        <div class="stat-icon orange">👤</div>
+                    </div>
+                    <div class="stat-value" id="total-customers">0</div>
+                    <div class="stat-change positive">
+                        <span>↗</span>
+                        <span id="customers-change">+0%</span> новых клиентов
+                    </div>
                 </div>
-                
+
                 <div class="stat-card">
-                    <h3>Mobile</h3>
-                    <div class="number" id="mobile-count">0</div>
+                    <div class="stat-header">
+                        <div class="stat-title">🌐 Посещения</div>
+                        <div class="stat-icon blue">📈</div>
+                    </div>
+                    <div class="stat-value" id="total-visits">0</div>
+                    <div class="stat-change positive">
+                        <span>↗</span>
+                        <span id="visits-change">+0%</span> за неделю
+                    </div>
                 </div>
             </div>
 
-            <!-- Графики -->
+            <!-- Charts -->
             <div class="charts-grid">
                 <div class="chart-card">
-                    <h3>📈 Посещения по дням (последние 7 дней)</h3>
-                    <canvas id="daily-chart"></canvas>
+                    <div class="chart-header">
+                        <div class="chart-title">📈 График продаж</div>
+                        <div class="chart-filter">
+                            <button class="filter-btn active">7 дней</button>
+                            <button class="filter-btn">30 дней</button>
+                            <button class="filter-btn">90 дней</button>
+                        </div>
+                    </div>
+                    <canvas id="sales-chart"></canvas>
                 </div>
-                
+
                 <div class="chart-card">
-                    <h3>📄 Популярные страницы</h3>
-                    <canvas id="pages-chart"></canvas>
+                    <div class="chart-title" style="margin-bottom: 20px;">🔥 Популярные товары</div>
+                    <canvas id="products-chart"></canvas>
                 </div>
             </div>
 
-            <!-- Таблица последних посещений -->
+            <!-- Recent Orders Table -->
             <div class="table-card">
-                <h3>🕐 Последние посещения</h3>
-                <table id="recent-visits-table">
+                <div class="table-header">
+                    <div class="table-title">📦 Последние заказы</div>
+                    <input type="text" class="search-box" placeholder="🔍 Поиск заказов...">
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>№ Заказа</th>
+                            <th>Клиент</th>
+                            <th>Товары</th>
+                            <th>Сумма</th>
+                            <th>Статус</th>
+                            <th>Дата</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table">
+                        <!-- Orders will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div id="analytics" class="content-section">
+            <div class="top-bar">
+                <h1 class="page-title">📈 Аналитика</h1>
+            </div>
+
+            <div class="quick-stats">
+                <div class="quick-stat">
+                    <div class="quick-stat-value" id="conversion-rate">0%</div>
+                    <div class="quick-stat-label">Конверсия</div>
+                </div>
+                <div class="quick-stat">
+                    <div class="quick-stat-value" id="avg-order">0 ₽</div>
+                    <div class="quick-stat-label">Средний чек</div>
+                </div>
+                <div class="quick-stat">
+                    <div class="quick-stat-value" id="bounce-rate">0%</div>
+                    <div class="quick-stat-label">Показатель отказов</div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title" style="margin-bottom: 20px;">📊 Источники трафика</div>
+                    <canvas id="traffic-sources-chart"></canvas>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title" style="margin-bottom: 20px;">⏱️ Время на сайте</div>
+                    <canvas id="time-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Section -->
+        <div id="orders" class="content-section">
+            <div class="top-bar">
+                <h1 class="page-title">📦 Заказы</h1>
+                <button class="btn-primary">+ Создать заказ</button>
+            </div>
+
+            <div class="table-card">
+                <div class="table-header">
+                    <div class="table-title">Все заказы</div>
+                    <input type="text" class="search-box" placeholder="🔍 Поиск...">
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>№</th>
+                            <th>Клиент</th>
+                            <th>Email</th>
+                            <th>Товары</th>
+                            <th>Сумма</th>
+                            <th>Статус</th>
+                            <th>Дата</th>
+                        </tr>
+                    </thead>
+                    <tbody id="all-orders-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Products Section -->
+        <div id="products" class="content-section">
+            <div class="top-bar">
+                <h1 class="page-title">🛍️ Товары</h1>
+                <button class="btn-primary">+ Добавить товар</button>
+            </div>
+
+            <div class="table-card">
+                <div class="table-header">
+                    <div class="table-title">Каталог товаров</div>
+                    <input type="text" class="search-box" placeholder="🔍 Поиск товаров...">
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Товар</th>
+                            <th>Категория</th>
+                            <th>Цена</th>
+                            <th>Продано</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Customers Section -->
+        <div id="customers" class="content-section">
+            <div class="top-bar">
+                <h1 class="page-title">👥 Клиенты</h1>
+                <button class="btn-primary">+ Добавить клиента</button>
+            </div>
+
+            <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="stat-card">
+                    <div class="stat-title">Всего клиентов</div>
+                    <div class="stat-value" id="customers-total">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Новые за месяц</div>
+                    <div class="stat-value" id="customers-new">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Повторные покупки</div>
+                    <div class="stat-value" id="customers-repeat">0%</div>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Клиент</th>
+                            <th>Email</th>
+                            <th>Заказов</th>
+                            <th>Потрачено</th>
+                            <th>Регистрация</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customers-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Revenue Section -->
+        <div id="revenue" class="content-section">
+            <div class="top-bar">
+                <h1 class="page-title">💰 Выручка</h1>
+            </div>
+
+            <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+                <div class="stat-card">
+                    <div class="stat-title">Сегодня</div>
+                    <div class="stat-value" id="revenue-today">0 ₽</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Эта неделя</div>
+                    <div class="stat-value" id="revenue-week">0 ₽</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Этот месяц</div>
+                    <div class="stat-value" id="revenue-month">0 ₽</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Всего</div>
+                    <div class="stat-value" id="revenue-all">0 ₽</div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title" style="margin-bottom: 20px;">📊 Доход по месяцам</div>
+                <canvas id="revenue-chart"></canvas>
+            </div>
+        </div>
+
+        <!-- Payments Section -->
+        <div id="payments" class="content-section">
+            <div class="top-bar">
+                <h1 class="page-title">💳 Платежи</h1>
+            </div>
+
+            <div class="table-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID Платежа</th>
+                            <th>Заказ</th>
+                            <th>Клиент</th>
+                            <th>Сумма</th>
+                            <th>Метод</th>
+                            <th>Статус</th>
+                            <th>Дата</th>
+                        </tr>
+                    </thead>
+                    <tbody id="payments-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Traffic Section -->
+        <div id="traffic" class="content-section">
+            <div class="top-bar">
+                <h1 class="page-title">🌐 Посещения</h1>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">Всего посещений</div>
+                    <div class="stat-value" id="traffic-total">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Уникальных</div>
+                    <div class="stat-value" id="traffic-unique">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Desktop</div>
+                    <div class="stat-value" id="traffic-desktop">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Mobile</div>
+                    <div class="stat-value" id="traffic-mobile">0</div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title" style="margin-bottom: 20px;">📈 Посещения по дням</div>
+                    <canvas id="visits-chart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title" style="margin-bottom: 20px;">📱 Устройства</div>
+                    <canvas id="devices-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <div class="table-title" style="margin-bottom: 20px;">Последние посещения</div>
+                <table>
                     <thead>
                         <tr>
                             <th>Страница</th>
                             <th>IP</th>
                             <th>Устройство</th>
+                            <th>Браузер</th>
                             <th>Время</th>
                         </tr>
                     </thead>
-                    <tbody id="recent-visits">
-                    </tbody>
+                    <tbody id="visits-table"></tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- Geography Section -->
+        <div id="geography" class="content-section">
+            <div class="top-bar">
+                <h1 class="page-title">🗺️ География</h1>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title" style="margin-bottom: 20px;">🌍 Посетители по странам</div>
+                <canvas id="countries-chart"></canvas>
+            </div>
+
+            <div class="table-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Страна</th>
+                            <th>Посещения</th>
+                            <th>Заказы</th>
+                            <th>Доля трафика</th>
+                        </tr>
+                    </thead>
+                    <tbody id="geography-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Support Section -->
+        <div id="support" class="content-section">
+            <div class="top-bar">
+                <h1 class="page-title">💬 Поддержка</h1>
+                <div class="top-bar-actions">
+                    <button class="btn-primary" onclick="refreshTickets()">🔄 Обновить</button>
+                </div>
+            </div>
+
+            <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="stat-card">
+                    <div class="stat-title">Всего тикетов</div>
+                    <div class="stat-value" id="support-total">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Открытые</div>
+                    <div class="stat-value" id="support-open">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Непрочитанные</div>
+                    <div class="stat-value" id="support-unread">0</div>
+                </div>
+            </div>
+
+            <!-- Список тикетов -->
+            <div class="table-card">
+                <div class="table-header">
+                    <div class="table-title">Тикеты поддержки</div>
+                    <select id="ticket-filter" style="padding: 10px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px;">
+                        <option value="all">Все тикеты</option>
+                        <option value="open">Открытые</option>
+                        <option value="closed">Закрытые</option>
+                        <option value="unread">Непрочитанные</option>
+                    </select>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Клиент</th>
+                            <th>Последнее сообщение</th>
+                            <th>Сообщений</th>
+                            <th>Статус</th>
+                            <th>Дата</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tickets-table"></tbody>
+                </table>
+            </div>
+
+            <!-- Модальное окно тикета -->
+            <div id="ticket-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 2000; align-items: center; justify-content: center;">
+                <div style="background: white; border-radius: 20px; max-width: 800px; width: 90%; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column;">
+                    <!-- Заголовок -->
+                    <div style="padding: 20px 30px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
+                        <h2 style="font-size: 20px; font-weight: 700;" id="modal-ticket-id"></h2>
+                        <button onclick="closeTicketModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #999;">×</button>
+                    </div>
+                    
+                    <!-- Сообщения -->
+                    <div id="modal-messages" style="flex: 1; overflow-y: auto; padding: 30px; background: #f8f9fc;">
+                        <!-- Messages will be here -->
+                    </div>
+                    
+                    <!-- Форма ответа -->
+                    <div style="padding: 20px 30px; border-top: 1px solid #f0f0f0; background: white;">
+                        <textarea id="reply-message" placeholder="Введите ваш ответ..." style="width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-family: inherit; min-height: 80px; resize: vertical;"></textarea>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="btn-primary" onclick="sendReply()">✉️ Отправить ответ</button>
+                            <button class="btn-action btn-secondary" id="modal-status-btn" onclick="toggleTicketStatus()">Закрыть тикет</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div id="settings" class="content-section">
+            <div class="top-bar">
+                <h1 class="page-title">⚙️ Настройки</h1>
+            </div>
+
+            <div class="table-card">
+                <div class="table-title" style="margin-bottom: 20px;">Основные настройки</div>
+                <div style="padding: 20px 0;">
+                    <p style="color: #666; line-height: 1.8;">
+                        <strong>Название магазина:</strong> Trust Store<br>
+                        <strong>Домен:</strong> truststore.ru<br>
+                        <strong>Email:</strong> admin@truststore.ru<br>
+                        <strong>Валюта:</strong> RUB (₽)<br>
+                        <strong>Часовой пояс:</strong> Europe/Moscow (UTC+3)<br>
+                        <strong>Язык:</strong> Русский
+                    </p>
+                    <button class="btn-primary" style="margin-top: 20px;">Редактировать настройки</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Проверка авторизации при загрузке
-        checkAuth();
+        // Navigation
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const section = this.getAttribute('data-section');
+                
+                // Update active menu item
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show corresponding section
+                document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+                document.getElementById(section).classList.add('active');
+                
+                // Load section data
+                loadSectionData(section);
+            });
+        });
 
-        async function checkAuth() {
-            try {
-                const response = await fetch('/api/check-auth');
-                if (response.ok) {
-                    showDashboard();
-                    loadStats();
-                }
-            } catch (error) {
-                console.log('Не авторизован');
-            }
+        // Demo Data Generator
+        function generateDemoData() {
+            return {
+                revenue: {
+                    total: 2847500,
+                    today: 45000,
+                    week: 312000,
+                    month: 985000,
+                    change: 23.5
+                },
+                orders: {
+                    total: 1247,
+                    change: 18.2
+                },
+                customers: {
+                    total: 856,
+                    new: 124,
+                    repeat: 42,
+                    change: 12.5
+                },
+                visits: {
+                    total: 15420,
+                    unique: 8950,
+                    desktop: 9850,
+                    mobile: 5570,
+                    change: 15.8
+                },
+                analytics: {
+                    conversion: 3.8,
+                    avgOrder: 2283,
+                    bounceRate: 42.5
+                },
+                salesData: [12000, 19000, 15000, 25000, 22000, 30000, 28000],
+                revenueMonthly: [850000, 920000, 1050000, 1120000, 980000, 1150000, 1200000, 1100000, 985000, 1050000, 1150000, 1200000],
+                topProducts: {
+                    labels: ['ChatGPT Plus', 'Midjourney', 'Claude AI', 'YouTube Premium', 'VPN'],
+                    data: [325, 280, 195, 165, 142]
+                },
+                trafficSources: {
+                    labels: ['Прямой', 'Google', 'Социальные сети', 'Реферальный', 'Email'],
+                    data: [45, 30, 15, 7, 3]
+                },
+                orders: [
+                    { id: 'ORD-1247', customer: 'Иван Петров', email: 'ivan@mail.ru', products: 'ChatGPT Plus (1 мес)', amount: 2250, status: 'completed', date: '2025-10-27 15:30' },
+                    { id: 'ORD-1246', customer: 'Мария Сидорова', email: 'maria@gmail.com', products: 'Midjourney Pro (1 мес)', amount: 3500, status: 'completed', date: '2025-10-27 14:15' },
+                    { id: 'ORD-1245', customer: 'Алексей Иванов', email: 'alex@yandex.ru', products: 'Claude AI Pro (3 мес)', amount: 6150, status: 'processing', date: '2025-10-27 13:45' },
+                    { id: 'ORD-1244', customer: 'Ольга Смирнова', email: 'olga@mail.ru', products: 'YouTube Premium (12 мес)', amount: 2990, status: 'completed', date: '2025-10-27 12:20' },
+                    { id: 'ORD-1243', customer: 'Дмитрий Козлов', email: 'dmitry@gmail.com', products: 'VPN Premium (6 мес)', amount: 1890, status: 'pending', date: '2025-10-27 11:00' }
+                ],
+                products: [
+                    { name: 'ChatGPT Plus', category: 'AI Генерация', price: 2250, sold: 325, status: 'active', image: 'chatgpt.png' },
+                    { name: 'Midjourney Pro', category: 'AI Генерация', price: 3500, sold: 280, status: 'active', image: 'midjourney.png' },
+                    { name: 'Claude AI Pro', category: 'AI Генерация', price: 2050, sold: 195, status: 'active', image: 'claude.png' },
+                    { name: 'YouTube Premium', category: 'Видео', price: 249, sold: 165, status: 'active', image: 'youtube.png' },
+                    { name: 'VPN Premium', category: 'Безопасность', price: 315, sold: 142, status: 'active', image: 'vpn.png' },
+                    { name: 'Adobe Creative Cloud', category: 'Дизайн', price: 4200, sold: 98, status: 'active', image: 'adobe.png' },
+                    { name: 'CapCut Pro', category: 'Монтаж', price: 1890, sold: 76, status: 'active', image: 'capcut.png' },
+                    { name: 'Cursor AI', category: 'AI Генерация', price: 1850, sold: 54, status: 'active', image: 'cursor.png' }
+                ],
+                customers: [
+                    { name: 'Иван Петров', email: 'ivan@mail.ru', orders: 12, spent: 45600, joined: '2024-03-15' },
+                    { name: 'Мария Сидорова', email: 'maria@gmail.com', orders: 8, spent: 28900, joined: '2024-05-22' },
+                    { name: 'Алексей Иванов', email: 'alex@yandex.ru', orders: 6, spent: 18500, joined: '2024-07-10' },
+                    { name: 'Ольга Смирнова', email: 'olga@mail.ru', orders: 5, spent: 15800, joined: '2024-08-05' },
+                    { name: 'Дмитрий Козлов', email: 'dmitry@gmail.com', orders: 4, spent: 12300, joined: '2024-09-12' }
+                ],
+                payments: [
+                    { id: 'PAY-8742', order: 'ORD-1247', customer: 'Иван Петров', amount: 2250, method: 'YooMoney', status: 'completed', date: '2025-10-27 15:30' },
+                    { id: 'PAY-8741', order: 'ORD-1246', customer: 'Мария Сидорова', amount: 3500, method: 'Карта', status: 'completed', date: '2025-10-27 14:15' },
+                    { id: 'PAY-8740', order: 'ORD-1245', customer: 'Алексей Иванов', amount: 6150, method: 'YooMoney', status: 'processing', date: '2025-10-27 13:45' },
+                    { id: 'PAY-8739', order: 'ORD-1244', customer: 'Ольга Смирнова', amount: 2990, method: 'Карта', status: 'completed', date: '2025-10-27 12:20' }
+                ],
+                visits: [
+                    { page: 'index.html', ip: '185.xxx.xxx.102', device: 'Desktop', browser: 'Chrome', time: '2025-10-27 16:45' },
+                    { page: 'product.html', ip: '95.xxx.xxx.78', device: 'Mobile', browser: 'Safari', time: '2025-10-27 16:42' },
+                    { page: 'catalog.html', ip: '178.xxx.xxx.156', device: 'Desktop', browser: 'Firefox', time: '2025-10-27 16:40' },
+                    { page: 'midjourney.html', ip: '212.xxx.xxx.45', device: 'Mobile', browser: 'Chrome', time: '2025-10-27 16:38' }
+                ],
+                geography: [
+                    { country: '🇷🇺 Россия', visits: 12450, orders: 1050, share: '80.7%' },
+                    { country: '🇺🇦 Украина', visits: 1820, orders: 142, share: '11.8%' },
+                    { country: '🇰🇿 Казахстан', visits: 685, orders: 38, share: '4.4%' },
+                    { country: '🇧🇾 Беларусь', visits: 465, orders: 17, share: '3.0%' }
+                ]
+            };
         }
 
-        // Логин
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
+        // Load real data from API
+        let realData = null;
+        let charts = {};
+
+        async function loadData() {
             try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-
-                const data = await response.json();
-
+                const response = await fetch('/api/admin-stats');
                 if (response.ok) {
-                    showDashboard();
-                    loadStats();
+                    realData = await response.json();
+                    console.log('✅ Загружены реальные данные:', realData);
                 } else {
-                    showError(data.error);
+                    console.log('⚠️ Используются демо-данные (API недоступно)');
+                    realData = generateDemoData();
                 }
             } catch (error) {
-                showError('Ошибка подключения к серверу');
+                console.log('⚠️ Используются демо-данные (ошибка):', error);
+                realData = generateDemoData();
+            }
+            
+            // Load dashboard by default
+            loadSectionData('dashboard');
+        }
+        
+        // Fallback demo data if API is not available
+        function generateFallbackData() {
+            const demoData = generateDemoData();
+            return {
+                revenue: demoData.revenue,
+                orders: {
+                    total: demoData.orders.total,
+                    recent: demoData.orders,
+                    all: demoData.orders,
+                    change: demoData.orders.change
+                },
+                customers: {
+                    total: demoData.customers.total,
+                    new: demoData.customers.new,
+                    all: demoData.customers,
+                    repeat: demoData.customers.repeat,
+                    change: demoData.customers.change
+                },
+                products: {
+                    all: demoData.products,
+                    top: demoData.topProducts
+                },
+                sessions: {
+                    total: demoData.visits.total,
+                    unique: demoData.visits.unique,
+                    desktop: demoData.visits.desktop,
+                    mobile: demoData.visits.mobile,
+                    change: demoData.visits.change
+                },
+                countries: demoData.geography,
+                dailySessions: [{ date: '2025-10-27', count: 1850 }],
+                dailySales: [{ date: '2025-10-27', revenue: 12000 }],
+                popularPages: demoData.topProducts.labels.map((label, i) => ({
+                    page: label,
+                    sessions: demoData.topProducts.data[i]
+                })),
+                recentVisits: demoData.visits,
+                analytics: demoData.analytics
+            };
+        }
+
+        function loadSectionData(section) {
+            switch(section) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'analytics':
+                    loadAnalytics();
+                    break;
+                case 'orders':
+                    loadOrders();
+                    break;
+                case 'products':
+                    loadProducts();
+                    break;
+                case 'customers':
+                    loadCustomers();
+                    break;
+                case 'revenue':
+                    loadRevenue();
+                    break;
+                case 'payments':
+                    loadPayments();
+                    break;
+                case 'traffic':
+                    loadTraffic();
+                    break;
+                case 'geography':
+                    loadGeography();
+                    break;
+                case 'support':
+                    loadSupport();
+                    break;
+            }
+        }
+        
+        // Support Section Functions
+        let currentTicketId = null;
+        let allTickets = [];
+        
+        async function loadSupport() {
+            await refreshTickets();
+        }
+        
+        async function refreshTickets() {
+            try {
+                const response = await fetch('/api/admin/support/tickets');
+                if (response.ok) {
+                    const data = await response.json();
+                    allTickets = data.tickets;
+                    displayTickets(allTickets);
+                    updateSupportStats();
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки тикетов:', error);
+            }
+        }
+        
+        function displayTickets(tickets) {
+            const filter = document.getElementById('ticket-filter')?.value || 'all';
+            
+            let filteredTickets = tickets;
+            if (filter === 'open') {
+                filteredTickets = tickets.filter(t => t.status === 'open');
+            } else if (filter === 'closed') {
+                filteredTickets = tickets.filter(t => t.status === 'closed');
+            } else if (filter === 'unread') {
+                filteredTickets = tickets.filter(t => t.unread_admin === 1);
+            }
+            
+            const html = filteredTickets.length > 0 ? filteredTickets.map(ticket => {
+                const statusClass = ticket.status === 'open' ? 'processing' : 'completed';
+                const statusText = ticket.status === 'open' ? 'Открыт' : 'Закрыт';
+                const unreadBadge = ticket.unread_admin ? '<span style="display: inline-block; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; margin-left: 8px;"></span>' : '';
+                const date = new Date(ticket.created_at).toLocaleString('ru-RU');
+                const lastMessage = ticket.last_message ? (ticket.last_message.length > 50 ? ticket.last_message.substring(0, 50) + '...' : ticket.last_message) : 'Нет сообщений';
+                
+                return `
+                    <tr style="${ticket.unread_admin ? 'background: #fef3c7;' : ''}">
+                        <td><strong>${ticket.ticket_id}${unreadBadge}</strong></td>
+                        <td>${ticket.customer_name || 'Гость'}${ticket.customer_email ? '<br><small style="color: #999;">' + ticket.customer_email + '</small>' : ''}</td>
+                        <td>${lastMessage}</td>
+                        <td>${ticket.messages_count}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>${date}</td>
+                        <td>
+                            <button class="btn-action" onclick="openTicketModal('${ticket.ticket_id}')">Открыть</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('') : '<tr><td colspan="7" style="text-align: center; color: #999;">Нет тикетов</td></tr>';
+            
+            document.getElementById('tickets-table').innerHTML = html;
+        }
+        
+        function updateSupportStats() {
+            const total = allTickets.length;
+            const open = allTickets.filter(t => t.status === 'open').length;
+            const unread = allTickets.filter(t => t.unread_admin === 1).length;
+            
+            document.getElementById('support-total').textContent = total;
+            document.getElementById('support-open').textContent = open;
+            document.getElementById('support-unread').textContent = unread;
+            
+            // Update badge in menu
+            const badge = document.getElementById('unread-tickets-badge');
+            if (unread > 0) {
+                badge.textContent = unread;
+                badge.style.display = 'block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+        
+        async function openTicketModal(ticketId) {
+            currentTicketId = ticketId;
+            
+            try {
+                const response = await fetch(`/api/admin/support/ticket/${ticketId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Отправляем системное сообщение о подключении оператора
+                    // Только если тикет был непрочитанным
+                    if (data.ticket.unread_admin === 1) {
+                        await sendSystemMessage(ticketId, '👨‍💼 Оператор Артём подключился к диалогу');
+                        
+                        // Перезагружаем сообщения после отправки системного
+                        const response2 = await fetch(`/api/admin/support/ticket/${ticketId}`);
+                        if (response2.ok) {
+                            const data2 = await response2.json();
+                            displayTicketMessages(data2.ticket, data2.messages);
+                        }
+                    } else {
+                        displayTicketMessages(data.ticket, data.messages);
+                    }
+                    
+                    document.getElementById('ticket-modal').style.display = 'flex';
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки тикета:', error);
+            }
+        }
+        
+        async function sendSystemMessage(ticketId, message) {
+            try {
+                await fetch('/api/admin/support/system-message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ticketId, message })
+                });
+            } catch (error) {
+                console.error('Ошибка отправки системного сообщения:', error);
+            }
+        }
+        
+        function displayTicketMessages(ticket, messages) {
+            document.getElementById('modal-ticket-id').textContent = `Тикет ${ticket.ticket_id} - ${ticket.customer_name || 'Гость'}`;
+            
+            const statusBtn = document.getElementById('modal-status-btn');
+            if (ticket.status === 'open') {
+                statusBtn.textContent = '✓ Закрыть тикет';
+                statusBtn.className = 'btn-action btn-secondary';
+            } else {
+                statusBtn.textContent = '🔄 Открыть тикет';
+                statusBtn.className = 'btn-action';
+            }
+            
+            const messagesHtml = messages.map(msg => {
+                const time = new Date(msg.created_at).toLocaleString('ru-RU');
+                
+                // Системное сообщение
+                if (msg.sender_type === 'system') {
+                    return `
+                        <div style="text-align: center; margin: 20px 0;">
+                            <div style="display: inline-block; background: #f0f0f0; color: #666; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 500;">
+                                ${msg.message}
+                            </div>
+                            <div style="font-size: 11px; color: #999; margin-top: 5px;">${time}</div>
+                        </div>
+                    `;
+                }
+                
+                // Обычные сообщения
+                const isAdmin = msg.sender_type === 'admin';
+                const align = isAdmin ? 'flex-end' : 'flex-start';
+                const bgColor = isAdmin ? '#667eea' : '#ffffff';
+                const textColor = isAdmin ? '#ffffff' : '#1a1a1a';
+                
+                return `
+                    <div style="display: flex; flex-direction: column; align-items: ${align}; margin-bottom: 15px;">
+                        <div style="background: ${bgColor}; color: ${textColor}; padding: 12px 16px; border-radius: 15px; max-width: 70%; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+                            <div style="font-size: 11px; font-weight: 600; margin-bottom: 5px; opacity: 0.8;">
+                                ${isAdmin ? '👤 ' + msg.sender_name : '👥 ' + msg.sender_name}
+                            </div>
+                            <div style="font-size: 14px; line-height: 1.5;">${msg.message}</div>
+                        </div>
+                        <div style="font-size: 11px; color: #999; margin-top: 4px;">${time}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('modal-messages').innerHTML = messagesHtml;
+            document.getElementById('modal-messages').scrollTop = document.getElementById('modal-messages').scrollHeight;
+        }
+        
+        function closeTicketModal() {
+            document.getElementById('ticket-modal').style.display = 'none';
+            currentTicketId = null;
+            document.getElementById('reply-message').value = '';
+            refreshTickets();
+        }
+        
+        async function sendReply() {
+            const message = document.getElementById('reply-message').value.trim();
+            
+            if (!message) {
+                alert('Введите сообщение');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/admin/support/reply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ticketId: currentTicketId,
+                        message: message
+                    })
+                });
+                
+                if (response.ok) {
+                    document.getElementById('reply-message').value = '';
+                    // Reload messages
+                    openTicketModal(currentTicketId);
+                }
+            } catch (error) {
+                console.error('Ошибка отправки ответа:', error);
+                alert('Ошибка отправки ответа');
+            }
+        }
+        
+        async function toggleTicketStatus() {
+            const ticket = allTickets.find(t => t.ticket_id === currentTicketId);
+            if (!ticket) return;
+            
+            const action = ticket.status === 'open' ? 'close' : 'open';
+            
+            try {
+                const response = await fetch(`/api/admin/support/${action}/${currentTicketId}`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    // Отправляем системное сообщение
+                    if (action === 'close') {
+                        await sendSystemMessage(currentTicketId, '✅ Тикет закрыт. Спасибо за обращение! Если у вас возникнут дополнительные вопросы, всегда рады помочь.');
+                    } else {
+                        await sendSystemMessage(currentTicketId, '🔄 Тикет открыт повторно. Оператор готов продолжить диалог.');
+                    }
+                    
+                    closeTicketModal();
+                }
+            } catch (error) {
+                console.error('Ошибка изменения статуса:', error);
+                alert('Ошибка изменения статуса');
+            }
+        }
+        
+        // Фильтр тикетов
+        document.addEventListener('DOMContentLoaded', () => {
+            const filterSelect = document.getElementById('ticket-filter');
+            if (filterSelect) {
+                filterSelect.addEventListener('change', () => {
+                    displayTickets(allTickets);
+                });
             }
         });
 
-        function showError(message) {
-            const errorDiv = document.getElementById('error-message');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-        }
+        function loadDashboard() {
+            if (!realData) return;
+            
+            // Update stats - используем РЕАЛЬНЫЕ данные
+            document.getElementById('total-revenue').textContent = formatCurrency(realData.revenue.total);
+            document.getElementById('revenue-change').textContent = `+${realData.revenue.change}%`;
+            
+            document.getElementById('total-orders').textContent = realData.orders.total;
+            document.getElementById('orders-change').textContent = `+${realData.orders.change}%`;
+            
+            document.getElementById('total-customers').textContent = realData.customers.total;
+            document.getElementById('customers-change').textContent = `+${realData.customers.change}%`;
+            
+            document.getElementById('total-visits').textContent = realData.sessions.total;
+            document.getElementById('visits-change').textContent = `+${realData.sessions.change}%`;
 
-        function showDashboard() {
-            document.getElementById('login-container').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-        }
+            // Sales Chart - используем РЕАЛЬНЫЕ продажи
+            if (charts.sales) charts.sales.destroy();
+            const salesCtx = document.getElementById('sales-chart').getContext('2d');
+            const salesData = realData.dailySales && realData.dailySales.length > 0 
+                ? realData.dailySales 
+                : [{ date: '2025-10-27', revenue: 0 }];
+            
+            charts.sales = new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: salesData.map(d => {
+                        const date = new Date(d.date);
+                        return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+                    }),
+                    datasets: [{
+                        label: 'Продажи',
+                        data: salesData.map(d => d.revenue || 0),
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString() + ' ₽';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
 
-        async function logout() {
-            await fetch('/api/logout', { method: 'POST' });
-            location.reload();
-        }
-
-        // Загрузка статистики
-        let dailyChart, pagesChart;
-
-        async function loadStats() {
-            try {
-                const response = await fetch('/api/stats');
-                const data = await response.json();
-
-                // Обновляем карточки
-                document.getElementById('total-visits').textContent = data.total;
-                document.getElementById('unique-visitors').textContent = data.unique;
-
-                // Устройства
-                const desktop = data.deviceStats.find(d => d.device_type === 'Desktop')?.count || 0;
-                const mobile = data.deviceStats.find(d => d.device_type === 'Mobile')?.count || 0;
-                document.getElementById('desktop-count').textContent = desktop;
-                document.getElementById('mobile-count').textContent = mobile;
-
-                // График посещений по дням
-                const dailyLabels = data.dailyVisits.map(d => {
-                    const date = new Date(d.date);
-                    return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
-                });
-                const dailyData = data.dailyVisits.map(d => d.count);
-
-                if (dailyChart) dailyChart.destroy();
-                const dailyCtx = document.getElementById('daily-chart').getContext('2d');
-                dailyChart = new Chart(dailyCtx, {
-                    type: 'line',
+            // Products Chart - используем РЕАЛЬНЫЕ топ товары
+            if (charts.products) charts.products.destroy();
+            const productsCtx = document.getElementById('products-chart').getContext('2d');
+            const topProducts = realData.products && realData.products.top && realData.products.top.length > 0
+                ? realData.products.top
+                : [];
+            
+            if (topProducts.length > 0) {
+                charts.products = new Chart(productsCtx, {
+                    type: 'doughnut',
                     data: {
-                        labels: dailyLabels,
+                        labels: topProducts.map(p => p.name),
                         datasets: [{
-                            label: 'Посещения',
-                            data: dailyData,
-                            borderColor: '#667eea',
-                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                            tension: 0.4,
-                            fill: true
+                            data: topProducts.map(p => p.sold_count),
+                            backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b']
                         }]
                     },
                     options: {
                         responsive: true,
+                        maintainAspectRatio: true,
                         plugins: {
-                            legend: { display: false }
+                            legend: { position: 'bottom' }
                         }
                     }
                 });
-
-                // График популярных страниц
-                const pageLabels = data.pageViews.map(p => p.page);
-                const pageData = data.pageViews.map(p => p.count);
-
-                if (pagesChart) pagesChart.destroy();
-                const pagesCtx = document.getElementById('pages-chart').getContext('2d');
-                pagesChart = new Chart(pagesCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: pageLabels,
-                        datasets: [{
-                            label: 'Просмотры',
-                            data: pageData,
-                            backgroundColor: '#764ba2'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: { display: false }
-                        }
-                    }
-                });
-
-                // Последние посещения
-                const recentVisitsHtml = data.recentVisits.map(v => `
-                    <tr>
-                        <td>${v.page}</td>
-                        <td>${v.ip}</td>
-                        <td><span class="device-badge ${v.device_type.toLowerCase()}">${v.device_type}</span></td>
-                        <td>${new Date(v.timestamp).toLocaleString('ru-RU')}</td>
-                    </tr>
-                `).join('');
-                document.getElementById('recent-visits').innerHTML = recentVisitsHtml;
-
-            } catch (error) {
-                console.error('Ошибка загрузки статистики:', error);
             }
+
+            // Orders Table - используем РЕАЛЬНЫЕ заказы
+            const orders = realData.orders && realData.orders.recent ? realData.orders.recent : [];
+            const ordersHtml = orders.length > 0 ? orders.map(order => {
+                const productsText = Array.isArray(order.products) 
+                    ? order.products.map(p => p.name).join(', ')
+                    : 'Нет данных';
+                const orderDate = new Date(order.created_at).toLocaleString('ru-RU');
+                
+                return `
+                    <tr>
+                        <td><strong>${order.order_id}</strong></td>
+                        <td>${order.customer_name || 'Неизвестно'}</td>
+                        <td>${productsText}</td>
+                        <td><strong>${formatCurrency(order.total_amount)}</strong></td>
+                        <td><span class="status-badge ${order.status}">${getStatusText(order.status)}</span></td>
+                        <td>${orderDate}</td>
+                        <td><button class="btn-action btn-secondary">Детали</button></td>
+                    </tr>
+                `;
+            }).join('') : '<tr><td colspan="7" class="empty-state">Пока нет заказов</td></tr>';
+            
+            document.getElementById('orders-table').innerHTML = ordersHtml;
         }
 
-        // Авто-обновление каждые 30 секунд
-        setInterval(loadStats, 30000);
+        function loadAnalytics() {
+            if (!realData || !realData.analytics) return;
+            document.getElementById('conversion-rate').textContent = realData.analytics.conversion + '%';
+            document.getElementById('avg-order').textContent = formatCurrency(realData.analytics.avgOrder);
+            document.getElementById('bounce-rate').textContent = realData.analytics.bounceRate + '%';
+
+            // Traffic Sources Chart
+            if (charts.trafficSources) charts.trafficSources.destroy();
+            const trafficCtx = document.getElementById('traffic-sources-chart').getContext('2d');
+            charts.trafficSources = new Chart(trafficCtx, {
+                type: 'pie',
+                data: {
+                    labels: demoData.trafficSources.labels,
+                    datasets: [{
+                        data: demoData.trafficSources.data,
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // Time Chart
+            if (charts.time) charts.time.destroy();
+            const timeCtx = document.getElementById('time-chart').getContext('2d');
+            charts.time = new Chart(timeCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['< 30 сек', '30-60 сек', '1-3 мин', '3-5 мин', '> 5 мин'],
+                    datasets: [{
+                        label: 'Пользователи',
+                        data: [320, 580, 920, 650, 380],
+                        backgroundColor: '#764ba2'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function loadOrders() {
+            const ordersHtml = demoData.orders.map(order => `
+                <tr>
+                    <td><strong>${order.id}</strong></td>
+                    <td>${order.customer}</td>
+                    <td>${order.email}</td>
+                    <td>${order.products}</td>
+                    <td><strong>${formatCurrency(order.amount)}</strong></td>
+                    <td><span class="status-badge ${order.status}">${getStatusText(order.status)}</span></td>
+                    <td>${order.date}</td>
+                </tr>
+            `).join('');
+            document.getElementById('all-orders-table').innerHTML = ordersHtml;
+        }
+
+        function loadProducts() {
+            const productsHtml = demoData.products.map(product => `
+                <tr>
+                    <td>
+                        <div class="product-cell">
+                            <div class="product-image"></div>
+                            <span><strong>${product.name}</strong></span>
+                        </div>
+                    </td>
+                    <td>${product.category}</td>
+                    <td><strong>${formatCurrency(product.price)}</strong></td>
+                    <td>${product.sold} шт</td>
+                    <td><span class="status-badge completed">Активен</span></td>
+                    <td>
+                        <button class="btn-action">Редактировать</button>
+                    </td>
+                </tr>
+            `).join('');
+            document.getElementById('products-table').innerHTML = productsHtml;
+        }
+
+        function loadCustomers() {
+            document.getElementById('customers-total').textContent = demoData.customers.total;
+            document.getElementById('customers-new').textContent = demoData.customers.new;
+            document.getElementById('customers-repeat').textContent = demoData.customers.repeat + '%';
+
+            const customersHtml = demoData.customers.map(customer => `
+                <tr>
+                    <td><strong>${customer.name}</strong></td>
+                    <td>${customer.email}</td>
+                    <td>${customer.orders}</td>
+                    <td><strong>${formatCurrency(customer.spent)}</strong></td>
+                    <td>${customer.joined}</td>
+                </tr>
+            `).join('');
+            document.getElementById('customers-table').innerHTML = customersHtml;
+        }
+
+        function loadRevenue() {
+            document.getElementById('revenue-today').textContent = formatCurrency(demoData.revenue.today);
+            document.getElementById('revenue-week').textContent = formatCurrency(demoData.revenue.week);
+            document.getElementById('revenue-month').textContent = formatCurrency(demoData.revenue.month);
+            document.getElementById('revenue-all').textContent = formatCurrency(demoData.revenue.total);
+
+            // Revenue Chart
+            if (charts.revenue) charts.revenue.destroy();
+            const revenueCtx = document.getElementById('revenue-chart').getContext('2d');
+            charts.revenue = new Chart(revenueCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
+                    datasets: [{
+                        label: 'Выручка',
+                        data: demoData.revenueMonthly,
+                        backgroundColor: '#667eea',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return (value / 1000) + 'K ₽';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function loadPayments() {
+            const paymentsHtml = demoData.payments.map(payment => `
+                <tr>
+                    <td><strong>${payment.id}</strong></td>
+                    <td>${payment.order}</td>
+                    <td>${payment.customer}</td>
+                    <td><strong>${formatCurrency(payment.amount)}</strong></td>
+                    <td>${payment.method}</td>
+                    <td><span class="status-badge ${payment.status}">${getStatusText(payment.status)}</span></td>
+                    <td>${payment.date}</td>
+                </tr>
+            `).join('');
+            document.getElementById('payments-table').innerHTML = paymentsHtml;
+        }
+
+        function loadTraffic() {
+            document.getElementById('traffic-total').textContent = demoData.visits.total;
+            document.getElementById('traffic-unique').textContent = demoData.visits.unique;
+            document.getElementById('traffic-desktop').textContent = demoData.visits.desktop;
+            document.getElementById('traffic-mobile').textContent = demoData.visits.mobile;
+
+            // Visits Chart
+            if (charts.visits) charts.visits.destroy();
+            const visitsCtx = document.getElementById('visits-chart').getContext('2d');
+            charts.visits = new Chart(visitsCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+                    datasets: [{
+                        label: 'Посещения',
+                        data: [1850, 2320, 1950, 2680, 2420, 2890, 2580],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // Devices Chart
+            if (charts.devices) charts.devices.destroy();
+            const devicesCtx = document.getElementById('devices-chart').getContext('2d');
+            charts.devices = new Chart(devicesCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Desktop', 'Mobile', 'Tablet'],
+                    datasets: [{
+                        data: [demoData.visits.desktop, demoData.visits.mobile, 1000],
+                        backgroundColor: ['#667eea', '#764ba2', '#f093fb']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // Visits Table
+            const visitsHtml = demoData.visits.map(visit => `
+                <tr>
+                    <td>${visit.page}</td>
+                    <td>${visit.ip}</td>
+                    <td><span class="status-badge ${visit.device.toLowerCase()}">${visit.device}</span></td>
+                    <td>${visit.browser}</td>
+                    <td>${visit.time}</td>
+                </tr>
+            `).join('');
+            document.getElementById('visits-table').innerHTML = visitsHtml;
+        }
+
+        function loadGeography() {
+            // Countries Chart
+            if (charts.countries) charts.countries.destroy();
+            const countriesCtx = document.getElementById('countries-chart').getContext('2d');
+            charts.countries = new Chart(countriesCtx, {
+                type: 'bar',
+                data: {
+                    labels: demoData.geography.map(g => g.country),
+                    datasets: [{
+                        label: 'Посещения',
+                        data: demoData.geography.map(g => g.visits),
+                        backgroundColor: '#667eea',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // Geography Table
+            const geoHtml = demoData.geography.map(geo => `
+                <tr>
+                    <td><strong>${geo.country}</strong></td>
+                    <td>${geo.visits}</td>
+                    <td>${geo.orders}</td>
+                    <td>${geo.share}</td>
+                </tr>
+            `).join('');
+            document.getElementById('geography-table').innerHTML = geoHtml;
+        }
+
+        // Helper Functions
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('ru-RU', {
+                style: 'currency',
+                currency: 'RUB',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function getStatusText(status) {
+            const statuses = {
+                completed: 'Выполнен',
+                pending: 'Ожидает',
+                cancelled: 'Отменен',
+                processing: 'Обработка'
+            };
+            return statuses[status] || status;
+        }
+
+        // Initialize
+        loadData();
     </script>
 </body>
 </html>
-

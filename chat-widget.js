@@ -58,6 +58,11 @@
         
         let isOpen = false;
         let botMessageShown = false;
+        let ticketId = localStorage.getItem('supportTicketId') || null;
+        let customerName = localStorage.getItem('customerName') || null;
+        let customerEmail = localStorage.getItem('customerEmail') || null;
+        let lastMessageId = 0;
+        let pollingInterval = null;
         
         // Открытие/закрытие чата
         chatButton.addEventListener('click', function() {
@@ -86,30 +91,146 @@
                     botMessageShown = true;
                 }
                 
+                // Если есть тикет, загружаем историю сообщений
+                if (ticketId) {
+                    loadChatHistory();
+                }
+                
+                // Запускаем polling для получения новых сообщений
+                startPolling();
+                
                 chatInput.focus();
             } else {
                 chatWindow.classList.remove('active');
                 chatButton.classList.remove('chat-open');
+                
+                // Останавливаем polling
+                stopPolling();
             }
         });
         
         // Отправка сообщения
-        function sendMessage() {
+        async function sendMessage() {
             const message = chatInput.value.trim();
             
             if (message) {
                 addUserMessage(message);
                 chatInput.value = '';
                 
-                // Имитация ответа бота
-                setTimeout(() => {
-                    showTypingIndicator();
+                // Если это первое сообщение, запрашиваем имя и email
+                if (!ticketId && !customerName) {
+                    // Просто отправляем сообщение без данных клиента
+                    customerName = 'Гость';
+                }
+                
+                try {
+                    // Отправляем сообщение на сервер
+                    const response = await fetch('/api/support/send-message', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            ticketId: ticketId,
+                            customerName: customerName,
+                            customerEmail: customerEmail,
+                            message: message
+                        })
+                    });
                     
-                    setTimeout(() => {
-                        hideTypingIndicator();
-                        addBotMessage('Спасибо за ваше сообщение! Наш оператор скоро свяжется с вами. 😊<br><br>📱 Для наиболее быстрого ответа напишите нам в <a href="https://t.me/truststore_admin" target="_blank" style="color: #667eea; font-weight: 600; text-decoration: none;">Telegram</a>!');
-                    }, 2000);
-                }, 500);
+                    const data = await response.json();
+                    
+                    if (data.success && data.ticketId) {
+                        ticketId = data.ticketId;
+                        localStorage.setItem('supportTicketId', ticketId);
+                        console.log('✅ Сообщение отправлено, тикет:', ticketId);
+                    }
+                } catch (error) {
+                    console.error('Ошибка отправки сообщения:', error);
+                }
+            }
+        }
+        
+        // Загрузка истории чата
+        async function loadChatHistory() {
+            if (!ticketId) return;
+            
+            try {
+                const response = await fetch(`/api/support/messages/${ticketId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Очищаем чат (кроме приветственных сообщений)
+                    const messages = chatBody.querySelectorAll('.chat-message');
+                    messages.forEach(msg => {
+                        if (!msg.classList.contains('welcome-message')) {
+                            msg.remove();
+                        }
+                    });
+                    
+                    // Отображаем все сообщения
+                    data.messages.forEach(msg => {
+                        if (msg.sender_type === 'customer') {
+                            addUserMessage(msg.message, false);
+                        } else if (msg.sender_type === 'admin') {
+                            addAdminMessage(msg.message, msg.sender_name);
+                        } else if (msg.sender_type === 'system') {
+                            addSystemMessage(msg.message);
+                        }
+                        
+                        if (msg.id > lastMessageId) {
+                            lastMessageId = msg.id;
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки истории:', error);
+            }
+        }
+        
+        // Polling для получения новых сообщений
+        function startPolling() {
+            if (!ticketId) return;
+            
+            // Проверяем каждые 3 секунды
+            pollingInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/support/messages/${ticketId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        // Показываем только новые сообщения
+                        const newMessages = data.messages.filter(msg => msg.id > lastMessageId);
+                        
+                        newMessages.forEach(msg => {
+                            if (msg.sender_type === 'admin') {
+                                showTypingIndicator();
+                                setTimeout(() => {
+                                    hideTypingIndicator();
+                                    addAdminMessage(msg.message, msg.sender_name);
+                                }, 1000);
+                            } else if (msg.sender_type === 'system') {
+                                addSystemMessage(msg.message);
+                            }
+                            
+                            if (msg.id > lastMessageId) {
+                                lastMessageId = msg.id;
+                            }
+                        });
+                        
+                        // Если есть новые сообщения и чат закрыт, показываем уведомление
+                        if (newMessages.length > 0 && !isOpen) {
+                            chatNotification.style.display = 'block';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Ошибка polling:', error);
+                }
+            }, 3000);
+        }
+        
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
             }
         }
         
@@ -155,7 +276,7 @@
         }
         
         // Функция добавления сообщения пользователя
-        function addUserMessage(text) {
+        function addUserMessage(text, shouldScroll = true) {
             const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
             
             const messageHTML = `
@@ -165,6 +286,46 @@
                         <div class="chat-message-bubble">${text}</div>
                         <div class="chat-message-time">${time}</div>
                     </div>
+                </div>
+            `;
+            
+            chatBody.insertAdjacentHTML('beforeend', messageHTML);
+            if (shouldScroll) scrollToBottom();
+        }
+        
+        // Функция добавления сообщения от админа
+        function addAdminMessage(text, senderName = 'Поддержка') {
+            const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            
+            const messageHTML = `
+                <div class="chat-message bot">
+                    <div class="chat-message-avatar">
+                        <img src="support-image.png" alt="Support" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                    </div>
+                    <div class="chat-message-content">
+                        <div style="font-size: 11px; color: #667eea; font-weight: 600; margin-bottom: 4px;">
+                            ${senderName}
+                        </div>
+                        <div class="chat-message-bubble">${text}</div>
+                        <div class="chat-message-time">${time}</div>
+                    </div>
+                </div>
+            `;
+            
+            chatBody.insertAdjacentHTML('beforeend', messageHTML);
+            scrollToBottom();
+        }
+        
+        // Функция добавления системного сообщения
+        function addSystemMessage(text) {
+            const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            
+            const messageHTML = `
+                <div style="text-align: center; margin: 15px 0;">
+                    <div style="display: inline-block; background: #f0f0f0; color: #666; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                        ${text}
+                    </div>
+                    <div style="font-size: 10px; color: #999; margin-top: 4px;">${time}</div>
                 </div>
             `;
             

@@ -174,6 +174,7 @@
             font-weight: 600;
             color: #1a1a1a;
             margin-bottom: 6px;
+            text-align: left;
         }
         
         .pricing-price {
@@ -181,32 +182,15 @@
             font-weight: 700;
             color: #667eea;
             margin-bottom: 4px;
+            text-align: left;
         }
         
         .pricing-per-month {
             font-size: 11px;
             color: #999;
+            text-align: left;
         }
         
-        .btn-buy-large {
-            width: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 18px 40px;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-            margin-bottom: 30px;
-        }
-        
-        .btn-buy-large:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
-        }
         
         .features-list {
             list-style: none;
@@ -262,16 +246,19 @@
     <header class="header">
         <div class="container">
             <div class="header-content">
-                <a href="index.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 15px;">
-                    <div class="logo">
-                        <img src="logo.png" alt="Trust Store Logo" style="width: 45px; height: 45px; transition: transform 0.3s ease;">
-                        <h1 style="color: black;">Trust Store</h1>
-                    </div>
-                </a>
+                <div style="display: flex; flex-direction: column; gap: 0px;">
+                    <a href="/" style="text-decoration: none;">
+                        <div class="logo">
+                            <img src="logo.png" alt="Trust Store" class="logo-image">
+                            <h1>Trust Store</h1>
+                        </div>
+                    </a>
+                    <span class="logo-subtitle" style="pointer-events: none;">магазин цифровых товаров</span>
+                </div>
                 <nav class="nav">
-                    <a href="index.html" class="nav-link">Главная</a>
-                    <a href="catalog.html" class="nav-link">Каталог</a>
-                    <a href="socials.html" class="nav-link">Мы в соцсетях</a>
+                    <a href="/" class="nav-link">Главная</a>
+                    <a href="/catalog" class="nav-link">Каталог</a>
+                    <a href="/socials" class="nav-link">Мы в соцсетях</a>
                     
                     
                 </nav>
@@ -286,7 +273,7 @@
     <!-- Product Page -->
     <section class="product-page">
         <div class="container">
-            <a href="index.html" class="back-link">← Назад к каталогу</a>
+            <a href="/" class="back-link">← Назад к каталогу</a>
             
             <div class="product-detail">
                 <div class="product-image-large" style="position: relative;">
@@ -406,6 +393,9 @@
 
     <script src="script.js"></script>
     <script src="tracking.js"></script>
+    <script src="cart.js"></script>
+    <script src="cart-widget.js"></script>
+    <script src="notification.js"></script>
     <script>
         let currentPrice = 2250;
         let discountApplied = false;
@@ -439,8 +429,12 @@
             }, 10);
         }
         
+        // Промокоды (10% скидка) - синхронизированы со страницей оформления заказа
         const validCodes = {
-            'GPT5': 10
+            'GPT5': 10,
+            'TRUST10': 10,
+            'SALE10': 10,
+            'DISCOUNT10': 10
         };
         
         function applyPromoCode() {
@@ -475,7 +469,7 @@
                 priceElement.textContent = newPrice.toLocaleString('ru-RU') + ' ₽';
                 priceElement.style.animation = 'none';
                 setTimeout(() => {
-                    priceElement.style.animation = 'priceUpdate 0.5s ease';
+                    priceElement.style.animation = 'priceUpdate 0.3s ease';
                 }, 10);
                 
                 discountBadge.textContent = `-${discount}%`;
@@ -493,6 +487,32 @@
                 message.style.display = 'block';
             }
         }
+        
+        // Добавление в корзину
+        window.selectedDuration = '1 месяц';
+        const originalSelectPlan = window.selectPlan;
+        window.selectPlan = function(element, price, duration) {
+            if (originalSelectPlan) originalSelectPlan(element, price, duration);
+            window.selectedDuration = duration;
+        };
+        
+        function addProductToCart() {
+            const product = {
+                name: 'Google Gemini + Veo 3',
+                price: parseInt(document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '')),
+                duration: window.selectedDuration || '1 месяц',
+                category: 'AI Генерация',
+                image: 'gemini-image.png'
+            };
+            addToCart(product);
+        }
+        
+        function goToCheckout() {
+            const productName = 'Google Gemini + Veo 3';
+            const finalPrice = document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '');
+            const duration = window.selectedDuration;
+            window.location.href = `checkout.html?product=${encodeURIComponent(productName)}&price=${finalPrice}&duration=${encodeURIComponent(duration)}`;
+        }
     </script>
     
     <!-- Search Modal -->
@@ -508,6 +528,28 @@
                     <input type="text" id="search-input" placeholder="Введите название товара...">
                 </div>
                 <div id="search-results"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cart Widget Overlay -->
+    <div id="cartWidgetOverlay" class="cart-widget-overlay"></div>
+    
+    <!-- Cart Widget -->
+    <div id="cartWidget" class="cart-widget">
+        <div class="cart-widget-header">
+            <h3>🛒 Корзина</h3>
+            <button class="cart-widget-close" onclick="closeCartWidget()">×</button>
+        </div>
+        <div class="cart-widget-items" id="cartWidgetItems"></div>
+        <div class="cart-widget-footer" id="cartWidgetFooter">
+            <div class="cart-widget-total">
+                <span class="cart-widget-total-label">Итого:</span>
+                <span class="cart-widget-total-price" id="cartWidgetTotalPrice">0 ₽</span>
+            </div>
+            <div class="cart-widget-actions">
+                <button class="btn-view-full-cart" onclick="window.location.href='cart.html'">Открыть корзину</button>
+                <button class="btn-cart-checkout" onclick="checkoutFromWidget()">Оформить</button>
             </div>
         </div>
     </div>

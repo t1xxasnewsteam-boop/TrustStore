@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тест корзины</title>
+</head>
+<body>
+    <h1>Тест добавления в корзину</h1>
+    <button onclick="testAddToCart()">Добавить тестовый товар</button>
+    <button onclick="checkCart()">Проверить корзину</button>
+    <button onclick="clearCart()">Очистить корзину</button>
+    <div id="result"></div>
+
+    <script src="cart.js"></script>
+    <script>
+        function testAddToCart() {
+            console.log('Вызов testAddToCart');
+            const product = {
+                name: 'Тестовый товар',
+                price: 1000,
+                duration: '1 месяц',
+                category: 'Тест',
+                image: 'test.png'
+            };
+            
+            if (typeof addToCart === 'function') {
+                addToCart(product);
+                document.getElementById('result').innerHTML = '<p style="color: green;">✓ Товар добавлен!</p>';
+            } else {
+                document.getElementById('result').innerHTML = '<p style="color: red;">✗ Функция addToCart не найдена!</p>';
+            }
+        }
+
+        function checkCart() {
+            const cart = getCart();
+            document.getElementById('result').innerHTML = '<pre>' + JSON.stringify(cart, null, 2) + '</pre>';
+        }
+
+        function clearCart() {
+            localStorage.removeItem('cart');
+            document.getElementById('result').innerHTML = '<p>Корзина очищена</p>';
+        }
+    </script>
+</body>
+</html>
+
