@@ -155,12 +155,14 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    font-size: 24px;
+    font-size: 28px;
+    line-height: 1;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
+    padding: 0;
 }
 
 .chat-close-btn:hover {
@@ -337,7 +339,9 @@
     color: #666;
     border: none;
     border-radius: 50%;
-    font-size: 20px;
+    font-size: 24px;
+    font-weight: 300;
+    line-height: 1;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
@@ -347,7 +351,8 @@
 }
 
 .chat-image-btn:hover {
-    background: #e0e0e0;
+    background: #667eea;
+    color: white;
     transform: scale(1.05);
 }
 

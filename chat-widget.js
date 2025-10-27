@@ -38,7 +38,7 @@
                     style="display: none;"
                 >
                 <button class="chat-image-btn" id="chatImageBtn" title="Прикрепить изображение">
-                    📷
+                    +
                 </button>
                 <input 
                     type="text" 
