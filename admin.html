@@ -1158,7 +1158,9 @@
 
         async function loadData() {
             try {
-                const response = await fetch('/api/admin-stats');
+                const response = await fetch('/api/admin-stats', {
+                    credentials: 'include'
+                });
                 if (response.ok) {
                     realData = await response.json();
                     console.log('✅ Загружены реальные данные:', realData);

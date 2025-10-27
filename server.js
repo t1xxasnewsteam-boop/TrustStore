@@ -1023,9 +1023,9 @@ app.get('/t1xxas', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
-// Блокируем старый роут /admin
+// Перенаправляем /admin на главную страницу
 app.get('/admin', (req, res) => {
-    res.status(404).send('Not Found');
+    res.redirect('/');
 });
 
 // Товары с красивыми URL
