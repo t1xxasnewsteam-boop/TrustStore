@@ -147,7 +147,7 @@ function showAddToCartAnimation() {
 
 // Перейти в корзину
 function goToCart() {
-    window.location.href = 'cart.html';
+    window.location.href = 'cart';
 }
 
 // Удалить товар из корзины
@@ -157,7 +157,7 @@ function removeFromCart(itemId) {
     saveCart(cart);
     
     // Обновляем страницу корзины если мы на ней
-    if (window.location.pathname.includes('cart.html')) {
+    if (window.location.pathname.includes('cart')) {
         renderCart();
     }
 }
@@ -175,7 +175,7 @@ function updateQuantity(itemId, newQuantity) {
             saveCart(cart);
             
             // Обновляем страницу корзины
-            if (window.location.pathname.includes('cart.html')) {
+            if (window.location.pathname.includes('cart')) {
                 renderCart();
             }
         }
@@ -193,7 +193,7 @@ function clearCart() {
     updateCartCount();
     
     // Обновляем страницу корзины если мы на ней
-    if (window.location.pathname.includes('cart.html')) {
+    if (window.location.pathname.includes('cart')) {
         if (typeof displayCart === 'function') {
             displayCart();
         }

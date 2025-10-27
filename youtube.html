@@ -525,7 +525,7 @@
             const productName = 'YouTube Premium + Music Premium';
             const finalPrice = document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '');
             const duration = window.selectedDuration;
-            window.location.href = `checkout.html?product=${encodeURIComponent(productName)}&price=${finalPrice}&duration=${encodeURIComponent(duration)}`;
+            window.location.href = `checkout?product=${encodeURIComponent(productName)}&price=${finalPrice}&duration=${encodeURIComponent(duration)}`;
         }
     </script>
     
@@ -562,7 +562,7 @@
                 <span class="cart-widget-total-price" id="cartWidgetTotalPrice">0 ₽</span>
             </div>
             <div class="cart-widget-actions">
-                <button class="btn-view-full-cart" onclick="window.location.href='cart.html'">Открыть корзину</button>
+                <button class="btn-view-full-cart" onclick="window.location.href='cart'">Открыть корзину</button>
                 <button class="btn-cart-checkout" onclick="checkoutFromWidget()">Оформить</button>
             </div>
         </div>

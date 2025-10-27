@@ -247,7 +247,7 @@
         <div class="container">
             <div class="header-content">
                 <div style="display: flex; flex-direction: column; gap: 0px;">
-                    <a href="index.html" style="text-decoration: none;">
+                    <a href="index" style="text-decoration: none;">
                         <div class="logo">
                             <img src="logo.png" alt="Trust Store" class="logo-image">
                             <h1>Trust Store</h1>
@@ -256,15 +256,15 @@
                     <span class="logo-subtitle" style="pointer-events: none;">магазин цифровых товаров</span>
                 </div>
                 <nav class="nav">
-                    <a href="index.html" class="nav-link">Главная</a>
-                    <a href="catalog.html" class="nav-link">Каталог</a>
-                    <a href="socials.html" class="nav-link">Мы в соцсетях</a>
+                    <a href="index" class="nav-link">Главная</a>
+                    <a href="catalog" class="nav-link">Каталог</a>
+                    <a href="socials" class="nav-link">Мы в соцсетях</a>
                     
                     
                 </nav>
                 <div class="header-actions">
                     <button class="btn-icon">🔍</button>
-                    <button class="btn-icon cart-button" onclick="window.location.href='cart.html'">🛒 <span class="badge cart-count">0</span></button>
+                    <button class="btn-icon cart-button" onclick="window.location.href='cart'">🛒 <span class="badge cart-count">0</span></button>
                 </div>
             </div>
         </div>
@@ -273,7 +273,7 @@
     <!-- Product Page -->
     <section class="product-page">
         <div class="container">
-            <a href="index.html" class="back-link">← Назад к каталогу</a>
+            <a href="index" class="back-link">← Назад к каталогу</a>
             
             <div class="product-detail">
                 <div class="product-image-large" style="position: relative;">
@@ -527,7 +527,7 @@
             const productName = 'Claude AI │ Pro';
             const finalPrice = document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '');
             const duration = window.selectedDuration;
-            window.location.href = `checkout.html?product=${encodeURIComponent(productName)}&price=${finalPrice}&duration=${encodeURIComponent(duration)}`;
+            window.location.href = `checkout?product=${encodeURIComponent(productName)}&price=${finalPrice}&duration=${encodeURIComponent(duration)}`;
         }
     </script>
     
@@ -564,7 +564,7 @@
                 <span class="cart-widget-total-price" id="cartWidgetTotalPrice">0 ₽</span>
             </div>
             <div class="cart-widget-actions">
-                <button class="btn-view-full-cart" onclick="window.location.href='cart.html'">Открыть корзину</button>
+                <button class="btn-view-full-cart" onclick="window.location.href='cart'">Открыть корзину</button>
                 <button class="btn-cart-checkout" onclick="checkoutFromWidget()">Оформить</button>
             </div>
         </div>

@@ -509,7 +509,7 @@
         <div class="container">
             <div class="header-content">
                 <div style="display: flex; flex-direction: column; gap: 0px;">
-                    <a href="index.html" style="text-decoration: none;">
+                    <a href="index" style="text-decoration: none;">
                         <div class="logo">
                             <img src="logo.png" alt="Trust Store" class="logo-image">
                             <h1>Trust Store</h1>
@@ -518,9 +518,9 @@
                     <span class="logo-subtitle" style="pointer-events: none;">магазин цифровых товаров</span>
                 </div>
                 <nav class="nav">
-                    <a href="index.html" class="nav-link">Главная</a>
-                    <a href="catalog.html" class="nav-link">Каталог</a>
-                    <a href="socials.html" class="nav-link">Мы в соцсетях</a>
+                    <a href="index" class="nav-link">Главная</a>
+                    <a href="catalog" class="nav-link">Каталог</a>
+                    <a href="socials" class="nav-link">Мы в соцсетях</a>
                 </nav>
                 <div class="header-actions">
                     <button class="btn-icon">🔍</button>
@@ -680,7 +680,7 @@
             
             if (orderItems.length === 0) {
                 alert('Корзина пуста!');
-                window.location.href = 'cart.html';
+                window.location.href = 'cart';
             }
             
             // Добавляем quantity если его нет
@@ -846,7 +846,7 @@
                         saveCart(orderItems);
                     }
                     alert('🛒 Последний товар удалён. Возвращаемся в корзину...');
-                    window.location.href = 'cart.html';
+                    window.location.href = 'cart';
                     return;
                 }
                 
@@ -993,7 +993,7 @@
                         paymentType: 'AC',
                         sum: currentTotalPrice,
                         label: result.orderId,
-                        successURL: window.location.origin + '/success.html'
+                        successURL: window.location.origin + '/success'
                     };
                     
                     // Создаем форму для отправки в ЮMoney
@@ -1026,7 +1026,7 @@
                     paymentType: 'AC',
                     sum: currentTotalPrice,
                     label: `order_${Date.now()}`,
-                    successURL: window.location.origin + '/success.html'
+                    successURL: window.location.origin + '/success'
                 };
                 
                 const form = document.createElement('form');

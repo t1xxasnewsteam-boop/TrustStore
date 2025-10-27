@@ -121,7 +121,7 @@
         if (isAuthenticated) {
             authBtn.innerHTML = '👤 Аккаунт';
             authBtn.onclick = function() {
-                window.open('/admin.html', '_blank');
+                window.open('/admin', '_blank');
             };
         } else {
             authBtn.innerHTML = '👤 Войти';

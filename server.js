@@ -112,6 +112,33 @@ app.use((req, res, next) => {
     next();
 });
 
+// 🔥 Middleware для удаления .html из URL
+app.use((req, res, next) => {
+    // Если URL заканчивается на .html - редирект на версию без .html
+    if (req.path.endsWith('.html')) {
+        const newPath = req.path.slice(0, -5); // Убираем .html
+        return res.redirect(301, newPath + (req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : ''));
+    }
+    
+    // Если запрашивается путь без расширения - пытаемся найти .html версию
+    if (!path.extname(req.path) && req.path !== '/') {
+        const htmlPath = path.join(__dirname, req.path + '.html');
+        if (fs.existsSync(htmlPath)) {
+            return res.sendFile(htmlPath);
+        }
+    }
+    
+    // Для корневого пути отправляем main.html
+    if (req.path === '/') {
+        const mainPath = path.join(__dirname, 'main.html');
+        if (fs.existsSync(mainPath)) {
+            return res.sendFile(mainPath);
+        }
+    }
+    
+    next();
+});
+
 app.use(express.static(__dirname)); // Раздача статических файлов
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Раздача загруженных файлов
 

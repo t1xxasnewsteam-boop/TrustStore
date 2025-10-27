@@ -469,7 +469,7 @@
         <div class="container">
             <div class="header-content">
                 <div style="display: flex; flex-direction: column; gap: 0px;">
-                    <a href="index.html" style="text-decoration: none;">
+                    <a href="index" style="text-decoration: none;">
                         <div class="logo">
                             <img src="logo.png" alt="Trust Store" class="logo-image">
                             <h1>Trust Store</h1>
@@ -478,13 +478,13 @@
                     <span class="logo-subtitle" style="pointer-events: none;">магазин цифровых товаров</span>
                 </div>
                 <nav class="nav">
-                    <a href="index.html" class="nav-link">Главная</a>
-                    <a href="catalog.html" class="nav-link">Каталог</a>
-                    <a href="socials.html" class="nav-link">Мы в соцсетях</a>
+                    <a href="index" class="nav-link">Главная</a>
+                    <a href="catalog" class="nav-link">Каталог</a>
+                    <a href="socials" class="nav-link">Мы в соцсетях</a>
                 </nav>
                 <div class="header-actions">
                     <button class="btn-icon">🔍</button>
-                    <button class="btn-icon cart-button" onclick="window.location.href='cart.html'">🛒 <span class="badge cart-count">0</span></button>
+                    <button class="btn-icon cart-button" onclick="window.location.href='cart'">🛒 <span class="badge cart-count">0</span></button>
                 </div>
             </div>
         </div>
@@ -493,7 +493,7 @@
     <!-- Cart Page -->
     <section class="cart-page">
         <div class="container cart-container">
-            <a href="index.html" class="back-link" style="display: inline-flex; align-items: center; gap: 8px; color: #667eea; text-decoration: none; font-weight: 500; margin-bottom: 30px; transition: all 0.3s ease;">
+            <a href="index" class="back-link" style="display: inline-flex; align-items: center; gap: 8px; color: #667eea; text-decoration: none; font-weight: 500; margin-bottom: 30px; transition: all 0.3s ease;">
                 ← Вернуться на главную
             </a>
             <div class="cart-header">
@@ -577,7 +577,7 @@
                         <div class="empty-cart-icon">🛒</div>
                         <h2>Корзина пуста</h2>
                         <p>Добавьте товары из каталога, чтобы оформить заказ</p>
-                        <a href="catalog.html" class="btn-continue">Перейти в каталог</a>
+                        <a href="catalog" class="btn-continue">Перейти в каталог</a>
                     </div>
                 `;
                 return;
@@ -797,7 +797,7 @@
             
             // Перенаправляем на checkout с параметром fromCart=true
             // Checkout сам загрузит все товары из корзины
-            window.location.href = 'checkout.html?fromCart=true';
+            window.location.href = 'checkout?fromCart=true';
         }
         
         // Промокоды (10% скидка)
