@@ -71,6 +71,15 @@ async function sendTelegramPhoto(imageUrl, caption, silent = false) {
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors());
+
+// Блокируем прямой доступ к admin.html ДО статических файлов
+app.use((req, res, next) => {
+    if (req.path === '/admin.html') {
+        return res.status(404).send('Not Found');
+    }
+    next();
+});
+
 app.use(express.static(__dirname)); // Раздача статических файлов
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Раздача загруженных файлов
 
@@ -1009,17 +1018,13 @@ app.get('/socials', (req, res) => {
     res.sendFile(path.join(__dirname, 'socials.html'));
 });
 
-// Секретный роут для админ панели
-app.get('/t1xxas', authMiddleware, (req, res) => {
+// Секретный роут для админ панели (БЕЗ authMiddleware - страница сама проверяет)
+app.get('/t1xxas', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
-// Блокируем прямой доступ к admin.html
+// Блокируем старый роут /admin
 app.get('/admin', (req, res) => {
-    res.status(404).send('Not Found');
-});
-
-app.get('/admin.html', (req, res) => {
     res.status(404).send('Not Found');
 });
 
