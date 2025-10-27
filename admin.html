@@ -2027,7 +2027,7 @@
                 if (!response.ok) throw new Error('Failed to load orders');
                 
                 const data = await response.json();
-                const orders = data.orders || [];
+                const orders = data.orders?.all || [];
                 
                 const tbody = document.getElementById('ordersTableBody');
                 if (orders.length === 0) {
@@ -2035,17 +2035,23 @@
                     return;
                 }
                 
-                tbody.innerHTML = orders.map(order => `
-                    <tr>
-                        <td><span class="badge badge-info">${order.order_id}</span></td>
-                        <td>${order.product_name}</td>
-                        <td>${order.customer_name}</td>
-                        <td>${order.customer_email}</td>
-                        <td><strong>${order.total_amount?.toLocaleString('ru-RU') || 0} ₽</strong></td>
-                        <td>${new Date(order.created_at).toLocaleDateString('ru-RU')}</td>
-                        <td><span class="badge badge-${order.status === 'completed' ? 'success' : 'warning'}">${order.status === 'completed' ? 'Оплачен' : 'В обработке'}</span></td>
-                    </tr>
-                `).join('');
+                tbody.innerHTML = orders.map(order => {
+                    const productNames = Array.isArray(order.products) 
+                        ? order.products.map(p => p.name).join(', ')
+                        : 'Неизвестно';
+                    
+                    return `
+                        <tr>
+                            <td><span class="badge badge-info">${order.order_id}</span></td>
+                            <td>${productNames}</td>
+                            <td>${order.customer_name}</td>
+                            <td>${order.customer_email}</td>
+                            <td><strong>${order.total_amount?.toLocaleString('ru-RU') || 0} ₽</strong></td>
+                            <td>${new Date(order.created_at).toLocaleDateString('ru-RU')}</td>
+                            <td><span class="badge badge-${order.status === 'completed' ? 'success' : 'warning'}">${order.status === 'completed' ? 'Оплачен' : 'В обработке'}</span></td>
+                        </tr>
+                    `;
+                }).join('');
             } catch (error) {
                 console.error('Error loading orders:', error);
             }
@@ -2058,7 +2064,7 @@
                 if (!response.ok) throw new Error('Failed to load customers');
                 
                 const data = await response.json();
-                const customers = data.customers || [];
+                const customers = data.customers?.all || [];
                 
                 const tbody = document.getElementById('customersTableBody');
                 if (customers.length === 0) {
@@ -2088,7 +2094,7 @@
                 if (!response.ok) throw new Error('Failed to load products');
                 
                 const data = await response.json();
-                const products = data.products || [];
+                const products = data.products?.all || [];
                 
                 const tbody = document.getElementById('productsTableBody');
                 if (products.length === 0) {
@@ -2101,8 +2107,8 @@
                         <td>${product.name}</td>
                         <td><strong>${product.price?.toLocaleString('ru-RU') || 0} ₽</strong></td>
                         <td><span class="badge badge-info">${product.category}</span></td>
-                        <td>${product.sold || 0}</td>
-                        <td><strong>${product.revenue?.toLocaleString('ru-RU') || 0} ₽</strong></td>
+                        <td>${product.sold_count || 0}</td>
+                        <td><strong>${(product.price * product.sold_count || 0).toLocaleString('ru-RU')} ₽</strong></td>
                     </tr>
                 `).join('');
             } catch (error) {
@@ -2124,6 +2130,9 @@
                 
                 // Load section-specific data
                 switch(section) {
+                    case 'dashboard':
+                        loadDashboardData();
+                        break;
                     case 'support':
                         loadSupport();
                         break;
