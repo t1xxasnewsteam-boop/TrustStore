@@ -398,11 +398,13 @@ app.post('/api/login', (req, res) => {
         
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', // true для HTTPS
+            secure: false, // Важно! false для работы через HTTP и HTTPS без проблем
             sameSite: 'lax',
             maxAge: 30 * 24 * 60 * 60 * 1000, // 30 дней
             path: '/' // Важно! Cookie доступен на всех путях
         });
+        
+        console.log('🍪 Cookie установлен, токен действителен 30 дней');
 
         console.log('✅ Успешный вход:', username);
         res.json({ success: true, message: 'Успешный вход' });
