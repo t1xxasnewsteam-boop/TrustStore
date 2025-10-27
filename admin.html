@@ -1179,8 +1179,9 @@
         let lastAdminMessageId = 0;
         let pollingInterval = null;
 
-        // Login
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        // Login - ОБЯЗАТЕЛЬНО после загрузки DOM!
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
@@ -1209,6 +1210,7 @@
                 showNotification('Ошибка', 'Не удалось подключиться к серверу', '❌');
                 btnText.textContent = 'Войти';
             }
+            });
         });
 
         // Navigation
