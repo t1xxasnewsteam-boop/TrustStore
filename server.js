@@ -17,7 +17,7 @@ const TELEGRAM_BOT_TOKEN = '7268320384:AAGngFsmkg_x-2rryDtoJkmYD3ymxy5gM9o';
 const TELEGRAM_CHAT_ID = '6185074849';
 
 // Функция отправки уведомления в Telegram
-async function sendTelegramNotification(message) {
+async function sendTelegramNotification(message, silent = false) {
     try {
         const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
         const response = await fetch(url, {
@@ -26,7 +26,8 @@ async function sendTelegramNotification(message) {
             body: JSON.stringify({
                 chat_id: TELEGRAM_CHAT_ID,
                 text: message,
-                parse_mode: 'HTML'
+                parse_mode: 'HTML',
+                disable_notification: silent
             })
         });
         
@@ -243,6 +244,14 @@ function getOrCreateSession(ip, userAgent) {
             INSERT INTO sessions (session_id, ip, user_agent, country, country_code, device_type)
             VALUES (?, ?, ?, ?, ?, ?)
         `).run(sessionId, ip, userAgent, country, countryCode, deviceType);
+        
+        // Отправляем беззвучное уведомление о новом посетителе
+        const notificationText = `👤 Новый посетитель\n\n` +
+            `${country}\n` +
+            `📱 Устройство: ${deviceType}\n` +
+            `🌐 IP: ${cleanIp}`;
+        
+        sendTelegramNotification(notificationText, true); // silent = true
         
         return {
             sessionId,
