@@ -50,6 +50,9 @@
                 <button class="chat-send-btn" id="chatSendBtn">
                     ➤
                 </button>
+                <button class="chat-new-dialog-btn" id="chatNewDialogBtn" title="Начать новый диалог" style="display: none; position: absolute; top: -45px; right: 10px; background: #f0f0f0; border: none; padding: 8px 16px; border-radius: 8px; font-size: 12px; cursor: pointer; color: #666; font-weight: 600;">
+                    🔄 Новый диалог
+                </button>
             </div>
         </div>
     `;
@@ -68,6 +71,7 @@
         const chatCloseBtn = document.getElementById('chatCloseBtn');
         const chatImageBtn = document.getElementById('chatImageBtn');
         const chatImageInput = document.getElementById('chatImageInput');
+        const chatNewDialogBtn = document.getElementById('chatNewDialogBtn');
         
         let isOpen = false;
         let botMessageShown = false;
@@ -94,27 +98,34 @@
                 chatButton.classList.add('chat-open');
                 chatNotification.style.display = 'none';
                 
-                // Показываем приветственное сообщение бота
-                if (!botMessageShown) {
-                    setTimeout(() => {
-                        showTypingIndicator();
-                        
+                // Если есть тикет, загружаем историю сообщений (НЕ показываем приветствие)
+                if (ticketId) {
+                    console.log('✅ Найден существующий тикет:', ticketId);
+                    loadChatHistory();
+                    botMessageShown = true; // Помечаем что бот уже показывал сообщение
+                    // Показываем кнопку "Новый диалог"
+                    if (chatNewDialogBtn) chatNewDialogBtn.style.display = 'block';
+                } else {
+                    // Скрываем кнопку "Новый диалог"
+                    if (chatNewDialogBtn) chatNewDialogBtn.style.display = 'none';
+                    
+                    // Показываем приветственное сообщение бота ТОЛЬКО если нет тикета
+                    if (!botMessageShown) {
                         setTimeout(() => {
-                            hideTypingIndicator();
-                            addBotMessage('Привет! Чем могу помочь? 😊');
+                            showTypingIndicator();
                             
                             setTimeout(() => {
-                                addBotMessage('Напишите свой вопрос, и я быстро отвечу!', true);
-                            }, 800);
-                        }, 1500);
-                    }, 500);
-                    
-                    botMessageShown = true;
-                }
-                
-                // Если есть тикет, загружаем историю сообщений
-                if (ticketId) {
-                    loadChatHistory();
+                                hideTypingIndicator();
+                                addBotMessage('Привет! Чем могу помочь? 😊');
+                                
+                                setTimeout(() => {
+                                    addBotMessage('Напишите свой вопрос, и я быстро отвечу!', true);
+                                }, 800);
+                            }, 1500);
+                        }, 500);
+                        
+                        botMessageShown = true;
+                    }
                 }
                 
                 // Запускаем polling для получения новых сообщений
@@ -163,6 +174,9 @@
                         ticketId = data.ticketId;
                         localStorage.setItem('supportTicketId', ticketId);
                         console.log('✅ Сообщение отправлено, тикет:', ticketId);
+                        
+                        // Показываем кнопку "Новый диалог"
+                        if (chatNewDialogBtn) chatNewDialogBtn.style.display = 'block';
                         
                         // Если это первое сообщение, запускаем polling
                         if (!pollingInterval) {
@@ -228,6 +242,9 @@
                     localStorage.setItem('supportTicketId', ticketId);
                     console.log('✅ Изображение отправлено, тикет:', ticketId);
                     
+                    // Показываем кнопку "Новый диалог"
+                    if (chatNewDialogBtn) chatNewDialogBtn.style.display = 'block';
+                    
                     // Если это первое сообщение, запускаем polling
                     if (!pollingInterval) {
                         startPolling();
@@ -242,41 +259,52 @@
         async function loadChatHistory() {
             if (!ticketId) return;
             
+            console.log('📜 Загрузка истории тикета:', ticketId);
+            
             try {
                 const response = await fetch(`/api/support/messages/${ticketId}`);
                 if (response.ok) {
                     const data = await response.json();
                     
-                    // Очищаем чат (кроме приветственных сообщений)
-                    const messages = chatBody.querySelectorAll('.chat-message');
-                    messages.forEach(msg => {
-                        if (!msg.classList.contains('welcome-message')) {
-                            msg.remove();
-                        }
-                    });
+                    console.log('💬 Получено сообщений:', data.messages.length);
                     
-                    // Отображаем все сообщения
-                    data.messages.forEach(msg => {
-                        if (msg.sender_type === 'customer') {
-                            if (msg.image_url) {
-                                addUserImage(msg.image_url, false);
-                            } else {
-                                addUserMessage(msg.message, false);
+                    // Полностью очищаем чат
+                    chatBody.innerHTML = '';
+                    
+                    // Если есть сообщения - отображаем их
+                    if (data.messages && data.messages.length > 0) {
+                        data.messages.forEach(msg => {
+                            if (msg.sender_type === 'customer') {
+                                if (msg.image_url) {
+                                    addUserImage(msg.image_url, false);
+                                } else {
+                                    addUserMessage(msg.message, false);
+                                }
+                            } else if (msg.sender_type === 'admin') {
+                                if (msg.image_url) {
+                                    addAdminImage(msg.image_url, msg.sender_name);
+                                } else {
+                                    addAdminMessage(msg.message, msg.sender_name);
+                                }
+                            } else if (msg.sender_type === 'system') {
+                                addSystemMessage(msg.message);
                             }
-                        } else if (msg.sender_type === 'admin') {
-                            if (msg.image_url) {
-                                addAdminImage(msg.image_url, msg.sender_name);
-                            } else {
-                                addAdminMessage(msg.message, msg.sender_name);
+                            
+                            if (msg.id > lastMessageId) {
+                                lastMessageId = msg.id;
                             }
-                        } else if (msg.sender_type === 'system') {
-                            addSystemMessage(msg.message);
-                        }
+                        });
                         
-                        if (msg.id > lastMessageId) {
-                            lastMessageId = msg.id;
-                        }
-                    });
+                        console.log('✅ История загружена, lastMessageId:', lastMessageId);
+                    } else {
+                        // Если нет сообщений, показываем приветствие
+                        console.log('ℹ️ Нет истории, показываем приветствие');
+                        addBotMessage('Привет! Чем могу помочь? 😊');
+                        addBotMessage('Напишите свой вопрос, и я быстро отвечу!', true);
+                    }
+                    
+                    // Прокручиваем вниз
+                    scrollToBottom();
                 }
             } catch (error) {
                 console.error('Ошибка загрузки истории:', error);
@@ -491,6 +519,47 @@
             await sendImage(file);
             chatImageInput.value = '';
         });
+        
+        // Обработчик кнопки "Новый диалог"
+        if (chatNewDialogBtn) {
+            chatNewDialogBtn.addEventListener('click', function() {
+                if (confirm('Начать новый диалог? Текущая переписка останется в истории.')) {
+                    // Очищаем данные
+                    localStorage.removeItem('supportTicketId');
+                    localStorage.removeItem('customerName');
+                    localStorage.removeItem('customerEmail');
+                    ticketId = null;
+                    customerName = null;
+                    customerEmail = null;
+                    lastMessageId = 0;
+                    botMessageShown = false;
+                    
+                    // Очищаем чат
+                    chatBody.innerHTML = '';
+                    
+                    // Скрываем кнопку
+                    chatNewDialogBtn.style.display = 'none';
+                    
+                    // Показываем приветствие
+                    setTimeout(() => {
+                        showTypingIndicator();
+                        
+                        setTimeout(() => {
+                            hideTypingIndicator();
+                            addBotMessage('Привет! Чем могу помочь? 😊');
+                            
+                            setTimeout(() => {
+                                addBotMessage('Напишите свой вопрос, и я быстро отвечу!', true);
+                            }, 800);
+                        }, 1500);
+                    }, 500);
+                    
+                    botMessageShown = true;
+                    
+                    console.log('✅ Начат новый диалог');
+                }
+            });
+        }
         
         // Функция добавления сообщения бота
         function addBotMessage(text, withButtons = false) {
