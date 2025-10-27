@@ -251,22 +251,10 @@
         // Функция воспроизведения звука уведомления
         function playNotificationSound() {
             try {
-                // Создаем простой звуковой сигнал используя Web Audio API
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.frequency.value = 800; // Частота звука
-                oscillator.type = 'sine'; // Тип волны
-                
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime); // Громкость
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-                
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.5);
+                // Используем встроенный звук уведомления (короткий beep)
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE');
+                audio.volume = 0.5;
+                audio.play().catch(e => console.log('Автовоспроизведение заблокировано'));
             } catch (error) {
                 console.log('Звук не воспроизведен:', error);
             }
