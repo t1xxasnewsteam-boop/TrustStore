@@ -476,33 +476,49 @@ app.get('/api/stats', authMiddleware, (req, res) => {
 });
 
 // API для загрузки изображения от клиента
-app.post('/api/support/upload-image', upload.single('image'), (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ error: 'Файл не загружен' });
+app.post('/api/support/upload-image', (req, res) => {
+    upload.single('image')(req, res, (err) => {
+        try {
+            if (err) {
+                console.error('Ошибка multer:', err);
+                return res.status(400).json({ error: err.message || 'Ошибка загрузки файла' });
+            }
+            
+            if (!req.file) {
+                return res.status(400).json({ error: 'Файл не загружен' });
+            }
+            
+            const imageUrl = `/uploads/chat-images/${req.file.filename}`;
+            console.log('✅ Изображение загружено клиентом:', imageUrl);
+            res.json({ success: true, imageUrl });
+        } catch (error) {
+            console.error('Ошибка загрузки изображения:', error);
+            res.status(500).json({ error: 'Ошибка сервера' });
         }
-        
-        const imageUrl = `/uploads/chat-images/${req.file.filename}`;
-        res.json({ success: true, imageUrl });
-    } catch (error) {
-        console.error('Ошибка загрузки изображения:', error);
-        res.status(500).json({ error: 'Ошибка сервера' });
-    }
+    });
 });
 
 // API для загрузки изображения от админа
-app.post('/api/admin/support/upload-image', authMiddleware, upload.single('image'), (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ error: 'Файл не загружен' });
+app.post('/api/admin/support/upload-image', authMiddleware, (req, res) => {
+    upload.single('image')(req, res, (err) => {
+        try {
+            if (err) {
+                console.error('Ошибка multer:', err);
+                return res.status(400).json({ error: err.message || 'Ошибка загрузки файла' });
+            }
+            
+            if (!req.file) {
+                return res.status(400).json({ error: 'Файл не загружен' });
+            }
+            
+            const imageUrl = `/uploads/chat-images/${req.file.filename}`;
+            console.log('✅ Изображение загружено админом:', imageUrl);
+            res.json({ success: true, imageUrl });
+        } catch (error) {
+            console.error('Ошибка загрузки изображения:', error);
+            res.status(500).json({ error: 'Ошибка сервера' });
         }
-        
-        const imageUrl = `/uploads/chat-images/${req.file.filename}`;
-        res.json({ success: true, imageUrl });
-    } catch (error) {
-        console.error('Ошибка загрузки изображения:', error);
-        res.status(500).json({ error: 'Ошибка сервера' });
-    }
+    });
 });
 
 // API для создания тикета/отправки сообщения в поддержку

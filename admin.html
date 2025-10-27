@@ -1663,15 +1663,38 @@
                     const formData = new FormData();
                     formData.append('image', selectedImageFile);
                     
+                    console.log('📤 Загрузка изображения...');
+                    
                     const uploadResponse = await fetch('/api/admin/support/upload-image', {
                         method: 'POST',
                         credentials: 'include',
                         body: formData
                     });
                     
+                    console.log('📥 Ответ сервера на загрузку:', uploadResponse.status);
+                    
+                    // Проверяем что ответ JSON
+                    const contentType = uploadResponse.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        console.error('❌ Сервер вернул не JSON:', contentType);
+                        alert('Ошибка: Сессия истекла. Пожалуйста, обновите страницу и войдите снова.');
+                        return;
+                    }
+                    
                     const uploadData = await uploadResponse.json();
+                    
+                    if (!uploadResponse.ok) {
+                        console.error('❌ Ошибка загрузки изображения:', uploadData);
+                        alert('Ошибка загрузки изображения: ' + (uploadData.error || 'Неизвестная ошибка'));
+                        return;
+                    }
+                    
                     if (uploadData.success) {
                         imageUrl = uploadData.imageUrl;
+                        console.log('✅ Изображение загружено:', imageUrl);
+                    } else {
+                        alert('Ошибка загрузки изображения');
+                        return;
                     }
                 }
                 
