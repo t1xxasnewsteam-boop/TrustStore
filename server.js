@@ -101,8 +101,8 @@ const storage = multer.diskStorage({
     }
 });
 
-// Функция для удаления старых изображений (старше 7 дней)
-function cleanOldImages() {
+// Функция для удаления старых файлов (изображения и PDF старше 7 дней)
+function cleanOldFiles() {
     const uploadDir = path.join(__dirname, 'uploads', 'chat-images');
     const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7 дней в миллисекундах
     
@@ -125,14 +125,15 @@ function cleanOldImages() {
                     return;
                 }
                 
-                // Удаляем файлы старше 7 дней
+                // Удаляем файлы старше 7 дней (изображения и PDF)
                 if (stats.mtime.getTime() < sevenDaysAgo) {
                     fs.unlink(filePath, (err) => {
                         if (err) {
                             console.error('❌ Ошибка удаления файла:', err);
                         } else {
                             deletedCount++;
-                            console.log(`🗑️ Удален старый файл: ${file}`);
+                            const fileType = file.toLowerCase().endsWith('.pdf') ? 'PDF' : 'изображение';
+                            console.log(`🗑️ Удалено старое ${fileType}: ${file}`);
                         }
                     });
                 }
@@ -140,33 +141,34 @@ function cleanOldImages() {
         });
         
         if (deletedCount > 0) {
-            console.log(`✅ Удалено старых изображений: ${deletedCount}`);
+            console.log(`✅ Удалено старых файлов: ${deletedCount}`);
         }
     });
 }
 
 // Запуск очистки при старте сервера
-cleanOldImages();
+cleanOldFiles();
 
 // Запуск очистки каждый час
-setInterval(cleanOldImages, 60 * 60 * 1000); // 1 час
+setInterval(cleanOldFiles, 60 * 60 * 1000); // 1 час
 
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+    limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
     fileFilter: function (req, file, cb) {
         console.log('📤 Загрузка файла:', file.originalname);
         console.log('📝 MIME type:', file.mimetype);
         console.log('📝 Extension:', path.extname(file.originalname).toLowerCase());
         
-        // Разрешенные расширения и MIME типы
-        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+        // Разрешенные расширения и MIME типы (изображения + PDF)
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf'];
         const allowedMimeTypes = [
             'image/jpeg',
             'image/jpg', 
             'image/png',
             'image/gif',
-            'image/webp'
+            'image/webp',
+            'application/pdf'
         ];
         
         const fileExtension = path.extname(file.originalname).toLowerCase();
@@ -181,7 +183,7 @@ const upload = multer({
             return cb(null, true);
         } else {
             console.log('❌ Файл отклонен!');
-            cb(new Error(`Недопустимый формат файла. Разрешены: JPG, JPEG, PNG, GIF, WEBP`));
+            cb(new Error(`Недопустимый формат файла. Разрешены: JPG, JPEG, PNG, GIF, WEBP, PDF`));
         }
     }
 });

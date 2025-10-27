@@ -34,7 +34,7 @@
                 <input 
                     type="file" 
                     id="chatImageInput" 
-                    accept="image/*" 
+                    accept="image/*,.pdf" 
                     style="display: none;"
                 >
                 <button class="chat-image-btn" id="chatImageBtn" title="Прикрепить изображение">
@@ -189,10 +189,11 @@
             }
         }
         
-        // Отправка изображения
+        // Отправка изображения или файла
         async function sendImage(file) {
             try {
-                console.log('📤 Начало загрузки изображения');
+                const isPDF = file.type === 'application/pdf';
+                console.log('📤 Начало загрузки', isPDF ? 'PDF' : 'изображения');
                 console.log('📁 Файл:', file.name, 'Размер:', file.size, 'Тип:', file.type);
                 
                 // Создаем имя клиента если его нет
@@ -200,12 +201,16 @@
                     customerName = 'Гость';
                 }
                 
-                // Показываем предпросмотр изображения сразу
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    addUserImage(e.target.result);
-                };
-                reader.readAsDataURL(file);
+                // Показываем предпросмотр 
+                if (isPDF) {
+                    addUserFile(file.name, null); // Покажем временно без ссылки
+                } else {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        addUserImage(e.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
                 
                 // Загружаем изображение на сервер
                 const formData = new FormData();
@@ -237,10 +242,11 @@
                 }
                 
                 const imageUrl = uploadData.imageUrl;
-                console.log('✅ Изображение загружено:', imageUrl);
+                console.log('✅ Файл загружен:', imageUrl);
                 
-                // Отправляем сообщение с изображением
-                console.log('💬 Отправка сообщения с изображением...');
+                // Отправляем сообщение с файлом
+                const messageText = isPDF ? '📄 Документ PDF' : '📷 Изображение';
+                console.log('💬 Отправка сообщения с файлом...');
                 
                 const response = await fetch('/api/support/send-message', {
                     method: 'POST',
@@ -249,7 +255,7 @@
                         ticketId: ticketId,
                         customerName: customerName,
                         customerEmail: customerEmail,
-                        message: '📷 Изображение',
+                        message: messageText,
                         imageUrl: imageUrl
                     })
                 });
@@ -301,13 +307,25 @@
                         data.messages.forEach(msg => {
                             if (msg.sender_type === 'customer') {
                                 if (msg.image_url) {
-                                    addUserImage(msg.image_url, false);
+                                    const isPDF = msg.image_url.toLowerCase().endsWith('.pdf');
+                                    if (isPDF) {
+                                        const fileName = msg.image_url.split('/').pop();
+                                        addUserFile(fileName, msg.image_url, false);
+                                    } else {
+                                        addUserImage(msg.image_url, false);
+                                    }
                                 } else {
                                     addUserMessage(msg.message, false);
                                 }
                             } else if (msg.sender_type === 'admin') {
                                 if (msg.image_url) {
-                                    addAdminImage(msg.image_url, msg.sender_name);
+                                    const isPDF = msg.image_url.toLowerCase().endsWith('.pdf');
+                                    if (isPDF) {
+                                        const fileName = msg.image_url.split('/').pop();
+                                        addAdminFile(fileName, msg.image_url, msg.sender_name);
+                                    } else {
+                                        addAdminImage(msg.image_url, msg.sender_name);
+                                    }
                                 } else {
                                     addAdminMessage(msg.message, msg.sender_name);
                                 }
@@ -363,7 +381,13 @@
                                     setTimeout(() => {
                                         hideTypingIndicator();
                                         if (msg.image_url) {
-                                            addAdminImage(msg.image_url, msg.sender_name);
+                                            const isPDF = msg.image_url.toLowerCase().endsWith('.pdf');
+                                            if (isPDF) {
+                                                const fileName = msg.image_url.split('/').pop();
+                                                addAdminFile(fileName, msg.image_url, msg.sender_name);
+                                            } else {
+                                                addAdminImage(msg.image_url, msg.sender_name);
+                                            }
                                         } else {
                                             addAdminMessage(msg.message, msg.sender_name);
                                         }
@@ -375,7 +399,8 @@
                                 
                                 // Если чат закрыт - показываем уведомление на сайте
                                 if (!isOpen) {
-                                    const shortMessage = msg.image_url ? '📷 Вам отправили изображение' : (msg.message.length > 80 
+                                    const isPDF = msg.image_url && msg.image_url.toLowerCase().endsWith('.pdf');
+                                    const shortMessage = msg.image_url ? (isPDF ? '📄 Вам отправили документ' : '📷 Вам отправили изображение') : (msg.message.length > 80 
                                         ? msg.message.substring(0, 80) + '...' 
                                         : msg.message);
                                     showSiteNotification(shortMessage);
@@ -537,10 +562,13 @@
                 return;
             }
             
-            // Проверка типа - принимаем все типы изображений
-            if (!file.type.startsWith('image/')) {
+            // Проверка типа - принимаем изображения и PDF
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+            const isAllowed = file.type.startsWith('image/') || file.type === 'application/pdf';
+            
+            if (!isAllowed) {
                 console.error('❌ Неверный тип файла:', file.type);
-                alert('Можно загружать только изображения (JPG, PNG, GIF, WEBP)');
+                alert('Можно загружать только изображения (JPG, PNG, GIF, WEBP) или PDF');
                 chatImageInput.value = '';
                 return;
             }
@@ -663,6 +691,32 @@
             if (shouldScroll) scrollToBottom();
         }
         
+        // Функция добавления PDF файла от пользователя
+        function addUserFile(fileName, fileUrl, shouldScroll = true) {
+            const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            
+            const messageHTML = `
+                <div class="chat-message user">
+                    <div class="chat-message-avatar">👤</div>
+                    <div class="chat-message-content">
+                        <div class="chat-message-bubble">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="font-size: 32px;">📄</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; margin-bottom: 4px;">${fileName}</div>
+                                    ${fileUrl ? `<a href="${fileUrl}" target="_blank" style="color: #6c5ce7; text-decoration: none; font-size: 13px;">Скачать PDF</a>` : '<span style="color: #999; font-size: 13px;">Загрузка...</span>'}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-message-time">${time}</div>
+                    </div>
+                </div>
+            `;
+            
+            chatBody.insertAdjacentHTML('beforeend', messageHTML);
+            if (shouldScroll) scrollToBottom();
+        }
+        
         // Функция добавления сообщения от админа
         function addAdminMessage(text, senderName = 'Поддержка') {
             const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
@@ -701,6 +755,37 @@
                         </div>
                         <div class="chat-message-bubble" style="padding: 4px;">
                             <img src="${imageUrl}" alt="Изображение" style="max-width: 100%; border-radius: 10px; cursor: pointer;" onclick="window.open('${imageUrl}', '_blank')">
+                        </div>
+                        <div class="chat-message-time">${time}</div>
+                    </div>
+                </div>
+            `;
+            
+            chatBody.insertAdjacentHTML('beforeend', messageHTML);
+            scrollToBottom();
+        }
+        
+        // Функция добавления PDF файла от админа
+        function addAdminFile(fileName, fileUrl, senderName = 'Поддержка') {
+            const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            
+            const messageHTML = `
+                <div class="chat-message bot">
+                    <div class="chat-message-avatar">
+                        <img src="support-image.png" alt="Support" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                    </div>
+                    <div class="chat-message-content">
+                        <div style="font-size: 11px; color: #667eea; font-weight: 600; margin-bottom: 4px;">
+                            ${senderName}
+                        </div>
+                        <div class="chat-message-bubble">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="font-size: 32px;">📄</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; margin-bottom: 4px;">${fileName}</div>
+                                    <a href="${fileUrl}" target="_blank" style="color: #6c5ce7; text-decoration: none; font-size: 13px;">Скачать PDF</a>
+                                </div>
+                            </div>
                         </div>
                         <div class="chat-message-time">${time}</div>
                     </div>
