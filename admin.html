@@ -1541,6 +1541,204 @@
                 console.error('Ошибка загрузки тикета:', error);
             }
         }
+        
+        function displayTicketMessages(ticket, messages) {
+            console.log('📋 Отображение тикета:', ticket.ticket_id);
+            console.log('💬 Количество сообщений:', messages.length);
+            
+            document.getElementById('modal-ticket-id').textContent = `Тикет ${ticket.ticket_id} - ${ticket.customer_name || 'Гость'}`;
+            
+            const statusBtn = document.getElementById('modal-status-btn');
+            if (ticket.status === 'open') {
+                statusBtn.textContent = '✓ Закрыть тикет';
+                statusBtn.className = 'btn btn-secondary';
+            } else {
+                statusBtn.textContent = '🔄 Открыть тикет';
+                statusBtn.className = 'btn btn-secondary';
+            }
+            
+            if (!messages || messages.length === 0) {
+                console.log('⚠️ Нет сообщений для отображения');
+                document.getElementById('modal-messages').innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">Нет сообщений</div>';
+                lastAdminMessageId = 0;
+                return;
+            }
+            
+            const messagesHtml = messages.map(msg => {
+                const time = new Date(msg.created_at).toLocaleString('ru-RU');
+                
+                // Системное сообщение
+                if (msg.sender_type === 'system') {
+                    return `
+                        <div style="text-align: center; margin: 20px 0;">
+                            <div style="display: inline-block; background: rgba(255,255,255,0.05); color: var(--text-secondary); padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 500;">
+                                ${msg.message}
+                            </div>
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 5px;">${time}</div>
+                        </div>
+                    `;
+                }
+                
+                // Обычные сообщения
+                const isAdmin = msg.sender_type === 'admin';
+                const align = isAdmin ? 'flex-end' : 'flex-start';
+                const bgColor = isAdmin ? 'var(--accent-gradient)' : 'rgba(255,255,255,0.1)';
+                const textColor = 'white';
+                
+                let contentHtml = '';
+                if (msg.image_url) {
+                    const isPDF = msg.image_url.toLowerCase().endsWith('.pdf');
+                    if (isPDF) {
+                        const fileName = msg.image_url.split('/').pop();
+                        contentHtml = `
+                            <div style="display: flex; align-items: center; gap: 12px; padding: 8px 12px;">
+                                <div style="font-size: 40px;">📄</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; margin-bottom: 4px;">${fileName}</div>
+                                    <a href="${msg.image_url}" target="_blank" style="color: ${isAdmin ? '#fff' : '#6c5ce7'}; text-decoration: none; font-size: 13px; font-weight: 500;">Открыть PDF ↗</a>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        contentHtml = `<img src="${msg.image_url}" alt="Изображение" style="max-width: 300px; max-height: 300px; border-radius: 10px; cursor: pointer;" onclick="window.open('${msg.image_url}', '_blank')">`;
+                    }
+                } else {
+                    contentHtml = `<div style="font-size: 14px; line-height: 1.5;">${msg.message}</div>`;
+                }
+                
+                return `
+                    <div style="display: flex; flex-direction: column; align-items: ${align}; margin-bottom: 15px;">
+                        <div style="background: ${bgColor}; color: ${textColor}; padding: ${msg.image_url ? '4px' : '12px 16px'}; border-radius: 15px; max-width: 70%; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+                            <div style="font-size: 11px; font-weight: 600; margin-bottom: 5px; opacity: 0.8; ${msg.image_url ? 'padding: 8px 12px 0;' : ''}">
+                                ${isAdmin ? '👤 ' + msg.sender_name : '👥 ' + msg.sender_name}
+                            </div>
+                            ${contentHtml}
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">${time}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('modal-messages').innerHTML = messagesHtml;
+            document.getElementById('modal-messages').scrollTop = document.getElementById('modal-messages').scrollHeight;
+            
+            // Обновляем lastAdminMessageId
+            if (messages.length > 0) {
+                lastAdminMessageId = Math.max(...messages.map(m => m.id));
+                console.log('✅ Установлен lastAdminMessageId:', lastAdminMessageId);
+            }
+        }
+        
+        function closeTicketModal() {
+            document.getElementById('ticket-modal').style.display = 'none';
+            currentTicketId = null;
+            lastAdminMessageId = 0;
+            document.getElementById('reply-message').value = '';
+            
+            // Останавливаем polling
+            if (adminPollingInterval) {
+                clearInterval(adminPollingInterval);
+                adminPollingInterval = null;
+            }
+            
+            refreshTickets();
+        }
+        
+        // Polling для получения новых сообщений
+        function startAdminPolling() {
+            if (adminPollingInterval) {
+                clearInterval(adminPollingInterval);
+            }
+            
+            adminPollingInterval = setInterval(async () => {
+                if (!currentTicketId) return;
+                
+                try {
+                    const response = await fetch(`/api/admin/support/ticket/${currentTicketId}`, {
+                        credentials: 'include'
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        // Находим новые сообщения
+                        const newMessages = data.messages.filter(msg => msg.id > lastAdminMessageId);
+                        
+                        if (newMessages.length > 0) {
+                            // Добавляем только новые сообщения
+                            const messagesContainer = document.getElementById('modal-messages');
+                            
+                            newMessages.forEach(msg => {
+                                const time = new Date(msg.created_at).toLocaleString('ru-RU');
+                                let messageHtml = '';
+                                
+                                if (msg.sender_type === 'system') {
+                                    messageHtml = `
+                                        <div style="text-align: center; margin: 20px 0;">
+                                            <div style="display: inline-block; background: rgba(255,255,255,0.05); color: var(--text-secondary); padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 500;">
+                                                ${msg.message}
+                                            </div>
+                                            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 5px;">${time}</div>
+                                        </div>
+                                    `;
+                                } else {
+                                    const isAdmin = msg.sender_type === 'admin';
+                                    const align = isAdmin ? 'flex-end' : 'flex-start';
+                                    const bgColor = isAdmin ? 'var(--accent-gradient)' : 'rgba(255,255,255,0.1)';
+                                    const textColor = 'white';
+                                    
+                                    let contentHtml = '';
+                                    if (msg.image_url) {
+                                        const isPDF = msg.image_url.toLowerCase().endsWith('.pdf');
+                                        if (isPDF) {
+                                            const fileName = msg.image_url.split('/').pop();
+                                            contentHtml = `
+                                                <div style="display: flex; align-items: center; gap: 12px; padding: 8px 12px;">
+                                                    <div style="font-size: 40px;">📄</div>
+                                                    <div style="flex: 1;">
+                                                        <div style="font-weight: 600; margin-bottom: 4px;">${fileName}</div>
+                                                        <a href="${msg.image_url}" target="_blank" style="color: ${isAdmin ? '#fff' : '#6c5ce7'}; text-decoration: none; font-size: 13px; font-weight: 500;">Открыть PDF ↗</a>
+                                                    </div>
+                                                </div>
+                                            `;
+                                        } else {
+                                            contentHtml = `<img src="${msg.image_url}" alt="Изображение" style="max-width: 300px; max-height: 300px; border-radius: 10px; cursor: pointer;" onclick="window.open('${msg.image_url}', '_blank')">`;
+                                        }
+                                    } else {
+                                        contentHtml = `<div style="font-size: 14px; line-height: 1.5;">${msg.message}</div>`;
+                                    }
+                                    
+                                    messageHtml = `
+                                        <div style="display: flex; flex-direction: column; align-items: ${align}; margin-bottom: 15px;">
+                                            <div style="background: ${bgColor}; color: ${textColor}; padding: ${msg.image_url ? '4px' : '12px 16px'}; border-radius: 15px; max-width: 70%; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+                                                <div style="font-size: 11px; font-weight: 600; margin-bottom: 5px; opacity: 0.8; ${msg.image_url ? 'padding: 8px 12px 0;' : ''}">
+                                                    ${isAdmin ? '👤 ' + msg.sender_name : '👥 ' + msg.sender_name}
+                                                </div>
+                                                ${contentHtml}
+                                            </div>
+                                            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">${time}</div>
+                                        </div>
+                                    `;
+                                }
+                                
+                                messagesContainer.insertAdjacentHTML('beforeend', messageHtml);
+                                
+                                if (msg.id > lastAdminMessageId) {
+                                    lastAdminMessageId = msg.id;
+                                }
+                            });
+                            
+                            // Прокрутка вниз
+                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                            
+                            // Обновляем список тикетов тоже
+                            refreshTickets();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Ошибка admin polling:', error);
+                }
+            }, 3000);
+        }
 
         function displayMessages(messages) {
             const container = document.getElementById('chatMessages');
