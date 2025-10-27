@@ -11,6 +11,32 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = 'your-secret-key-change-this-in-production'; // Измени это!
 
+// Telegram уведомления
+const TELEGRAM_BOT_TOKEN = '7268320384:AAGngFsmkg_x-2rryDtoJkmYD3ymxy5gM9o';
+const TELEGRAM_CHAT_ID = '6185074849';
+
+// Функция отправки уведомления в Telegram
+async function sendTelegramNotification(message) {
+    try {
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: TELEGRAM_CHAT_ID,
+                text: message,
+                parse_mode: 'HTML'
+            })
+        });
+        
+        if (response.ok) {
+            console.log('✅ Telegram уведомление отправлено');
+        }
+    } catch (error) {
+        console.error('❌ Ошибка отправки Telegram уведомления:', error);
+    }
+}
+
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
@@ -387,6 +413,16 @@ app.post('/api/support/send-message', (req, res) => {
             `).run(finalTicketId, customerName || 'Гость', customerEmail || null);
             
             console.log('✅ Создан новый тикет:', finalTicketId);
+            
+            // Отправляем уведомление в Telegram о новом тикете
+            const notificationText = `🆕 <b>Новый тикет!</b>\n\n` +
+                `📋 ID: <code>${finalTicketId}</code>\n` +
+                `👤 Клиент: ${customerName || 'Гость'}\n` +
+                `${customerEmail ? `📧 Email: ${customerEmail}\n` : ''}` +
+                `💬 Сообщение: ${message}\n\n` +
+                `🔗 <a href="https://truststore.ru/admin">Открыть админку</a>`;
+            
+            sendTelegramNotification(notificationText);
         } else {
             // Обновляем время последнего сообщения и помечаем как непрочитанное
             db.prepare(`
@@ -394,6 +430,15 @@ app.post('/api/support/send-message', (req, res) => {
                 SET last_message_at = CURRENT_TIMESTAMP, unread_admin = 1
                 WHERE ticket_id = ?
             `).run(finalTicketId);
+            
+            // Отправляем уведомление о новом сообщении
+            const notificationText = `💬 <b>Новое сообщение!</b>\n\n` +
+                `📋 Тикет: <code>${finalTicketId}</code>\n` +
+                `👤 Клиент: ${customerName || 'Гость'}\n` +
+                `💬 Сообщение: ${message}\n\n` +
+                `🔗 <a href="https://truststore.ru/admin">Открыть админку</a>`;
+            
+            sendTelegramNotification(notificationText);
         }
         
         // Добавляем сообщение
