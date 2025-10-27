@@ -1028,14 +1028,14 @@
                     
                     <!-- Форма ответа -->
                     <div style="padding: 20px 30px; border-top: 1px solid #f0f0f0; background: white;">
-                        <input type="file" id="admin-image-input" accept="image/*" style="display: none;">
+                        <input type="file" id="admin-image-input" accept="image/*,.pdf" style="display: none;">
                         <div id="image-preview" style="display: none; margin-bottom: 15px; position: relative;">
                             <img id="preview-img" style="max-width: 200px; max-height: 200px; border-radius: 10px; border: 2px solid #e5e7eb;">
                             <button onclick="clearImagePreview()" style="position: absolute; top: 5px; right: 5px; background: #ff4757; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 16px; line-height: 1;">×</button>
                         </div>
                         <textarea id="reply-message" placeholder="Введите ваш ответ..." style="width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-family: inherit; min-height: 80px; resize: vertical;"></textarea>
                         <div style="display: flex; gap: 10px; margin-top: 15px;">
-                            <button class="btn-action" onclick="document.getElementById('admin-image-input').click()" style="background: #f0f0f0; color: #666;">📷 Прикрепить фото</button>
+                            <button class="btn-action" onclick="document.getElementById('admin-image-input').click()" style="background: #f0f0f0; color: #666;">📎 Прикрепить файл</button>
                             <button class="btn-primary" onclick="sendReply()">✉️ Отправить ответ</button>
                             <button class="btn-action btn-secondary" id="modal-status-btn" onclick="toggleTicketStatus()">Закрыть тикет</button>
                         </div>
@@ -1629,35 +1629,64 @@
                     const file = e.target.files[0];
                     if (!file) return;
                     
-                    // Проверка размера (макс 5 МБ)
-                    if (file.size > 5 * 1024 * 1024) {
-                        alert('Размер файла не должен превышать 5 МБ');
+                    // Проверка размера (макс 20 МБ)
+                    if (file.size > 20 * 1024 * 1024) {
+                        alert('Размер файла не должен превышать 20 МБ');
                         imageInput.value = '';
                         return;
                     }
                     
-                    // Проверка типа
-                    if (!file.type.startsWith('image/')) {
-                        alert('Можно загружать только изображения');
+                    // Проверка типа (изображения или PDF)
+                    const isImage = file.type.startsWith('image/');
+                    const isPDF = file.type === 'application/pdf';
+                    
+                    if (!isImage && !isPDF) {
+                        alert('Можно загружать только изображения или PDF файлы');
                         imageInput.value = '';
                         return;
                     }
                     
                     // Показываем предпросмотр
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        document.getElementById('preview-img').src = e.target.result;
-                        document.getElementById('image-preview').style.display = 'block';
+                    const previewDiv = document.getElementById('image-preview');
+                    const previewImg = document.getElementById('preview-img');
+                    
+                    if (isPDF) {
+                        // Для PDF показываем иконку
+                        previewImg.style.display = 'none';
+                        previewDiv.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 12px; padding: 15px; background: #f8f9fa; border-radius: 10px; border: 2px solid #e5e7eb;">
+                                <div style="font-size: 48px;">📄</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; margin-bottom: 4px;">${file.name}</div>
+                                    <div style="font-size: 13px; color: #666;">${(file.size / 1024 / 1024).toFixed(2)} МБ</div>
+                                </div>
+                            </div>
+                            <button onclick="clearImagePreview()" style="position: absolute; top: 5px; right: 5px; background: #ff4757; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 16px; line-height: 1;">×</button>
+                        `;
+                        previewDiv.style.display = 'block';
+                        previewDiv.style.position = 'relative';
                         selectedImageFile = file;
-                    };
-                    reader.readAsDataURL(file);
+                    } else {
+                        // Для изображений показываем превью
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            previewDiv.innerHTML = `
+                                <img id="preview-img" src="${e.target.result}" style="max-width: 200px; max-height: 200px; border-radius: 10px; border: 2px solid #e5e7eb;">
+                                <button onclick="clearImagePreview()" style="position: absolute; top: 5px; right: 5px; background: #ff4757; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 16px; line-height: 1;">×</button>
+                            `;
+                            previewDiv.style.display = 'block';
+                            previewDiv.style.position = 'relative';
+                            selectedImageFile = file;
+                        };
+                        reader.readAsDataURL(file);
+                    }
                 });
             }
         });
         
         function clearImagePreview() {
             document.getElementById('image-preview').style.display = 'none';
-            document.getElementById('preview-img').src = '';
+            document.getElementById('image-preview').innerHTML = '<img id="preview-img" style="max-width: 200px; max-height: 200px; border-radius: 10px; border: 2px solid #e5e7eb;"><button onclick="clearImagePreview()" style="position: absolute; top: 5px; right: 5px; background: #ff4757; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 16px; line-height: 1;">×</button>';
             document.getElementById('admin-image-input').value = '';
             selectedImageFile = null;
         }
@@ -1666,19 +1695,20 @@
             const message = document.getElementById('reply-message').value.trim();
             
             if (!message && !selectedImageFile) {
-                alert('Введите сообщение или прикрепите изображение');
+                alert('Введите сообщение или прикрепите файл');
                 return;
             }
             
             try {
                 let imageUrl = null;
+                const isPDF = selectedImageFile && selectedImageFile.type === 'application/pdf';
                 
-                // Если есть изображение, сначала загружаем его
+                // Если есть файл, сначала загружаем его
                 if (selectedImageFile) {
                     const formData = new FormData();
                     formData.append('image', selectedImageFile);
                     
-                    console.log('📤 Загрузка изображения...');
+                    console.log('📤 Загрузка файла...', isPDF ? 'PDF' : 'изображение');
                     
                     const uploadResponse = await fetch('/api/admin/support/upload-image', {
                         method: 'POST',
@@ -1699,22 +1729,28 @@
                     const uploadData = await uploadResponse.json();
                     
                     if (!uploadResponse.ok) {
-                        console.error('❌ Ошибка загрузки изображения:', uploadData);
-                        alert('Ошибка загрузки изображения: ' + (uploadData.error || 'Неизвестная ошибка'));
+                        console.error('❌ Ошибка загрузки файла:', uploadData);
+                        alert('Ошибка загрузки файла: ' + (uploadData.error || 'Неизвестная ошибка'));
                         return;
                     }
                     
                     if (uploadData.success) {
                         imageUrl = uploadData.imageUrl;
-                        console.log('✅ Изображение загружено:', imageUrl);
+                        console.log('✅ Файл загружен:', imageUrl);
                     } else {
-                        alert('Ошибка загрузки изображения');
+                        alert('Ошибка загрузки файла');
                         return;
                     }
                 }
                 
+                // Определяем текст сообщения
+                let finalMessage = message;
+                if (!message && imageUrl) {
+                    finalMessage = isPDF ? '📄 Документ PDF' : '📷 Изображение';
+                }
+                
                 // Отправляем ответ
-                console.log('📤 Отправка ответа...', { ticketId: currentTicketId, message, imageUrl });
+                console.log('📤 Отправка ответа...', { ticketId: currentTicketId, message: finalMessage, imageUrl });
                 
                 const response = await fetch('/api/admin/support/reply', {
                     method: 'POST',
@@ -1722,7 +1758,7 @@
                     credentials: 'include',
                     body: JSON.stringify({
                         ticketId: currentTicketId,
-                        message: message || '📷 Изображение',
+                        message: finalMessage,
                         imageUrl: imageUrl
                     })
                 });
