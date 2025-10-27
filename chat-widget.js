@@ -63,18 +63,6 @@
         let customerEmail = localStorage.getItem('customerEmail') || null;
         let lastMessageId = 0;
         let pollingInterval = null;
-        let notificationPermission = false;
-        
-        // Запрашиваем разрешение на уведомления
-        function requestNotificationPermission() {
-            if ('Notification' in window && Notification.permission === 'default') {
-                Notification.requestPermission().then(permission => {
-                    notificationPermission = permission === 'granted';
-                });
-            } else if ('Notification' in window && Notification.permission === 'granted') {
-                notificationPermission = true;
-            }
-        }
         
         // Открытие/закрытие чата
         chatButton.addEventListener('click', function() {
@@ -110,9 +98,6 @@
                 
                 // Запускаем polling для получения новых сообщений
                 startPolling();
-                
-                // Запрашиваем разрешение на уведомления при первом открытии
-                requestNotificationPermission();
                 
                 chatInput.focus();
             } else {
@@ -239,12 +224,12 @@
                                 // Воспроизводим звук и показываем уведомление
                                 playNotificationSound();
                                 
-                                // Если чат закрыт - показываем браузерное уведомление
+                                // Если чат закрыт - показываем уведомление на сайте
                                 if (!isOpen) {
-                                    const shortMessage = msg.message.length > 50 
-                                        ? msg.message.substring(0, 50) + '...' 
+                                    const shortMessage = msg.message.length > 80 
+                                        ? msg.message.substring(0, 80) + '...' 
                                         : msg.message;
-                                    showBrowserNotification('💬 Вам ответили в чате', shortMessage);
+                                    showSiteNotification(shortMessage);
                                     chatNotification.style.display = 'block';
                                 }
                             } else if (msg.sender_type === 'system') {
@@ -272,30 +257,96 @@
             }
         }
         
-        // Функция показа браузерного уведомления
-        function showBrowserNotification(title, message) {
-            if (notificationPermission && 'Notification' in window) {
-                const notification = new Notification(title, {
-                    body: message,
-                    icon: '/logo.png',
-                    badge: '/logo.png',
-                    tag: 'trust-store-chat',
-                    requireInteraction: false,
-                    silent: false
-                });
+        // Функция показа уведомления НА сайте
+        function showSiteNotification(message) {
+            // Создаем контейнер для уведомления если его нет
+            let notifContainer = document.getElementById('chat-notification-popup');
+            if (!notifContainer) {
+                notifContainer = document.createElement('div');
+                notifContainer.id = 'chat-notification-popup';
+                notifContainer.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 20px 25px;
+                    border-radius: 15px;
+                    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+                    z-index: 999999;
+                    max-width: 350px;
+                    cursor: pointer;
+                    animation: slideInRight 0.4s ease-out;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                `;
+                document.body.appendChild(notifContainer);
                 
-                // При клике на уведомление открываем чат
-                notification.onclick = function() {
-                    window.focus();
-                    if (!isOpen) {
-                        chatButton.click();
+                // Добавляем анимацию
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes slideInRight {
+                        from {
+                            transform: translateX(400px);
+                            opacity: 0;
+                        }
+                        to {
+                            transform: translateX(0);
+                            opacity: 1;
+                        }
                     }
-                    notification.close();
-                };
-                
-                // Автозакрытие через 5 секунд
-                setTimeout(() => notification.close(), 5000);
+                    @keyframes slideOutRight {
+                        from {
+                            transform: translateX(0);
+                            opacity: 1;
+                        }
+                        to {
+                            transform: translateX(400px);
+                            opacity: 0;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
             }
+            
+            // Контент уведомления
+            notifContainer.innerHTML = `
+                <div style="display: flex; align-items: flex-start; gap: 15px;">
+                    <div style="font-size: 32px;">💬</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 700; font-size: 16px; margin-bottom: 5px;">
+                            Вам ответили в чате
+                        </div>
+                        <div style="font-size: 14px; opacity: 0.95; line-height: 1.4;">
+                            ${message}
+                        </div>
+                        <div style="font-size: 12px; opacity: 0.8; margin-top: 8px;">
+                            Нажмите чтобы открыть
+                        </div>
+                    </div>
+                    <button onclick="event.stopPropagation(); this.closest('#chat-notification-popup').remove();" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-size: 16px; line-height: 1;">×</button>
+                </div>
+            `;
+            
+            // При клике открываем чат
+            notifContainer.onclick = function() {
+                if (!isOpen) {
+                    chatButton.click();
+                }
+                notifContainer.style.animation = 'slideOutRight 0.3s ease-in';
+                setTimeout(() => notifContainer.remove(), 300);
+            };
+            
+            // Автоматически скрываем через 8 секунд
+            setTimeout(() => {
+                if (notifContainer && notifContainer.parentNode) {
+                    notifContainer.style.animation = 'slideOutRight 0.3s ease-in';
+                    setTimeout(() => {
+                        if (notifContainer && notifContainer.parentNode) {
+                            notifContainer.remove();
+                        }
+                    }, 300);
+                }
+            }, 8000);
         }
         
         // Функция воспроизведения звука уведомления
@@ -486,7 +537,6 @@
         // Если есть тикет, запускаем polling сразу при загрузке страницы
         if (ticketId) {
             startPolling();
-            requestNotificationPermission();
         }
         
         // Глобальная функция для быстрых ответов
