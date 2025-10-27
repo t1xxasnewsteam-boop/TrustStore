@@ -1322,9 +1322,9 @@
                 // Update stats
                 document.getElementById('stat-sessions').textContent = data.sessions?.total || 0;
                 document.getElementById('stat-pageviews').textContent = data.pageviews || 0;
-                document.getElementById('stat-orders').textContent = data.orders?.length || 0;
+                document.getElementById('stat-orders').textContent = data.orders?.total || 0;
                 
-                const totalRevenue = data.orders?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
+                const totalRevenue = data.revenue?.total || 0;
                 document.getElementById('stat-revenue').textContent = totalRevenue.toLocaleString('ru-RU') + ' ₽';
                 
                 // Create charts
@@ -1352,7 +1352,7 @@
                     labels: dailyData.map(d => d.date).slice(-7),
                     datasets: [{
                         label: 'Посещения',
-                        data: dailyData.map(d => d.sessions).slice(-7),
+                        data: dailyData.map(d => d.count).slice(-7),
                         borderColor: '#6366f1',
                         backgroundColor: 'rgba(99, 102, 241, 0.1)',
                         borderWidth: 3,
