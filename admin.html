@@ -1098,67 +1098,78 @@
         <!-- Support Section -->
         <div class="content-section" id="support">
             <div class="top-bar">
-                <h1 class="page-title">Тикеты поддержки</h1>
-                <div class="top-bar-actions">
-                    <button class="btn btn-primary" onclick="loadSupportTickets()">
-                        <span>🔄</span> Обновить
-                    </button>
+                <h1 class="page-title">💬 Поддержка</h1>
+            </div>
+
+            <!-- Статистика -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px;">
+                <div class="stat-card">
+                    <div class="stat-title">Всего тикетов</div>
+                    <div class="stat-value" id="support-total">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Открытые</div>
+                    <div class="stat-value" id="support-open">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Непрочитанные</div>
+                    <div class="stat-value" id="support-unread">0</div>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
-                <!-- Tickets List -->
-                <div class="glass-card" style="max-height: 80vh; overflow-y: auto;">
-                    <h3 class="card-title">
-                        <span class="card-title-icon">📋</span>
-                        Все тикеты
-                    </h3>
-                    <div id="ticketsList"></div>
+            <!-- Список тикетов -->
+            <div class="glass-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 class="card-title">Тикеты поддержки</h3>
+                    <select id="ticket-filter" style="padding: 10px; border: 2px solid var(--border-color); border-radius: 10px; font-size: 14px; background: var(--bg-card); color: var(--text-primary);">
+                        <option value="all">Все тикеты</option>
+                        <option value="open">Открытые</option>
+                        <option value="closed">Закрытые</option>
+                        <option value="unread">Непрочитанные</option>
+                    </select>
                 </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Клиент</th>
+                            <th>Последнее сообщение</th>
+                            <th>Сообщений</th>
+                            <th>Статус</th>
+                            <th>Дата</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tickets-table"></tbody>
+                </table>
+            </div>
 
-                <!-- Chat -->
-                <div class="glass-card" style="max-height: 80vh; display: flex; flex-direction: column;">
-                    <div id="chatPlaceholder" style="flex: 1; display: flex; align-items: center; justify-content: center; color: var(--text-secondary);">
-                        <div style="text-align: center;">
-                            <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
-                            <div style="font-size: 18px; font-weight: 600;">Выберите тикет</div>
-                            <div style="font-size: 14px; margin-top: 8px;">Чтобы начать общение</div>
-                        </div>
+            <!-- Модальное окно тикета -->
+            <div id="ticket-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 2000; align-items: center; justify-content: center;">
+                <div style="background: var(--bg-card); border-radius: 20px; max-width: 800px; width: 90%; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; border: 1px solid var(--border-color);">
+                    <!-- Заголовок -->
+                    <div style="padding: 20px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                        <h2 style="font-size: 20px; font-weight: 700;" id="modal-ticket-id"></h2>
+                        <button onclick="closeTicketModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);">×</button>
                     </div>
                     
-                    <div id="chatContainer" style="flex: 1; display: none; flex-direction: column;">
-                        <!-- Chat Header -->
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); margin-bottom: 16px;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <button class="btn btn-secondary" onclick="backToTicketsList()" style="padding: 8px 12px;">
-                                    <span>←</span>
-                                </button>
-                                <div>
-                                    <div style="font-size: 18px; font-weight: 600;" id="chatCustomerName"></div>
-                                    <div style="font-size: 14px; color: var(--text-secondary);" id="chatCustomerEmail"></div>
-                                </div>
-                            </div>
-                            <div style="display: flex; gap: 8px;">
-                                <button class="btn btn-secondary" onclick="closeTicket()">
-                                    <span>✅</span> Закрыть
-                                </button>
-                            </div>
+                    <!-- Сообщения -->
+                    <div id="modal-messages" style="flex: 1; overflow-y: auto; padding: 30px; background: var(--bg-secondary);">
+                        <!-- Messages will be here -->
+                    </div>
+                    
+                    <!-- Форма ответа -->
+                    <div style="padding: 20px 30px; border-top: 1px solid var(--border-color); background: var(--bg-card);">
+                        <input type="file" id="admin-image-input" accept="image/*,.pdf" style="display: none;">
+                        <div id="image-preview" style="display: none; margin-bottom: 15px; position: relative;">
+                            <img id="preview-img" style="max-width: 200px; max-height: 200px; border-radius: 10px; border: 2px solid var(--border-color);">
+                            <button onclick="clearImagePreview()" style="position: absolute; top: 5px; right: 5px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 16px; line-height: 1;">×</button>
                         </div>
-
-                        <!-- Messages -->
-                        <div id="chatMessages" style="flex: 1; overflow-y: auto; padding: 16px; background: rgba(0, 0, 0, 0.2); border-radius: 12px; margin-bottom: 16px; max-height: 500px;"></div>
-
-                        <!-- Input -->
-                        <div style="display: flex; gap: 12px;">
-                            <input type="file" id="admin-file-input" accept="image/*,.pdf" style="display: none;">
-                            <button class="btn btn-secondary" onclick="document.getElementById('admin-file-input').click()">
-                                📎
-                            </button>
-                            <div id="filePreview" style="display: none; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 12px;"></div>
-                            <input type="text" id="chatInput" placeholder="Напишите сообщение..." style="flex: 1; padding: 14px 16px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 12px; color: white;">
-                            <button class="btn btn-primary" onclick="sendAdminMessage()">
-                                <span>✈️</span> Отправить
-                            </button>
+                        <textarea id="reply-message" placeholder="Введите ваш ответ..." style="width: 100%; padding: 15px; border: 2px solid var(--border-color); border-radius: 10px; font-size: 14px; font-family: inherit; min-height: 80px; resize: vertical; background: var(--bg-secondary); color: var(--text-primary);"></textarea>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="btn btn-secondary" onclick="document.getElementById('admin-image-input').click()">📎 Прикрепить файл</button>
+                            <button class="btn btn-primary" onclick="sendReply()">✉️ Отправить ответ</button>
+                            <button class="btn btn-secondary" id="modal-status-btn" onclick="toggleTicketStatus()">Закрыть тикет</button>
                         </div>
                     </div>
                 </div>
@@ -1433,108 +1444,101 @@
             });
         }
 
-        // Support Tickets
+        // Support Tickets (FROM OLD ADMIN)
+        let allTickets = [];
+        let currentTicketId = null;
+        let lastAdminMessageId = 0;
+        let adminPollingInterval = null;
         let selectedImageFile = null;
         
-        async function loadSupportTickets() {
+        async function refreshTickets() {
             try {
                 const response = await fetch('/api/admin/support/tickets', {
                     credentials: 'include'
                 });
                 
-                if (!response.ok) throw new Error('Failed to load tickets');
-                
-                const data = await response.json();
-                const tickets = data.tickets || [];
-                
-                // Update badge
-                const unreadCount = tickets.filter(t => t.unread_admin > 0).length || 0;
-                document.getElementById('supportBadge').textContent = unreadCount;
-                
-                // Display tickets list - НЕ ПЕРЕРИСОВЫВАЕМ ЕСЛИ ЧАТ ОТКРЫТ
-                const ticketsList = document.getElementById('ticketsList');
-                const chatContainer = document.getElementById('chatContainer');
-                
-                // Если чат открыт - только обновляем badge, не трогаем список
-                if (chatContainer && chatContainer.style.display === 'flex' && currentTicketId) {
-                    console.log('🔒 Чат открыт, не перерисовываем список тикетов');
-                    return;
+                if (response.ok) {
+                    const data = await response.json();
+                    allTickets = data.tickets || [];
+                    displayTickets(allTickets);
                 }
-                
-                if (tickets.length === 0) {
-                    ticketsList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 24px;">Нет тикетов</p>';
-                    return;
-                }
-                
-                ticketsList.innerHTML = tickets.map(ticket => `
-                    <div onclick="openTicket('${ticket.ticket_id}')" style="padding: 16px; background: ${ticket.unread_admin > 0 ? 'rgba(99, 102, 241, 0.1)' : 'rgba(255,255,255,0.02)'}; border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.3s ease; border-left: 3px solid ${ticket.unread_admin > 0 ? '#6366f1' : 'transparent'};">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
-                            <div style="font-weight: 600; font-size: 14px;">${ticket.customer_name}</div>
-                            ${ticket.unread_admin > 0 ? `<span class="badge badge-danger">${ticket.unread_admin}</span>` : ''}
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">${ticket.customer_email}</div>
-                        <div style="font-size: 11px; color: var(--text-secondary);">${new Date(ticket.created_at).toLocaleString('ru-RU')}</div>
-                    </div>
-                `).join('');
-                
             } catch (error) {
-                console.error('Error loading support tickets:', error);
+                console.error('Ошибка загрузки тикетов:', error);
             }
         }
+        
+        function displayTickets(tickets) {
+            const filter = document.getElementById('ticket-filter')?.value || 'all';
+            
+            let filteredTickets = tickets;
+            if (filter === 'open') {
+                filteredTickets = tickets.filter(t => t.status === 'open');
+            } else if (filter === 'closed') {
+                filteredTickets = tickets.filter(t => t.status === 'closed');
+            } else if (filter === 'unread') {
+                filteredTickets = tickets.filter(t => t.unread_admin > 0);
+            }
+            
+            // Update stats
+            document.getElementById('support-total').textContent = tickets.length;
+            document.getElementById('support-open').textContent = tickets.filter(t => t.status === 'open').length;
+            document.getElementById('support-unread').textContent = tickets.filter(t => t.unread_admin > 0).length;
+            
+            // Update badge
+            const unreadCount = tickets.filter(t => t.unread_admin > 0).length;
+            const badge = document.getElementById('supportBadge');
+            if (badge) {
+                badge.textContent = unreadCount;
+                badge.style.display = unreadCount > 0 ? 'block' : 'none';
+            }
+            
+            const tbody = document.getElementById('tickets-table');
+            if (filteredTickets.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary);">Нет тикетов</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = filteredTickets.map(ticket => `
+                <tr onclick="openTicketModal('${ticket.ticket_id}')" style="cursor: pointer;">
+                    <td>${ticket.ticket_id}</td>
+                    <td>${ticket.customer_name || 'Гость'}</td>
+                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${ticket.last_message || '—'}</td>
+                    <td>${ticket.message_count || 0}</td>
+                    <td><span class="badge badge-${ticket.status === 'open' ? 'success' : 'secondary'}">${ticket.status === 'open' ? 'Открыт' : 'Закрыт'}</span></td>
+                    <td>${new Date(ticket.created_at).toLocaleString('ru-RU')}</td>
+                    <td>
+                        ${ticket.unread_admin > 0 ? `<span class="badge badge-danger">${ticket.unread_admin} новых</span>` : '—'}
+                    </td>
+                </tr>
+            `).join('');
+        }
 
-        async function openTicket(ticketId) {
-            console.log('🎫 Opening ticket:', ticketId);
+        async function openTicketModal(ticketId) {
             currentTicketId = ticketId;
             lastAdminMessageId = 0;
+            
+            console.log('🔍 Открытие тикета:', ticketId);
             
             try {
                 const response = await fetch(`/api/admin/support/ticket/${ticketId}`, {
                     credentials: 'include'
                 });
                 
-                if (!response.ok) throw new Error('Failed to load ticket');
+                console.log('📡 Ответ сервера:', response.status);
                 
-                const data = await response.json();
-                console.log('✅ Ticket data loaded:', data);
-                
-                // Show chat container - исправлено!
-                const placeholder = document.getElementById('chatPlaceholder');
-                const container = document.getElementById('chatContainer');
-                
-                console.log('📦 Elements:', { placeholder, container });
-                
-                if (placeholder) {
-                    placeholder.style.display = 'none';
-                    console.log('✅ Placeholder hidden');
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('📦 Данные тикета:', data);
+                    console.log('💬 Сообщений получено:', data.messages ? data.messages.length : 0);
+                    
+                    displayTicketMessages(data.ticket, data.messages);
+                    document.getElementById('ticket-modal').style.display = 'flex';
+                    
+                    // Запускаем polling для автообновления
+                    startAdminPolling();
                 }
-                if (container) {
-                    container.style.display = 'flex';
-                    container.style.flexDirection = 'column';
-                    console.log('✅ Container shown');
-                }
-                
-                // Update header
-                const nameEl = document.getElementById('chatCustomerName');
-                const emailEl = document.getElementById('chatCustomerEmail');
-                if (nameEl) nameEl.textContent = data.ticket.customer_name;
-                if (emailEl) emailEl.textContent = data.ticket.customer_email;
-                
-                // Display messages
-                displayMessages(data.messages || []);
-                
-                // Re-initialize input handlers
-                initFileInput();
-                initChatInput();
-                
-                // Start polling
-                if (pollingInterval) clearInterval(pollingInterval);
-                pollingInterval = setInterval(() => pollNewMessages(ticketId), 3000);
-                
-                console.log('✅ Ticket opened successfully');
-                
             } catch (error) {
-                console.error('❌ Error opening ticket:', error);
-                showNotification('Ошибка', 'Не удалось загрузить тикет', '❌');
+                console.error('Ошибка загрузки тикета:', error);
             }
         }
 
