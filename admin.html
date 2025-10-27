@@ -1415,6 +1415,7 @@
         }
 
         async function openTicket(ticketId) {
+            console.log('🎫 Opening ticket:', ticketId);
             currentTicketId = ticketId;
             lastAdminMessageId = 0;
             
@@ -1426,24 +1427,45 @@
                 if (!response.ok) throw new Error('Failed to load ticket');
                 
                 const data = await response.json();
+                console.log('✅ Ticket data loaded:', data);
                 
-                // Show chat container
-                document.getElementById('chatPlaceholder').style.display = 'none';
-                document.getElementById('chatContainer').style.display = 'flex';
+                // Show chat container - исправлено!
+                const placeholder = document.getElementById('chatPlaceholder');
+                const container = document.getElementById('chatContainer');
+                
+                console.log('📦 Elements:', { placeholder, container });
+                
+                if (placeholder) {
+                    placeholder.style.display = 'none';
+                    console.log('✅ Placeholder hidden');
+                }
+                if (container) {
+                    container.style.display = 'flex';
+                    container.style.flexDirection = 'column';
+                    console.log('✅ Container shown');
+                }
                 
                 // Update header
-                document.getElementById('chatCustomerName').textContent = data.ticket.customer_name;
-                document.getElementById('chatCustomerEmail').textContent = data.ticket.customer_email;
+                const nameEl = document.getElementById('chatCustomerName');
+                const emailEl = document.getElementById('chatCustomerEmail');
+                if (nameEl) nameEl.textContent = data.ticket.customer_name;
+                if (emailEl) emailEl.textContent = data.ticket.customer_email;
                 
                 // Display messages
                 displayMessages(data.messages || []);
+                
+                // Re-initialize input handlers
+                initFileInput();
+                initChatInput();
                 
                 // Start polling
                 if (pollingInterval) clearInterval(pollingInterval);
                 pollingInterval = setInterval(() => pollNewMessages(ticketId), 3000);
                 
+                console.log('✅ Ticket opened successfully');
+                
             } catch (error) {
-                console.error('Error opening ticket:', error);
+                console.error('❌ Error opening ticket:', error);
                 showNotification('Ошибка', 'Не удалось загрузить тикет', '❌');
             }
         }
@@ -1514,31 +1536,42 @@
             }
         }
 
-        // File input handler
-        document.getElementById('admin-file-input').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) {
-                selectedImageFile = null;
-                document.getElementById('filePreview').style.display = 'none';
-                return;
+        // File input handler - FIXED
+        function initFileInput() {
+            const fileInput = document.getElementById('admin-file-input');
+            if (fileInput) {
+                fileInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    const preview = document.getElementById('filePreview');
+                    
+                    if (!file) {
+                        selectedImageFile = null;
+                        if (preview) preview.style.display = 'none';
+                        return;
+                    }
+                    
+                    if (file.size > 20 * 1024 * 1024) {
+                        showNotification('Ошибка', 'Файл слишком большой (макс. 20MB)', '❌');
+                        e.target.value = '';
+                        return;
+                    }
+                    
+                    selectedImageFile = file;
+                    
+                    if (preview) {
+                        if (file.type === 'application/pdf') {
+                            preview.innerHTML = `📄 ${file.name} (${(file.size / 1024).toFixed(0)} KB)`;
+                        } else {
+                            preview.innerHTML = `🖼️ ${file.name} (${(file.size / 1024).toFixed(0)} KB)`;
+                        }
+                        preview.style.display = 'block';
+                    }
+                });
             }
-            
-            if (file.size > 20 * 1024 * 1024) {
-                showNotification('Ошибка', 'Файл слишком большой (макс. 20MB)', '❌');
-                e.target.value = '';
-                return;
-            }
-            
-            selectedImageFile = file;
-            const preview = document.getElementById('filePreview');
-            
-            if (file.type === 'application/pdf') {
-                preview.innerHTML = `📄 ${file.name} (${(file.size / 1024).toFixed(0)} KB)`;
-            } else {
-                preview.innerHTML = `🖼️ ${file.name} (${(file.size / 1024).toFixed(0)} KB)`;
-            }
-            preview.style.display = 'block';
-        });
+        }
+        
+        // Initialize on load
+        setTimeout(initFileInput, 100);
 
         async function sendAdminMessage() {
             const input = document.getElementById('chatInput');
@@ -1635,10 +1668,16 @@
             }
         }
 
-        // Enter to send
-        document.getElementById('chatInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendAdminMessage();
-        });
+        // Enter to send - FIXED
+        function initChatInput() {
+            const chatInput = document.getElementById('chatInput');
+            if (chatInput) {
+                chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') sendAdminMessage();
+                });
+            }
+        }
+        setTimeout(initChatInput, 100);
 
         async function closeTicket() {
             if (!currentTicketId) return;
