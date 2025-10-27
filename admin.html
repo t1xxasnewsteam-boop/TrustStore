@@ -1376,12 +1376,19 @@
         async function openTicketModal(ticketId) {
             currentTicketId = ticketId;
             
+            console.log('🔍 Открытие тикета:', ticketId);
+            
             try {
                 const response = await fetch(`/api/admin/support/ticket/${ticketId}`, {
                     credentials: 'include'
                 });
+                
+                console.log('📡 Ответ сервера:', response.status);
+                
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('📦 Данные тикета:', data);
+                    console.log('💬 Сообщений получено:', data.messages ? data.messages.length : 0);
                     
                     // Отправляем системное сообщение о подключении оператора
                     // Только если тикет был непрочитанным
@@ -1434,6 +1441,10 @@
         }
         
         function displayTicketMessages(ticket, messages) {
+            console.log('📋 Отображение тикета:', ticket.ticket_id);
+            console.log('💬 Количество сообщений:', messages.length);
+            console.log('📝 Сообщения:', messages);
+            
             document.getElementById('modal-ticket-id').textContent = `Тикет ${ticket.ticket_id} - ${ticket.customer_name || 'Гость'}`;
             
             const statusBtn = document.getElementById('modal-status-btn');
@@ -1443,6 +1454,12 @@
             } else {
                 statusBtn.textContent = '🔄 Открыть тикет';
                 statusBtn.className = 'btn-action';
+            }
+            
+            if (!messages || messages.length === 0) {
+                console.log('⚠️ Нет сообщений для отображения');
+                document.getElementById('modal-messages').innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">Нет сообщений</div>';
+                return;
             }
             
             const messagesHtml = messages.map(msg => {

@@ -633,14 +633,19 @@ app.get('/api/admin/support/ticket/:ticketId', authMiddleware, (req, res) => {
     try {
         const { ticketId } = req.params;
         
+        console.log('📋 Запрос тикета:', ticketId);
+        
         // Получаем информацию о тикете
         const ticket = db.prepare(`
             SELECT * FROM support_tickets WHERE ticket_id = ?
         `).get(ticketId);
         
         if (!ticket) {
+            console.log('❌ Тикет не найден:', ticketId);
             return res.status(404).json({ error: 'Тикет не найден' });
         }
+        
+        console.log('✅ Тикет найден:', ticket);
         
         // Получаем все сообщения
         const messages = db.prepare(`
@@ -648,6 +653,9 @@ app.get('/api/admin/support/ticket/:ticketId', authMiddleware, (req, res) => {
             WHERE ticket_id = ?
             ORDER BY created_at ASC
         `).all(ticketId);
+        
+        console.log('💬 Найдено сообщений:', messages.length);
+        console.log('📝 Сообщения:', messages);
         
         // Помечаем как прочитанное админом
         db.prepare(`
