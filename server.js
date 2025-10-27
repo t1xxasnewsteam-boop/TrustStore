@@ -510,6 +510,8 @@ app.post('/api/support/send-message', (req, res) => {
     try {
         const { ticketId, customerName, customerEmail, message, imageUrl } = req.body;
         
+        console.log('💬 Получено сообщение от клиента:', { ticketId, customerName, message, imageUrl });
+        
         if (!message && !imageUrl) {
             return res.status(400).json({ error: 'Сообщение или изображение обязательны' });
         }
@@ -576,12 +578,14 @@ app.post('/api/support/send-message', (req, res) => {
         }
         
         // Добавляем сообщение
-        db.prepare(`
+        const messageResult = db.prepare(`
             INSERT INTO support_messages (ticket_id, sender_type, sender_name, message, image_url)
             VALUES (?, 'customer', ?, ?, ?)
         `).run(finalTicketId, customerName || 'Гость', message || null, imageUrl || null);
         
-        res.json({ success: true, ticketId: finalTicketId });
+        console.log('✅ Сообщение клиента сохранено, ID:', messageResult.lastInsertRowid);
+        
+        res.json({ success: true, ticketId: finalTicketId, messageId: messageResult.lastInsertRowid });
     } catch (error) {
         console.error('Ошибка отправки сообщения:', error);
         res.status(500).json({ error: 'Ошибка сервера' });
@@ -664,15 +668,20 @@ app.post('/api/admin/support/reply', authMiddleware, (req, res) => {
     try {
         const { ticketId, message, imageUrl } = req.body;
         
+        console.log('📨 Получен запрос на отправку ответа:', { ticketId, message, imageUrl });
+        
         if ((!message && !imageUrl) || !ticketId) {
+            console.log('❌ Ошибка: отсутствуют обязательные поля');
             return res.status(400).json({ error: 'Тикет и сообщение/изображение обязательны' });
         }
         
         // Добавляем сообщение от админа
-        db.prepare(`
+        const result = db.prepare(`
             INSERT INTO support_messages (ticket_id, sender_type, sender_name, message, image_url)
-            VALUES (?, 'admin', 'Поддержка Trust Store', ?, ?)
+            VALUES (?, 'admin', 'Артём', ?, ?)
         `).run(ticketId, message || null, imageUrl || null);
+        
+        console.log('✅ Сообщение добавлено в БД, ID:', result.lastInsertRowid);
         
         // Обновляем время последнего сообщения
         db.prepare(`
@@ -681,9 +690,10 @@ app.post('/api/admin/support/reply', authMiddleware, (req, res) => {
             WHERE ticket_id = ?
         `).run(ticketId);
         
-        res.json({ success: true });
+        console.log('✅ Ответ админа отправлен успешно');
+        res.json({ success: true, messageId: result.lastInsertRowid });
     } catch (error) {
-        console.error('Ошибка отправки ответа:', error);
+        console.error('❌ Ошибка отправки ответа:', error);
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 });

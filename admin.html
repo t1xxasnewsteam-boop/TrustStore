@@ -1659,6 +1659,8 @@
                 }
                 
                 // Отправляем ответ
+                console.log('📤 Отправка ответа...', { ticketId: currentTicketId, message, imageUrl });
+                
                 const response = await fetch('/api/admin/support/reply', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1670,15 +1672,25 @@
                     })
                 });
                 
+                console.log('📥 Ответ сервера:', response.status);
+                
                 if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Сообщение отправлено успешно:', data);
+                    
                     document.getElementById('reply-message').value = '';
                     clearImagePreview();
-                    // Reload messages
-                    openTicketModal(currentTicketId);
+                    
+                    // Перезагружаем сообщения
+                    await openTicketModal(currentTicketId);
+                } else {
+                    const errorData = await response.json();
+                    console.error('❌ Ошибка сервера:', errorData);
+                    alert('Ошибка отправки: ' + (errorData.error || 'Неизвестная ошибка'));
                 }
             } catch (error) {
-                console.error('Ошибка отправки ответа:', error);
-                alert('Ошибка отправки ответа');
+                console.error('❌ Ошибка отправки ответа:', error);
+                alert('Ошибка отправки ответа: ' + error.message);
             }
         }
         
