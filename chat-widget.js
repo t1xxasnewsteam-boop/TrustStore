@@ -305,6 +305,14 @@
                     
                     // Если есть сообщения - отображаем их
                     if (data.messages && data.messages.length > 0) {
+                        // 🔥 СНАЧАЛА находим максимальный ID чтобы не показывать уведомления
+                        const maxId = Math.max(...data.messages.map(m => m.id));
+                        if (maxId > lastMessageId) {
+                            lastMessageId = maxId;
+                            localStorage.setItem('lastMessageId', lastMessageId);
+                            console.log('🔄 Обновлён lastMessageId на', lastMessageId, 'при загрузке истории');
+                        }
+                        
                         data.messages.forEach(msg => {
                             if (msg.sender_type === 'customer') {
                                 if (msg.image_url) {
@@ -332,12 +340,6 @@
                                 }
                             } else if (msg.sender_type === 'system') {
                                 addSystemMessage(msg.message);
-                            }
-                            
-                            if (msg.id > lastMessageId) {
-                                lastMessageId = msg.id;
-                                // Сохраняем в localStorage чтобы не показывать старые уведомления при обновлении
-                                localStorage.setItem('lastMessageId', lastMessageId);
                             }
                         });
                         
@@ -375,6 +377,10 @@
                         
                         // Показываем только новые сообщения
                         const newMessages = data.messages.filter(msg => msg.id > lastMessageId);
+                        
+                        if (newMessages.length > 0) {
+                            console.log(`🔔 Polling: найдено ${newMessages.length} новых сообщений (lastMessageId: ${lastMessageId}, новые ID: ${newMessages.map(m => m.id).join(', ')})`);
+                        }
                         
                         newMessages.forEach(msg => {
                             if (msg.sender_type === 'admin') {
