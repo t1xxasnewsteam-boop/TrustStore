@@ -595,6 +595,44 @@
             color: var(--text-secondary);
         }
 
+        /* Auto-refresh indicator */
+        .auto-refresh-indicator {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .auto-refresh-indicator.active {
+            opacity: 1;
+        }
+
+        .refresh-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
         /* Login Overlay */
         .login-overlay {
             display: none;
@@ -800,6 +838,12 @@
                 <span>🚪</span> Выход
             </button>
         </div>
+    </div>
+
+    <!-- Auto-refresh Indicator -->
+    <div class="auto-refresh-indicator" id="autoRefreshIndicator">
+        <div class="refresh-dot"></div>
+        <span>Обновление...</span>
     </div>
 
     <!-- Main Content -->
@@ -1803,25 +1847,33 @@
                 document.getElementById(section).classList.add('active');
                 
                 // Load section-specific data
-                switch(section) {
-                    case 'support':
-                        loadSupportTickets();
-                        break;
-                    case 'orders':
-                        loadOrders();
-                        break;
-                    case 'customers':
-                        loadCustomers();
-                        break;
-                    case 'products':
-                        loadProducts();
-                        break;
-                    case 'geography':
-                        loadGeographyData();
-                        break;
-                }
+                loadCurrentSectionData(section);
             });
         });
+
+        // Load data for current section
+        function loadCurrentSectionData(section) {
+            switch(section) {
+                case 'dashboard':
+                    loadDashboardData();
+                    break;
+                case 'support':
+                    loadSupportTickets();
+                    break;
+                case 'orders':
+                    loadOrders();
+                    break;
+                case 'customers':
+                    loadCustomers();
+                    break;
+                case 'products':
+                    loadProducts();
+                    break;
+                case 'geography':
+                    loadGeographyData();
+                    break;
+            }
+        }
 
         // Load Geography Data
         async function loadGeographyData() {
@@ -1860,13 +1912,57 @@
             }
         }
 
-        // Auto-refresh every 30 seconds
+        // Show refresh indicator
+        function showRefreshIndicator() {
+            const indicator = document.getElementById('autoRefreshIndicator');
+            if (indicator) {
+                indicator.classList.add('active');
+                setTimeout(() => indicator.classList.remove('active'), 800);
+            }
+        }
+
+        // Universal auto-refresh - обновляет активный раздел
+        setInterval(() => {
+            if (!isAuthenticated) return;
+            
+            // Find active section
+            const activeSection = document.querySelector('.content-section.active');
+            if (!activeSection) return;
+            
+            const sectionId = activeSection.id;
+            
+            // Show indicator
+            showRefreshIndicator();
+            
+            // Refresh based on section type
+            if (sectionId === 'support') {
+                loadSupportTickets(); // Обновляем список тикетов каждые 3 сек
+            } else if (sectionId === 'orders') {
+                loadOrders(); // Обновляем заказы
+            } else if (sectionId === 'customers') {
+                loadCustomers(); // Обновляем клиентов
+            } else if (sectionId === 'products') {
+                loadProducts(); // Обновляем товары
+            } else if (sectionId === 'geography') {
+                loadGeographyData(); // Обновляем географию
+            } else if (sectionId === 'dashboard') {
+                loadDashboardData(); // Обновляем дашборд
+            }
+        }, 3000); // Каждые 3 секунды для всех разделов
+        
+        // Badge update - обновляем счетчики непрочитанных
         setInterval(() => {
             if (isAuthenticated) {
-                loadDashboardData();
-                loadSupportTickets();
+                fetch('/api/admin/support/tickets', { credentials: 'include' })
+                    .then(res => res.json())
+                    .then(data => {
+                        const unreadCount = data.tickets?.filter(t => t.unread_admin > 0).length || 0;
+                        const badge = document.getElementById('supportBadge');
+                        if (badge) badge.textContent = unreadCount;
+                    })
+                    .catch(err => console.error('Badge update error:', err));
             }
-        }, 30000);
+        }, 2000); // Обновляем badge каждые 2 секунды
     </script>
 </body>
 </html>
