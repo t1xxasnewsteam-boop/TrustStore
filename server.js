@@ -155,14 +155,33 @@ const upload = multer({
     storage: storage,
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
     fileFilter: function (req, file, cb) {
-        const allowedTypes = /jpeg|jpg|png|gif|webp/;
-        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-        const mimetype = allowedTypes.test(file.mimetype);
+        console.log('📤 Загрузка файла:', file.originalname);
+        console.log('📝 MIME type:', file.mimetype);
+        console.log('📝 Extension:', path.extname(file.originalname).toLowerCase());
         
-        if (mimetype && extname) {
+        // Разрешенные расширения и MIME типы
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+        const allowedMimeTypes = [
+            'image/jpeg',
+            'image/jpg', 
+            'image/png',
+            'image/gif',
+            'image/webp'
+        ];
+        
+        const fileExtension = path.extname(file.originalname).toLowerCase();
+        const isValidExtension = allowedExtensions.includes(fileExtension);
+        const isValidMimeType = allowedMimeTypes.includes(file.mimetype.toLowerCase());
+        
+        console.log('✅ Расширение валидно:', isValidExtension);
+        console.log('✅ MIME type валиден:', isValidMimeType);
+        
+        if (isValidExtension && isValidMimeType) {
+            console.log('✅ Файл принят!');
             return cb(null, true);
         } else {
-            cb(new Error('Только изображения разрешены!'));
+            console.log('❌ Файл отклонен!');
+            cb(new Error(`Недопустимый формат файла. Разрешены: JPG, JPEG, PNG, GIF, WEBP`));
         }
     }
 });
