@@ -14,7 +14,8 @@
     "jsonwebtoken": "^9.0.2",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
-    "geoip-lite": "^1.4.7"
+    "geoip-lite": "^1.4.7",
+    "node-fetch": "^2.7.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
