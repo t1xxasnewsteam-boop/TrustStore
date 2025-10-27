@@ -275,6 +275,25 @@ db.exec(`
     CREATE INDEX IF NOT EXISTS idx_ticket_id ON support_messages(ticket_id);
 `);
 
+// Миграция: добавление колонки image_url если её нет
+try {
+    const checkColumn = db.prepare("SELECT image_url FROM support_messages LIMIT 1");
+    try {
+        checkColumn.get();
+        console.log('✅ Колонка image_url уже существует');
+    } catch (error) {
+        if (error.message.includes('no such column')) {
+            console.log('⚙️ Добавление колонки image_url в support_messages...');
+            db.exec('ALTER TABLE support_messages ADD COLUMN image_url TEXT');
+            console.log('✅ Колонка image_url успешно добавлена');
+        } else {
+            throw error;
+        }
+    }
+} catch (error) {
+    console.error('❌ Ошибка миграции:', error);
+}
+
 // Создаем дефолтного админа (username: admin, password: admin123)
 const checkAdmin = db.prepare('SELECT * FROM admins WHERE username = ?').get('admin');
 if (!checkAdmin) {
