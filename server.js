@@ -70,6 +70,35 @@ async function sendTelegramPhoto(imageUrl, caption, silent = false) {
     }
 }
 
+// Функция отправки документа (PDF) в Telegram
+async function sendTelegramDocument(documentUrl, caption, silent = false) {
+    try {
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument`;
+        const fullDocumentUrl = `https://truststore.ru${documentUrl}`;
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: TELEGRAM_CHAT_ID,
+                document: fullDocumentUrl,
+                caption: caption,
+                parse_mode: 'HTML',
+                disable_notification: silent
+            })
+        });
+        
+        if (response.ok) {
+            console.log('✅ Telegram документ отправлен');
+        } else {
+            const errorData = await response.json();
+            console.error('❌ Ошибка отправки документа:', errorData);
+        }
+    } catch (error) {
+        console.error('❌ Ошибка отправки Telegram документа:', error);
+    }
+}
+
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
@@ -672,7 +701,12 @@ app.post('/api/support/send-message', (req, res) => {
                     `${message ? `💬 ${message}\n` : ''}` +
                     `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
                 
-                sendTelegramPhoto(imageUrl, caption);
+                const isPDF = imageUrl.toLowerCase().endsWith('.pdf');
+                if (isPDF) {
+                    sendTelegramDocument(imageUrl, caption);
+                } else {
+                    sendTelegramPhoto(imageUrl, caption);
+                }
             } else {
                 const notificationText = `🆕 <b>Новый тикет!</b>\n\n` +
                     `📋 ID: <code>${finalTicketId}</code>\n` +
@@ -699,7 +733,12 @@ app.post('/api/support/send-message', (req, res) => {
                     `${message ? `💬 ${message}\n` : ''}` +
                     `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
                 
-                sendTelegramPhoto(imageUrl, caption);
+                const isPDF = imageUrl.toLowerCase().endsWith('.pdf');
+                if (isPDF) {
+                    sendTelegramDocument(imageUrl, caption);
+                } else {
+                    sendTelegramPhoto(imageUrl, caption);
+                }
             } else {
                 const notificationText = `💬 <b>Новое сообщение!</b>\n\n` +
                     `📋 Тикет: <code>${finalTicketId}</code>\n` +

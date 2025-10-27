@@ -1479,7 +1479,22 @@
                 
                 let contentHtml = '';
                 if (msg.image_url) {
-                    contentHtml = `<img src="${msg.image_url}" alt="Изображение" style="max-width: 300px; max-height: 300px; border-radius: 10px; cursor: pointer;" onclick="window.open('${msg.image_url}', '_blank')">`;
+                    // Проверяем, PDF это или изображение
+                    const isPDF = msg.image_url.toLowerCase().endsWith('.pdf');
+                    if (isPDF) {
+                        const fileName = msg.image_url.split('/').pop();
+                        contentHtml = `
+                            <div style="display: flex; align-items: center; gap: 12px; padding: 8px 12px;">
+                                <div style="font-size: 40px;">📄</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; margin-bottom: 4px;">${fileName}</div>
+                                    <a href="${msg.image_url}" target="_blank" style="color: ${isAdmin ? '#fff' : '#6c5ce7'}; text-decoration: none; font-size: 13px; font-weight: 500;">Открыть PDF ↗</a>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        contentHtml = `<img src="${msg.image_url}" alt="Изображение" style="max-width: 300px; max-height: 300px; border-radius: 10px; cursor: pointer;" onclick="window.open('${msg.image_url}', '_blank')">`;
+                    }
                 } else {
                     contentHtml = `<div style="font-size: 14px; line-height: 1.5;">${msg.message}</div>`;
                 }
