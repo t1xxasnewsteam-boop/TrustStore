@@ -249,3 +249,4 @@ pm2 restart trust-store
 **Версия:** 3.0 - Full Real Data  
 **Статус:** ✅ ГОТОВО К РАБОТЕ
 
+
