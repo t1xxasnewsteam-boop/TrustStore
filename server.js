@@ -522,7 +522,7 @@ app.post('/api/support/send-message', (req, res) => {
                     `👤 Клиент: ${customerName || 'Гость'}\n` +
                     `${customerEmail ? `📧 Email: ${customerEmail}\n` : ''}` +
                     `${message ? `💬 ${message}\n` : ''}` +
-                    `🔗 <a href="https://truststore.ru/admin">Открыть админку</a>`;
+                    `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
                 
                 sendTelegramPhoto(imageUrl, caption);
             } else {
@@ -531,7 +531,7 @@ app.post('/api/support/send-message', (req, res) => {
                     `👤 Клиент: ${customerName || 'Гость'}\n` +
                     `${customerEmail ? `📧 Email: ${customerEmail}\n` : ''}` +
                     `💬 Сообщение: ${message}\n\n` +
-                    `🔗 <a href="https://truststore.ru/admin">Открыть админку</a>`;
+                    `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
                 
                 sendTelegramNotification(notificationText);
             }
@@ -549,7 +549,7 @@ app.post('/api/support/send-message', (req, res) => {
                     `📋 Тикет: <code>${finalTicketId}</code>\n` +
                     `👤 Клиент: ${customerName || 'Гость'}\n` +
                     `${message ? `💬 ${message}\n` : ''}` +
-                    `🔗 <a href="https://truststore.ru/admin">Открыть админку</a>`;
+                    `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
                 
                 sendTelegramPhoto(imageUrl, caption);
             } else {
@@ -557,7 +557,7 @@ app.post('/api/support/send-message', (req, res) => {
                     `📋 Тикет: <code>${finalTicketId}</code>\n` +
                     `👤 Клиент: ${customerName || 'Гость'}\n` +
                     `💬 Сообщение: ${message}\n\n` +
-                    `🔗 <a href="https://truststore.ru/admin">Открыть админку</a>`;
+                    `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
                 
                 sendTelegramNotification(notificationText);
             }
@@ -1009,8 +1009,18 @@ app.get('/socials', (req, res) => {
     res.sendFile(path.join(__dirname, 'socials.html'));
 });
 
-app.get('/admin', (req, res) => {
+// Секретный роут для админ панели
+app.get('/t1xxas', authMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+// Блокируем прямой доступ к admin.html
+app.get('/admin', (req, res) => {
+    res.status(404).send('Not Found');
+});
+
+app.get('/admin.html', (req, res) => {
+    res.status(404).send('Not Found');
 });
 
 // Товары с красивыми URL
@@ -1054,7 +1064,7 @@ app.get('/product/claude', (req, res) => {
 app.listen(PORT, () => {
     console.log(`
     ✅ Сервер запущен на http://localhost:${PORT}
-    📊 Админ-панель: http://localhost:${PORT}/admin
+    📊 Админ-панель: http://localhost:${PORT}/t1xxas
     👤 Логин: admin
     🔑 Пароль: admin123
     `);
