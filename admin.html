@@ -1282,6 +1282,9 @@
                 createGeographyChart(data.countries || []);
                 createDevicesChart(data.sessions);
                 
+                // Load support tickets for badge
+                refreshTickets();
+                
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
                 showNotification('Ошибка', 'Не удалось загрузить данные', '❌');
@@ -2067,7 +2070,7 @@
                 // Load section-specific data
                 switch(section) {
                     case 'support':
-                        loadSupportTickets();
+                        loadSupport();
                         break;
                     case 'orders':
                         loadOrders();
@@ -2126,7 +2129,7 @@
         setInterval(() => {
             if (isAuthenticated) {
                 loadDashboardData();
-                loadSupportTickets();
+                refreshTickets();
             }
         }, 30000);
     </script>
