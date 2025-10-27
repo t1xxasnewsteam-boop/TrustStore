@@ -78,7 +78,8 @@
         let ticketId = localStorage.getItem('supportTicketId') || null;
         let customerName = localStorage.getItem('customerName') || null;
         let customerEmail = localStorage.getItem('customerEmail') || null;
-        let lastMessageId = 0;
+        // 🔥 Восстанавливаем lastMessageId из localStorage чтобы не показывать старые уведомления
+        let lastMessageId = parseInt(localStorage.getItem('lastMessageId') || '0', 10);
         let pollingInterval = null;
         
         // Закрытие чата по крестику
@@ -335,6 +336,8 @@
                             
                             if (msg.id > lastMessageId) {
                                 lastMessageId = msg.id;
+                                // Сохраняем в localStorage чтобы не показывать старые уведомления при обновлении
+                                localStorage.setItem('lastMessageId', lastMessageId);
                             }
                         });
                         
@@ -415,6 +418,8 @@
                             
                             if (msg.id > lastMessageId) {
                                 lastMessageId = msg.id;
+                                // Сохраняем в localStorage чтобы не показывать старые уведомления при обновлении
+                                localStorage.setItem('lastMessageId', lastMessageId);
                             }
                         });
                     }
@@ -587,6 +592,7 @@
                     localStorage.removeItem('supportTicketId');
                     localStorage.removeItem('customerName');
                     localStorage.removeItem('customerEmail');
+                    localStorage.removeItem('lastMessageId'); // Сбрасываем lastMessageId
                     ticketId = null;
                     customerName = null;
                     customerEmail = null;

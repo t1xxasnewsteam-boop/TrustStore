@@ -21,6 +21,34 @@ app.set('trust proxy', 1);
 const TELEGRAM_BOT_TOKEN = '7268320384:AAGngFsmkg_x-2rryDtoJkmYD3ymxy5gM9o';
 const TELEGRAM_CHAT_ID = '6185074849';
 
+// 🔥 Система защиты от дублей уведомлений
+const notificationCache = new Map(); // ticketId -> { lastNotificationTime, lastMessageCount }
+const NOTIFICATION_COOLDOWN = 3 * 60 * 1000; // 3 минуты между уведомлениями для одного тикета
+
+// Проверка, можно ли отправить уведомление для тикета
+function canSendNotification(ticketId) {
+    const now = Date.now();
+    const cached = notificationCache.get(ticketId);
+    
+    if (!cached) {
+        // Первое уведомление для этого тикета
+        notificationCache.set(ticketId, { lastNotificationTime: now, count: 1 });
+        return true;
+    }
+    
+    const timeSinceLastNotif = now - cached.lastNotificationTime;
+    
+    if (timeSinceLastNotif >= NOTIFICATION_COOLDOWN) {
+        // Прошло достаточно времени, можно отправить
+        notificationCache.set(ticketId, { lastNotificationTime: now, count: cached.count + 1 });
+        return true;
+    }
+    
+    // Слишком рано для нового уведомления
+    console.log(`⏸️  Уведомление для тикета ${ticketId} пропущено (cooldown: ${Math.round(timeSinceLastNotif / 1000)}с / ${NOTIFICATION_COOLDOWN / 1000}с)`);
+    return false;
+}
+
 // Функция отправки уведомления в Telegram
 async function sendTelegramNotification(message, silent = false) {
     try {
@@ -719,30 +747,32 @@ app.post('/api/support/send-message', (req, res) => {
             
             console.log('✅ Создан новый тикет:', finalTicketId);
             
-            // Отправляем уведомление в Telegram о новом тикете
-            if (imageUrl) {
-                const caption = `🆕 <b>Новый тикет!</b>\n\n` +
-                    `📋 ID: <code>${finalTicketId}</code>\n` +
-                    `👤 Клиент: ${customerName || 'Гость'}\n` +
-                    `${customerEmail ? `📧 Email: ${customerEmail}\n` : ''}` +
-                    `${message ? `💬 ${message}\n` : ''}` +
-                    `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
-                
-                const isPDF = imageUrl.toLowerCase().endsWith('.pdf');
-                if (isPDF) {
-                    sendTelegramDocument(imageUrl, caption);
+            // Отправляем уведомление в Telegram о новом тикете (с проверкой на дубли)
+            if (canSendNotification(finalTicketId)) {
+                if (imageUrl) {
+                    const caption = `🆕 <b>Новый тикет!</b>\n\n` +
+                        `📋 ID: <code>${finalTicketId}</code>\n` +
+                        `👤 Клиент: ${customerName || 'Гость'}\n` +
+                        `${customerEmail ? `📧 Email: ${customerEmail}\n` : ''}` +
+                        `${message ? `💬 ${message}\n` : ''}` +
+                        `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
+                    
+                    const isPDF = imageUrl.toLowerCase().endsWith('.pdf');
+                    if (isPDF) {
+                        sendTelegramDocument(imageUrl, caption);
+                    } else {
+                        sendTelegramPhoto(imageUrl, caption);
+                    }
                 } else {
-                    sendTelegramPhoto(imageUrl, caption);
+                    const notificationText = `🆕 <b>Новый тикет!</b>\n\n` +
+                        `📋 ID: <code>${finalTicketId}</code>\n` +
+                        `👤 Клиент: ${customerName || 'Гость'}\n` +
+                        `${customerEmail ? `📧 Email: ${customerEmail}\n` : ''}` +
+                        `💬 Сообщение: ${message}\n\n` +
+                        `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
+                    
+                    sendTelegramNotification(notificationText);
                 }
-            } else {
-                const notificationText = `🆕 <b>Новый тикет!</b>\n\n` +
-                    `📋 ID: <code>${finalTicketId}</code>\n` +
-                    `👤 Клиент: ${customerName || 'Гость'}\n` +
-                    `${customerEmail ? `📧 Email: ${customerEmail}\n` : ''}` +
-                    `💬 Сообщение: ${message}\n\n` +
-                    `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
-                
-                sendTelegramNotification(notificationText);
             }
         } else {
             // Обновляем время последнего сообщения и помечаем как непрочитанное
@@ -752,28 +782,30 @@ app.post('/api/support/send-message', (req, res) => {
                 WHERE ticket_id = ?
             `).run(finalTicketId);
             
-            // Отправляем уведомление о новом сообщении
-            if (imageUrl) {
-                const caption = `💬 <b>Новое сообщение!</b>\n\n` +
-                    `📋 Тикет: <code>${finalTicketId}</code>\n` +
-                    `👤 Клиент: ${customerName || 'Гость'}\n` +
-                    `${message ? `💬 ${message}\n` : ''}` +
-                    `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
-                
-                const isPDF = imageUrl.toLowerCase().endsWith('.pdf');
-                if (isPDF) {
-                    sendTelegramDocument(imageUrl, caption);
+            // Отправляем уведомление о новом сообщении (с проверкой на дубли)
+            if (canSendNotification(finalTicketId)) {
+                if (imageUrl) {
+                    const caption = `💬 <b>Новое сообщение!</b>\n\n` +
+                        `📋 Тикет: <code>${finalTicketId}</code>\n` +
+                        `👤 Клиент: ${customerName || 'Гость'}\n` +
+                        `${message ? `💬 ${message}\n` : ''}` +
+                        `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
+                    
+                    const isPDF = imageUrl.toLowerCase().endsWith('.pdf');
+                    if (isPDF) {
+                        sendTelegramDocument(imageUrl, caption);
+                    } else {
+                        sendTelegramPhoto(imageUrl, caption);
+                    }
                 } else {
-                    sendTelegramPhoto(imageUrl, caption);
+                    const notificationText = `💬 <b>Новое сообщение!</b>\n\n` +
+                        `📋 Тикет: <code>${finalTicketId}</code>\n` +
+                        `👤 Клиент: ${customerName || 'Гость'}\n` +
+                        `💬 Сообщение: ${message}\n\n` +
+                        `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
+                    
+                    sendTelegramNotification(notificationText);
                 }
-            } else {
-                const notificationText = `💬 <b>Новое сообщение!</b>\n\n` +
-                    `📋 Тикет: <code>${finalTicketId}</code>\n` +
-                    `👤 Клиент: ${customerName || 'Гость'}\n` +
-                    `💬 Сообщение: ${message}\n\n` +
-                    `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
-                
-                sendTelegramNotification(notificationText);
             }
         }
         
