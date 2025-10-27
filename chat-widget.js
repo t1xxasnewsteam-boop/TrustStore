@@ -142,6 +142,11 @@
                         ticketId = data.ticketId;
                         localStorage.setItem('supportTicketId', ticketId);
                         console.log('✅ Сообщение отправлено, тикет:', ticketId);
+                        
+                        // Если это первое сообщение, запускаем polling
+                        if (!pollingInterval) {
+                            startPolling();
+                        }
                     }
                 } catch (error) {
                     console.error('Ошибка отправки сообщения:', error);
@@ -188,10 +193,15 @@
         
         // Polling для получения новых сообщений
         function startPolling() {
-            if (!ticketId) return;
+            // Запускаем polling даже если нет ticketId (он может появиться)
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
             
             // Проверяем каждые 3 секунды
             pollingInterval = setInterval(async () => {
+                if (!ticketId) return; // Пропускаем если еще нет тикета
+                
                 try {
                     const response = await fetch(`/api/support/messages/${ticketId}`);
                     if (response.ok) {
@@ -206,9 +216,13 @@
                                 setTimeout(() => {
                                     hideTypingIndicator();
                                     addAdminMessage(msg.message, msg.sender_name);
+                                    
+                                    // Воспроизводим звук уведомления
+                                    playNotificationSound();
                                 }, 1000);
                             } else if (msg.sender_type === 'system') {
                                 addSystemMessage(msg.message);
+                                playNotificationSound();
                             }
                             
                             if (msg.id > lastMessageId) {
@@ -231,6 +245,30 @@
             if (pollingInterval) {
                 clearInterval(pollingInterval);
                 pollingInterval = null;
+            }
+        }
+        
+        // Функция воспроизведения звука уведомления
+        function playNotificationSound() {
+            try {
+                // Создаем простой звуковой сигнал используя Web Audio API
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800; // Частота звука
+                oscillator.type = 'sine'; // Тип волны
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime); // Громкость
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (error) {
+                console.log('Звук не воспроизведен:', error);
             }
         }
         
