@@ -192,6 +192,9 @@
         // Отправка изображения
         async function sendImage(file) {
             try {
+                console.log('📤 Начало загрузки изображения');
+                console.log('📁 Файл:', file.name, 'Размер:', file.size, 'Тип:', file.type);
+                
                 // Создаем имя клиента если его нет
                 if (!ticketId && !customerName) {
                     customerName = 'Гость';
@@ -208,21 +211,37 @@
                 const formData = new FormData();
                 formData.append('image', file);
                 
+                console.log('⬆️ Отправка изображения на сервер...');
+                
                 const uploadResponse = await fetch('/api/support/upload-image', {
                     method: 'POST',
                     body: formData
                 });
                 
+                console.log('📡 Ответ сервера:', uploadResponse.status, uploadResponse.statusText);
+                
+                if (!uploadResponse.ok) {
+                    const errorText = await uploadResponse.text();
+                    console.error('❌ Ошибка сервера:', errorText);
+                    alert('Ошибка загрузки изображения на сервер');
+                    return;
+                }
+                
                 const uploadData = await uploadResponse.json();
+                console.log('📦 Данные ответа:', uploadData);
                 
                 if (!uploadData.success) {
-                    console.error('Ошибка загрузки изображения');
+                    console.error('❌ Загрузка не удалась:', uploadData.error || 'Неизвестная ошибка');
+                    alert('Ошибка загрузки изображения');
                     return;
                 }
                 
                 const imageUrl = uploadData.imageUrl;
+                console.log('✅ Изображение загружено:', imageUrl);
                 
                 // Отправляем сообщение с изображением
+                console.log('💬 Отправка сообщения с изображением...');
+                
                 const response = await fetch('/api/support/send-message', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -236,6 +255,7 @@
                 });
                 
                 const data = await response.json();
+                console.log('📬 Ответ на сообщение:', data);
                 
                 if (data.success && data.ticketId) {
                     ticketId = data.ticketId;
@@ -249,9 +269,14 @@
                     if (!pollingInterval) {
                         startPolling();
                     }
+                } else {
+                    console.error('❌ Не удалось сохранить сообщение:', data);
+                    alert('Ошибка сохранения сообщения');
                 }
             } catch (error) {
-                console.error('Ошибка отправки изображения:', error);
+                console.error('❌ КРИТИЧЕСКАЯ ОШИБКА отправки изображения:', error);
+                console.error('Stack:', error.stack);
+                alert('Критическая ошибка: ' + error.message);
             }
         }
         
@@ -502,19 +527,25 @@
             const file = e.target.files[0];
             if (!file) return;
             
-            // Проверка размера (макс 5 МБ)
-            if (file.size > 5 * 1024 * 1024) {
-                alert('Размер файла не должен превышать 5 МБ');
+            console.log('🖼️ Выбран файл:', file.name, 'Размер:', file.size, 'Тип:', file.type);
+            
+            // Проверка размера (макс 10 МБ)
+            if (file.size > 10 * 1024 * 1024) {
+                console.error('❌ Файл слишком большой:', file.size);
+                alert('Размер файла не должен превышать 10 МБ');
                 chatImageInput.value = '';
                 return;
             }
             
-            // Проверка типа
+            // Проверка типа - принимаем все типы изображений
             if (!file.type.startsWith('image/')) {
-                alert('Можно загружать только изображения');
+                console.error('❌ Неверный тип файла:', file.type);
+                alert('Можно загружать только изображения (JPG, PNG, GIF, WEBP)');
                 chatImageInput.value = '';
                 return;
             }
+            
+            console.log('✅ Файл прошел проверку, отправка...');
             
             await sendImage(file);
             chatImageInput.value = '';
