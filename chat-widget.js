@@ -63,6 +63,18 @@
         let customerEmail = localStorage.getItem('customerEmail') || null;
         let lastMessageId = 0;
         let pollingInterval = null;
+        let notificationPermission = false;
+        
+        // Запрашиваем разрешение на уведомления
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission().then(permission => {
+                    notificationPermission = permission === 'granted';
+                });
+            } else if ('Notification' in window && Notification.permission === 'granted') {
+                notificationPermission = true;
+            }
+        }
         
         // Открытие/закрытие чата
         chatButton.addEventListener('click', function() {
@@ -99,13 +111,16 @@
                 // Запускаем polling для получения новых сообщений
                 startPolling();
                 
+                // Запрашиваем разрешение на уведомления при первом открытии
+                requestNotificationPermission();
+                
                 chatInput.focus();
             } else {
                 chatWindow.classList.remove('active');
                 chatButton.classList.remove('chat-open');
                 
-                // Останавливаем polling
-                stopPolling();
+                // НЕ останавливаем polling - продолжаем слушать даже когда чат закрыт
+                // stopPolling();
             }
         });
         
@@ -212,16 +227,30 @@
                         
                         newMessages.forEach(msg => {
                             if (msg.sender_type === 'admin') {
-                                showTypingIndicator();
-                                setTimeout(() => {
-                                    hideTypingIndicator();
-                                    addAdminMessage(msg.message, msg.sender_name);
-                                    
-                                    // Воспроизводим звук уведомления
-                                    playNotificationSound();
-                                }, 1000);
+                                // Если чат открыт - показываем сообщение в чате
+                                if (isOpen) {
+                                    showTypingIndicator();
+                                    setTimeout(() => {
+                                        hideTypingIndicator();
+                                        addAdminMessage(msg.message, msg.sender_name);
+                                    }, 1000);
+                                }
+                                
+                                // Воспроизводим звук и показываем уведомление
+                                playNotificationSound();
+                                
+                                // Если чат закрыт - показываем браузерное уведомление
+                                if (!isOpen) {
+                                    const shortMessage = msg.message.length > 50 
+                                        ? msg.message.substring(0, 50) + '...' 
+                                        : msg.message;
+                                    showBrowserNotification('💬 Вам ответили в чате', shortMessage);
+                                    chatNotification.style.display = 'block';
+                                }
                             } else if (msg.sender_type === 'system') {
-                                addSystemMessage(msg.message);
+                                if (isOpen) {
+                                    addSystemMessage(msg.message);
+                                }
                                 playNotificationSound();
                             }
                             
@@ -229,11 +258,6 @@
                                 lastMessageId = msg.id;
                             }
                         });
-                        
-                        // Если есть новые сообщения и чат закрыт, показываем уведомление
-                        if (newMessages.length > 0 && !isOpen) {
-                            chatNotification.style.display = 'block';
-                        }
                     }
                 } catch (error) {
                     console.error('Ошибка polling:', error);
@@ -248,13 +272,68 @@
             }
         }
         
+        // Функция показа браузерного уведомления
+        function showBrowserNotification(title, message) {
+            if (notificationPermission && 'Notification' in window) {
+                const notification = new Notification(title, {
+                    body: message,
+                    icon: '/logo.png',
+                    badge: '/logo.png',
+                    tag: 'trust-store-chat',
+                    requireInteraction: false,
+                    silent: false
+                });
+                
+                // При клике на уведомление открываем чат
+                notification.onclick = function() {
+                    window.focus();
+                    if (!isOpen) {
+                        chatButton.click();
+                    }
+                    notification.close();
+                };
+                
+                // Автозакрытие через 5 секунд
+                setTimeout(() => notification.close(), 5000);
+            }
+        }
+        
         // Функция воспроизведения звука уведомления
+        let audioContext = null;
+        
         function playNotificationSound() {
             try {
-                // Используем встроенный звук уведомления (короткий beep)
-                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE');
-                audio.volume = 0.5;
-                audio.play().catch(e => console.log('Автовоспроизведение заблокировано'));
+                // Инициализируем AudioContext только один раз
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                // Создаем приятный двойной beep
+                const now = audioContext.currentTime;
+                
+                // Первый тон
+                const osc1 = audioContext.createOscillator();
+                const gain1 = audioContext.createGain();
+                osc1.connect(gain1);
+                gain1.connect(audioContext.destination);
+                osc1.frequency.value = 800;
+                osc1.type = 'sine';
+                gain1.gain.setValueAtTime(0.3, now);
+                gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc1.start(now);
+                osc1.stop(now + 0.1);
+                
+                // Второй тон (чуть позже и выше)
+                const osc2 = audioContext.createOscillator();
+                const gain2 = audioContext.createGain();
+                osc2.connect(gain2);
+                gain2.connect(audioContext.destination);
+                osc2.frequency.value = 1000;
+                osc2.type = 'sine';
+                gain2.gain.setValueAtTime(0.3, now + 0.1);
+                gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc2.start(now + 0.1);
+                osc2.stop(now + 0.2);
             } catch (error) {
                 console.log('Звук не воспроизведен:', error);
             }
@@ -403,6 +482,12 @@
                 chatNotification.style.display = 'block';
             }
         }, 5000);
+        
+        // Если есть тикет, запускаем polling сразу при загрузке страницы
+        if (ticketId) {
+            startPolling();
+            requestNotificationPermission();
+        }
         
         // Глобальная функция для быстрых ответов
         window.handleQuickReply = function(type) {
