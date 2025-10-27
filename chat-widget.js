@@ -23,6 +23,7 @@
                         Онлайн
                     </p>
                 </div>
+                <button class="chat-close-btn" id="chatCloseBtn">×</button>
             </div>
             
             <div class="chat-body" id="chatBody">
@@ -55,6 +56,7 @@
         const chatInput = document.getElementById('chatInput');
         const chatSendBtn = document.getElementById('chatSendBtn');
         const chatNotification = document.getElementById('chatNotification');
+        const chatCloseBtn = document.getElementById('chatCloseBtn');
         
         let isOpen = false;
         let botMessageShown = false;
@@ -63,6 +65,14 @@
         let customerEmail = localStorage.getItem('customerEmail') || null;
         let lastMessageId = 0;
         let pollingInterval = null;
+        
+        // Закрытие чата по крестику
+        chatCloseBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            chatWindow.classList.remove('active');
+            chatButton.classList.remove('chat-open');
+            isOpen = false;
+        });
         
         // Открытие/закрытие чата
         chatButton.addEventListener('click', function() {
