@@ -277,21 +277,19 @@ db.exec(`
 
 // Миграция: добавление колонки image_url если её нет
 try {
-    const checkColumn = db.prepare("SELECT image_url FROM support_messages LIMIT 1");
-    try {
-        checkColumn.get();
+    // Проверяем структуру таблицы
+    const tableInfo = db.prepare("PRAGMA table_info(support_messages)").all();
+    const hasImageUrl = tableInfo.some(col => col.name === 'image_url');
+    
+    if (!hasImageUrl) {
+        console.log('⚙️ Добавление колонки image_url в support_messages...');
+        db.exec('ALTER TABLE support_messages ADD COLUMN image_url TEXT');
+        console.log('✅ Колонка image_url успешно добавлена!');
+    } else {
         console.log('✅ Колонка image_url уже существует');
-    } catch (error) {
-        if (error.message.includes('no such column')) {
-            console.log('⚙️ Добавление колонки image_url в support_messages...');
-            db.exec('ALTER TABLE support_messages ADD COLUMN image_url TEXT');
-            console.log('✅ Колонка image_url успешно добавлена');
-        } else {
-            throw error;
-        }
     }
 } catch (error) {
-    console.error('❌ Ошибка миграции:', error);
+    console.error('❌ Ошибка миграции:', error.message);
 }
 
 // Создаем дефолтного админа (username: admin, password: admin123)
