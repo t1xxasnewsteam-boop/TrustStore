@@ -633,6 +633,17 @@
             50% { opacity: 0.5; transform: scale(0.8); }
         }
 
+        @keyframes slideIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(10px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+            }
+        }
+
         /* Login Overlay */
         .login-overlay {
             display: none;
@@ -1118,9 +1129,14 @@
                     <div id="chatContainer" style="flex: 1; display: none; flex-direction: column;">
                         <!-- Chat Header -->
                         <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); margin-bottom: 16px;">
-                            <div>
-                                <div style="font-size: 18px; font-weight: 600;" id="chatCustomerName"></div>
-                                <div style="font-size: 14px; color: var(--text-secondary);" id="chatCustomerEmail"></div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <button class="btn btn-secondary" onclick="backToTicketsList()" style="padding: 8px 12px;">
+                                    <span>←</span>
+                                </button>
+                                <div>
+                                    <div style="font-size: 18px; font-weight: 600;" id="chatCustomerName"></div>
+                                    <div style="font-size: 14px; color: var(--text-secondary);" id="chatCustomerEmail"></div>
+                                </div>
                             </div>
                             <div style="display: flex; gap: 8px;">
                                 <button class="btn btn-secondary" onclick="closeTicket()">
@@ -1435,8 +1451,16 @@
                 const unreadCount = tickets.filter(t => t.unread_admin > 0).length || 0;
                 document.getElementById('supportBadge').textContent = unreadCount;
                 
-                // Display tickets list
+                // Display tickets list - НЕ ПЕРЕРИСОВЫВАЕМ ЕСЛИ ЧАТ ОТКРЫТ
                 const ticketsList = document.getElementById('ticketsList');
+                const chatContainer = document.getElementById('chatContainer');
+                
+                // Если чат открыт - только обновляем badge, не трогаем список
+                if (chatContainer && chatContainer.style.display === 'flex' && currentTicketId) {
+                    console.log('🔒 Чат открыт, не перерисовываем список тикетов');
+                    return;
+                }
+                
                 if (tickets.length === 0) {
                     ticketsList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 24px;">Нет тикетов</p>';
                     return;
@@ -1573,10 +1597,72 @@
                 
                 const data = await response.json();
                 if (data.messages && data.messages.length > 0) {
-                    displayMessages(data.messages);
+                    console.log('📬 Получено новых сообщений:', data.messages.length);
+                    
+                    // Добавляем только новые сообщения
+                    const container = document.getElementById('chatMessages');
+                    if (!container) return;
+                    
+                    data.messages.forEach(msg => {
+                        if (msg.id <= lastAdminMessageId) return; // Пропускаем уже показанные
+                        
+                        const isAdmin = msg.sender_type === 'admin';
+                        const messageEl = document.createElement('div');
+                        messageEl.style.cssText = `
+                            display: flex;
+                            justify-content: ${isAdmin ? 'flex-end' : 'flex-start'};
+                            margin-bottom: 12px;
+                        `;
+                        
+                        let content = msg.message;
+                        if (msg.image_url) {
+                            const isPDF = msg.image_url.endsWith('.pdf');
+                            if (isPDF) {
+                                content = `
+                                    <a href="${msg.image_url}" target="_blank" style="display: flex; align-items: center; gap: 8px; padding: 12px; background: rgba(99, 102, 241, 0.1); border-radius: 8px; color: var(--accent-primary); text-decoration: none;">
+                                        <span style="font-size: 24px;">📄</span>
+                                        <div>
+                                            <div style="font-weight: 600;">Документ PDF</div>
+                                            <div style="font-size: 11px; opacity: 0.7;">Нажмите для открытия</div>
+                                        </div>
+                                    </a>
+                                `;
+                            } else {
+                                content = `<img src="${msg.image_url}" style="max-width: 300px; border-radius: 8px; display: block;" alt="Image">`;
+                            }
+                        }
+                        
+                        messageEl.innerHTML = `
+                            <div style="max-width: 70%; background: ${isAdmin ? 'var(--accent-gradient)' : 'rgba(255,255,255,0.1)'}; padding: 12px 16px; border-radius: 12px; animation: slideIn 0.3s ease;">
+                                <div style="font-size: 11px; opacity: 0.7; margin-bottom: 4px;">${msg.sender_name}</div>
+                                <div style="font-size: 14px;">${content}</div>
+                                <div style="font-size: 10px; opacity: 0.5; margin-top: 4px; text-align: right;">${new Date(msg.created_at).toLocaleTimeString('ru-RU')}</div>
+                            </div>
+                        `;
+                        
+                        container.appendChild(messageEl);
+                        lastAdminMessageId = msg.id;
+                    });
+                    
+                    // Прокручиваем вниз
+                    container.scrollTop = container.scrollHeight;
+                    
+                    // Воспроизводим звук уведомления
+                    playNotificationSound();
                 }
             } catch (error) {
                 console.error('Error polling messages:', error);
+            }
+        }
+        
+        // Play notification sound
+        function playNotificationSound() {
+            try {
+                const audio = new Audio('/notification.mp3');
+                audio.volume = 0.3;
+                audio.play().catch(e => console.log('Cannot play sound:', e));
+            } catch (e) {
+                console.log('Sound not available');
             }
         }
 
@@ -1723,6 +1809,20 @@
         }
         setTimeout(initChatInput, 100);
 
+        // Вернуться к списку тикетов (не закрывая чат)
+        function backToTicketsList() {
+            console.log('⬅️ Возврат к списку тикетов');
+            
+            // Скрываем чат, но НЕ останавливаем polling и НЕ очищаем currentTicketId
+            const placeholder = document.getElementById('chatPlaceholder');
+            const container = document.getElementById('chatContainer');
+            if (placeholder) placeholder.style.display = 'flex';
+            if (container) container.style.display = 'none';
+            
+            // Перезагружаем список тикетов
+            loadSupportTickets();
+        }
+
         async function closeTicket() {
             if (!currentTicketId) return;
             
@@ -1734,9 +1834,24 @@
                 
                 if (response.ok) {
                     showNotification('Успех', 'Тикет закрыт', '✅');
-                    document.getElementById('chatPlaceholder').style.display = 'flex';
-                    document.getElementById('chatContainer').style.display = 'none';
-                    if (pollingInterval) clearInterval(pollingInterval);
+                    
+                    // Останавливаем полинг
+                    if (pollingInterval) {
+                        clearInterval(pollingInterval);
+                        pollingInterval = null;
+                    }
+                    
+                    // Очищаем состояние
+                    currentTicketId = null;
+                    lastAdminMessageId = 0;
+                    
+                    // Скрываем чат
+                    const placeholder = document.getElementById('chatPlaceholder');
+                    const container = document.getElementById('chatContainer');
+                    if (placeholder) placeholder.style.display = 'flex';
+                    if (container) container.style.display = 'none';
+                    
+                    // Перезагружаем список тикетов
                     loadSupportTickets();
                 }
             } catch (error) {
