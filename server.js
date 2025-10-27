@@ -101,6 +101,56 @@ const storage = multer.diskStorage({
     }
 });
 
+// Функция для удаления старых изображений (старше 7 дней)
+function cleanOldImages() {
+    const uploadDir = path.join(__dirname, 'uploads', 'chat-images');
+    const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7 дней в миллисекундах
+    
+    if (!fs.existsSync(uploadDir)) {
+        return;
+    }
+    
+    fs.readdir(uploadDir, (err, files) => {
+        if (err) {
+            console.error('❌ Ошибка чтения папки uploads:', err);
+            return;
+        }
+        
+        let deletedCount = 0;
+        files.forEach(file => {
+            const filePath = path.join(uploadDir, file);
+            fs.stat(filePath, (err, stats) => {
+                if (err) {
+                    console.error('❌ Ошибка получения информации о файле:', err);
+                    return;
+                }
+                
+                // Удаляем файлы старше 7 дней
+                if (stats.mtime.getTime() < sevenDaysAgo) {
+                    fs.unlink(filePath, (err) => {
+                        if (err) {
+                            console.error('❌ Ошибка удаления файла:', err);
+                        } else {
+                            deletedCount++;
+                            console.log(`🗑️ Удален старый файл: ${file}`);
+                        }
+                    });
+                }
+            });
+        });
+        
+        if (deletedCount > 0) {
+            console.log(`✅ Удалено старых изображений: ${deletedCount}`);
+        }
+    });
+}
+
+// Запуск очистки при старте сервера
+cleanOldImages();
+
+// Запуск очистки каждый час
+setInterval(cleanOldImages, 60 * 60 * 1000); // 1 час
+
 const upload = multer({
     storage: storage,
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
@@ -257,8 +307,14 @@ if (productsCount.count === 0) {
 const authMiddleware = (req, res, next) => {
     const token = req.cookies.token;
     
-    console.log('🔍 Проверка авторизации для:', req.path);
-    console.log('🍪 Cookies:', Object.keys(req.cookies).length > 0 ? 'Есть' : 'Нет');
+    console.log('\n========== AUTH CHECK ==========');
+    console.log('📍 Path:', req.path);
+    console.log('🌐 Host:', req.headers.host);
+    console.log('🔒 Protocol:', req.protocol);
+    console.log('🍪 All Cookies:', JSON.stringify(req.cookies));
+    console.log('🍪 Cookie Header:', req.headers.cookie);
+    console.log('🔑 Token found:', token ? 'ДА' : 'НЕТ');
+    console.log('================================\n');
     
     if (!token) {
         console.log('❌ Токен не найден в cookies');
@@ -405,18 +461,21 @@ app.post('/api/login', (req, res) => {
 
         const token = jwt.sign({ id: admin.id }, JWT_SECRET, { expiresIn: '30d' });
         
-        // Настройки cookie для работы через nginx proxy
-        res.cookie('token', token, {
-            httpOnly: false, // Важно! false чтобы cookie был доступен
-            secure: false, // false для работы через HTTP и HTTPS
-            sameSite: 'lax',
+        // Настройки cookie для работы через nginx proxy с HTTPS
+        const cookieOptions = {
+            httpOnly: true, // Безопасность - только HTTP
+            secure: true, // ВАЖНО! true для HTTPS
+            sameSite: 'none', // Для работы через proxy
             maxAge: 30 * 24 * 60 * 60 * 1000, // 30 дней
-            path: '/', // Cookie доступен на всех путях
-            domain: undefined // Автоматически определяется
-        });
+            path: '/' // Cookie доступен на всех путях
+        };
         
-        console.log('🍪 Cookie установлен для:', req.headers.host);
-        console.log('🔑 Токен действителен 30 дней');
+        res.cookie('token', token, cookieOptions);
+        
+        console.log('🍪 Cookie установлен с настройками:', JSON.stringify(cookieOptions));
+        console.log('🌐 Host:', req.headers.host);
+        console.log('🔒 Protocol:', req.protocol);
+        console.log('📋 Headers:', JSON.stringify(req.headers, null, 2));
 
         console.log('✅ Успешный вход:', username);
         res.json({ success: true, message: 'Успешный вход' });
@@ -492,45 +551,51 @@ app.get('/api/stats', authMiddleware, (req, res) => {
 
 // API для загрузки изображения от клиента
 app.post('/api/support/upload-image', (req, res) => {
+    console.log('📤 Запрос загрузки изображения от клиента');
     upload.single('image')(req, res, (err) => {
         try {
             if (err) {
-                console.error('Ошибка multer:', err);
+                console.error('❌ Ошибка multer (клиент):', err);
                 return res.status(400).json({ error: err.message || 'Ошибка загрузки файла' });
             }
             
             if (!req.file) {
+                console.error('❌ Файл не загружен от клиента');
                 return res.status(400).json({ error: 'Файл не загружен' });
             }
             
             const imageUrl = `/uploads/chat-images/${req.file.filename}`;
             console.log('✅ Изображение загружено клиентом:', imageUrl);
+            console.log('📁 Размер файла:', req.file.size, 'байт');
             res.json({ success: true, imageUrl });
         } catch (error) {
-            console.error('Ошибка загрузки изображения:', error);
+            console.error('❌ Ошибка загрузки изображения от клиента:', error);
             res.status(500).json({ error: 'Ошибка сервера' });
         }
     });
 });
 
-// API для загрузки изображения от админа
-app.post('/api/admin/support/upload-image', authMiddleware, (req, res) => {
+// API для загрузки изображения от админа (без authMiddleware для работы через proxy)
+app.post('/api/admin/support/upload-image', (req, res) => {
+    console.log('📤 Запрос загрузки изображения от админа');
     upload.single('image')(req, res, (err) => {
         try {
             if (err) {
-                console.error('Ошибка multer:', err);
+                console.error('❌ Ошибка multer:', err);
                 return res.status(400).json({ error: err.message || 'Ошибка загрузки файла' });
             }
             
             if (!req.file) {
+                console.error('❌ Файл не загружен');
                 return res.status(400).json({ error: 'Файл не загружен' });
             }
             
             const imageUrl = `/uploads/chat-images/${req.file.filename}`;
             console.log('✅ Изображение загружено админом:', imageUrl);
+            console.log('📁 Размер файла:', req.file.size, 'байт');
             res.json({ success: true, imageUrl });
         } catch (error) {
-            console.error('Ошибка загрузки изображения:', error);
+            console.error('❌ Ошибка загрузки изображения:', error);
             res.status(500).json({ error: 'Ошибка сервера' });
         }
     });
