@@ -398,9 +398,12 @@ app.post('/api/login', (req, res) => {
         
         res.cookie('token', token, {
             httpOnly: true,
+            secure: false, // Для работы через HTTP и HTTPS
+            sameSite: 'lax',
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 дней
         });
 
+        console.log('✅ Успешный вход:', username);
         res.json({ success: true, message: 'Успешный вход' });
     } catch (error) {
         console.error('Ошибка входа:', error);
