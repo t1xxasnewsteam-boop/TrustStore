@@ -14,6 +14,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = 'your-secret-key-change-this-in-production'; // Измени это!
 
+// Доверяем первому proxy (nginx)
+app.set('trust proxy', 1);
+
 // Telegram уведомления
 const TELEGRAM_BOT_TOKEN = '7268320384:AAGngFsmkg_x-2rryDtoJkmYD3ymxy5gM9o';
 const TELEGRAM_CHAT_ID = '6185074849';
@@ -254,15 +257,21 @@ if (productsCount.count === 0) {
 const authMiddleware = (req, res, next) => {
     const token = req.cookies.token;
     
+    console.log('🔍 Проверка авторизации для:', req.path);
+    console.log('🍪 Cookies:', Object.keys(req.cookies).length > 0 ? 'Есть' : 'Нет');
+    
     if (!token) {
+        console.log('❌ Токен не найден в cookies');
         return res.status(401).json({ error: 'Не авторизован' });
     }
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
         req.userId = decoded.id;
+        console.log('✅ Токен валиден, пользователь:', decoded.id);
         next();
     } catch (error) {
+        console.log('❌ Невалидный токен:', error.message);
         return res.status(401).json({ error: 'Невалидный токен' });
     }
 };
@@ -396,15 +405,18 @@ app.post('/api/login', (req, res) => {
 
         const token = jwt.sign({ id: admin.id }, JWT_SECRET, { expiresIn: '30d' });
         
+        // Настройки cookie для работы через nginx proxy
         res.cookie('token', token, {
-            httpOnly: true,
-            secure: false, // Важно! false для работы через HTTP и HTTPS без проблем
+            httpOnly: false, // Важно! false чтобы cookie был доступен
+            secure: false, // false для работы через HTTP и HTTPS
             sameSite: 'lax',
             maxAge: 30 * 24 * 60 * 60 * 1000, // 30 дней
-            path: '/' // Важно! Cookie доступен на всех путях
+            path: '/', // Cookie доступен на всех путях
+            domain: undefined // Автоматически определяется
         });
         
-        console.log('🍪 Cookie установлен, токен действителен 30 дней');
+        console.log('🍪 Cookie установлен для:', req.headers.host);
+        console.log('🔑 Токен действителен 30 дней');
 
         console.log('✅ Успешный вход:', username);
         res.json({ success: true, message: 'Успешный вход' });
