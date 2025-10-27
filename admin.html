@@ -1280,7 +1280,9 @@
         
         async function refreshTickets() {
             try {
-                const response = await fetch('/api/admin/support/tickets');
+                const response = await fetch('/api/admin/support/tickets', {
+                    credentials: 'include'
+                });
                 if (response.ok) {
                     const data = await response.json();
                     allTickets = data.tickets;
@@ -1352,7 +1354,9 @@
             currentTicketId = ticketId;
             
             try {
-                const response = await fetch(`/api/admin/support/ticket/${ticketId}`);
+                const response = await fetch(`/api/admin/support/ticket/${ticketId}`, {
+                    credentials: 'include'
+                });
                 if (response.ok) {
                     const data = await response.json();
                     
@@ -1362,7 +1366,9 @@
                         await sendSystemMessage(ticketId, '👨‍💼 Оператор Артём подключился к диалогу');
                         
                         // Перезагружаем сообщения после отправки системного
-                        const response2 = await fetch(`/api/admin/support/ticket/${ticketId}`);
+                        const response2 = await fetch(`/api/admin/support/ticket/${ticketId}`, {
+                            credentials: 'include'
+                        });
                         if (response2.ok) {
                             const data2 = await response2.json();
                             displayTicketMessages(data2.ticket, data2.messages);
@@ -1396,6 +1402,7 @@
                 await fetch('/api/admin/support/system-message', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ ticketId, message })
                 });
             } catch (error) {
@@ -1485,7 +1492,9 @@
                 if (!currentTicketId) return;
                 
                 try {
-                    const response = await fetch(`/api/admin/support/ticket/${currentTicketId}`);
+                    const response = await fetch(`/api/admin/support/ticket/${currentTicketId}`, {
+                        credentials: 'include'
+                    });
                     if (response.ok) {
                         const data = await response.json();
                         
@@ -1616,6 +1625,7 @@
                     
                     const uploadResponse = await fetch('/api/admin/support/upload-image', {
                         method: 'POST',
+                        credentials: 'include',
                         body: formData
                     });
                     
@@ -1629,6 +1639,7 @@
                 const response = await fetch('/api/admin/support/reply', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({
                         ticketId: currentTicketId,
                         message: message || '📷 Изображение',
@@ -1656,7 +1667,8 @@
             
             try {
                 const response = await fetch(`/api/admin/support/${action}/${currentTicketId}`, {
-                    method: 'POST'
+                    method: 'POST',
+                    credentials: 'include'
                 });
                 
                 if (response.ok) {
