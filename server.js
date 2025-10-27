@@ -7,6 +7,8 @@ const cors = require('cors');
 const path = require('path');
 const geoip = require('geoip-lite');
 const fetch = require('node-fetch');
+const multer = require('multer');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -39,11 +41,69 @@ async function sendTelegramNotification(message, silent = false) {
     }
 }
 
+// Функция отправки изображения в Telegram
+async function sendTelegramPhoto(imageUrl, caption, silent = false) {
+    try {
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`;
+        const fullImageUrl = `https://truststore.ru${imageUrl}`;
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: TELEGRAM_CHAT_ID,
+                photo: fullImageUrl,
+                caption: caption,
+                parse_mode: 'HTML',
+                disable_notification: silent
+            })
+        });
+        
+        if (response.ok) {
+            console.log('✅ Telegram фото отправлено');
+        }
+    } catch (error) {
+        console.error('❌ Ошибка отправки Telegram фото:', error);
+    }
+}
+
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors());
 app.use(express.static(__dirname)); // Раздача статических файлов
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Раздача загруженных файлов
+
+// Настройка multer для загрузки изображений
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadDir = path.join(__dirname, 'uploads', 'chat-images');
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+    fileFilter: function (req, file, cb) {
+        const allowedTypes = /jpeg|jpg|png|gif|webp/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = allowedTypes.test(file.mimetype);
+        
+        if (mimetype && extname) {
+            return cb(null, true);
+        } else {
+            cb(new Error('Только изображения разрешены!'));
+        }
+    }
+});
 
 // Инициализация БД
 const db = new Database('analytics.db');
@@ -131,7 +191,8 @@ db.exec(`
         ticket_id TEXT NOT NULL,
         sender_type TEXT NOT NULL,
         sender_name TEXT,
-        message TEXT NOT NULL,
+        message TEXT,
+        image_url TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (ticket_id) REFERENCES support_tickets(ticket_id)
     );
@@ -402,13 +463,43 @@ app.get('/api/stats', authMiddleware, (req, res) => {
     }
 });
 
+// API для загрузки изображения от клиента
+app.post('/api/support/upload-image', upload.single('image'), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'Файл не загружен' });
+        }
+        
+        const imageUrl = `/uploads/chat-images/${req.file.filename}`;
+        res.json({ success: true, imageUrl });
+    } catch (error) {
+        console.error('Ошибка загрузки изображения:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// API для загрузки изображения от админа
+app.post('/api/admin/support/upload-image', authMiddleware, upload.single('image'), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'Файл не загружен' });
+        }
+        
+        const imageUrl = `/uploads/chat-images/${req.file.filename}`;
+        res.json({ success: true, imageUrl });
+    } catch (error) {
+        console.error('Ошибка загрузки изображения:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
 // API для создания тикета/отправки сообщения в поддержку
 app.post('/api/support/send-message', (req, res) => {
     try {
-        const { ticketId, customerName, customerEmail, message } = req.body;
+        const { ticketId, customerName, customerEmail, message, imageUrl } = req.body;
         
-        if (!message) {
-            return res.status(400).json({ error: 'Сообщение не может быть пустым' });
+        if (!message && !imageUrl) {
+            return res.status(400).json({ error: 'Сообщение или изображение обязательны' });
         }
         
         let finalTicketId = ticketId;
@@ -425,14 +516,25 @@ app.post('/api/support/send-message', (req, res) => {
             console.log('✅ Создан новый тикет:', finalTicketId);
             
             // Отправляем уведомление в Telegram о новом тикете
-            const notificationText = `🆕 <b>Новый тикет!</b>\n\n` +
-                `📋 ID: <code>${finalTicketId}</code>\n` +
-                `👤 Клиент: ${customerName || 'Гость'}\n` +
-                `${customerEmail ? `📧 Email: ${customerEmail}\n` : ''}` +
-                `💬 Сообщение: ${message}\n\n` +
-                `🔗 <a href="https://truststore.ru/admin">Открыть админку</a>`;
-            
-            sendTelegramNotification(notificationText);
+            if (imageUrl) {
+                const caption = `🆕 <b>Новый тикет!</b>\n\n` +
+                    `📋 ID: <code>${finalTicketId}</code>\n` +
+                    `👤 Клиент: ${customerName || 'Гость'}\n` +
+                    `${customerEmail ? `📧 Email: ${customerEmail}\n` : ''}` +
+                    `${message ? `💬 ${message}\n` : ''}` +
+                    `🔗 <a href="https://truststore.ru/admin">Открыть админку</a>`;
+                
+                sendTelegramPhoto(imageUrl, caption);
+            } else {
+                const notificationText = `🆕 <b>Новый тикет!</b>\n\n` +
+                    `📋 ID: <code>${finalTicketId}</code>\n` +
+                    `👤 Клиент: ${customerName || 'Гость'}\n` +
+                    `${customerEmail ? `📧 Email: ${customerEmail}\n` : ''}` +
+                    `💬 Сообщение: ${message}\n\n` +
+                    `🔗 <a href="https://truststore.ru/admin">Открыть админку</a>`;
+                
+                sendTelegramNotification(notificationText);
+            }
         } else {
             // Обновляем время последнего сообщения и помечаем как непрочитанное
             db.prepare(`
@@ -442,20 +544,30 @@ app.post('/api/support/send-message', (req, res) => {
             `).run(finalTicketId);
             
             // Отправляем уведомление о новом сообщении
-            const notificationText = `💬 <b>Новое сообщение!</b>\n\n` +
-                `📋 Тикет: <code>${finalTicketId}</code>\n` +
-                `👤 Клиент: ${customerName || 'Гость'}\n` +
-                `💬 Сообщение: ${message}\n\n` +
-                `🔗 <a href="https://truststore.ru/admin">Открыть админку</a>`;
-            
-            sendTelegramNotification(notificationText);
+            if (imageUrl) {
+                const caption = `💬 <b>Новое сообщение!</b>\n\n` +
+                    `📋 Тикет: <code>${finalTicketId}</code>\n` +
+                    `👤 Клиент: ${customerName || 'Гость'}\n` +
+                    `${message ? `💬 ${message}\n` : ''}` +
+                    `🔗 <a href="https://truststore.ru/admin">Открыть админку</a>`;
+                
+                sendTelegramPhoto(imageUrl, caption);
+            } else {
+                const notificationText = `💬 <b>Новое сообщение!</b>\n\n` +
+                    `📋 Тикет: <code>${finalTicketId}</code>\n` +
+                    `👤 Клиент: ${customerName || 'Гость'}\n` +
+                    `💬 Сообщение: ${message}\n\n` +
+                    `🔗 <a href="https://truststore.ru/admin">Открыть админку</a>`;
+                
+                sendTelegramNotification(notificationText);
+            }
         }
         
         // Добавляем сообщение
         db.prepare(`
-            INSERT INTO support_messages (ticket_id, sender_type, sender_name, message)
-            VALUES (?, 'customer', ?, ?)
-        `).run(finalTicketId, customerName || 'Гость', message);
+            INSERT INTO support_messages (ticket_id, sender_type, sender_name, message, image_url)
+            VALUES (?, 'customer', ?, ?, ?)
+        `).run(finalTicketId, customerName || 'Гость', message || null, imageUrl || null);
         
         res.json({ success: true, ticketId: finalTicketId });
     } catch (error) {
@@ -538,17 +650,17 @@ app.get('/api/admin/support/ticket/:ticketId', authMiddleware, (req, res) => {
 // API для админа: отправка ответа
 app.post('/api/admin/support/reply', authMiddleware, (req, res) => {
     try {
-        const { ticketId, message } = req.body;
+        const { ticketId, message, imageUrl } = req.body;
         
-        if (!message || !ticketId) {
-            return res.status(400).json({ error: 'Тикет и сообщение обязательны' });
+        if ((!message && !imageUrl) || !ticketId) {
+            return res.status(400).json({ error: 'Тикет и сообщение/изображение обязательны' });
         }
         
         // Добавляем сообщение от админа
         db.prepare(`
-            INSERT INTO support_messages (ticket_id, sender_type, sender_name, message)
-            VALUES (?, 'admin', 'Поддержка Trust Store', ?)
-        `).run(ticketId, message);
+            INSERT INTO support_messages (ticket_id, sender_type, sender_name, message, image_url)
+            VALUES (?, 'admin', 'Поддержка Trust Store', ?, ?)
+        `).run(ticketId, message || null, imageUrl || null);
         
         // Обновляем время последнего сообщения
         db.prepare(`

@@ -147,6 +147,27 @@
     50% { opacity: 0.3; }
 }
 
+.chat-close-btn {
+    margin-left: auto;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.chat-close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
 /* Тело чата */
 .chat-body {
     flex: 1;
@@ -289,6 +310,7 @@
     background: white;
     border-top: 1px solid #e0e0e0;
     display: flex;
+    align-items: center;
     gap: 10px;
 }
 
@@ -306,6 +328,27 @@
 .chat-input:focus {
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.chat-image-btn {
+    width: 40px;
+    height: 40px;
+    background: #f0f0f0;
+    color: #666;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.chat-image-btn:hover {
+    background: #e0e0e0;
+    transform: scale(1.05);
 }
 
 .chat-send-btn {
@@ -380,27 +423,3 @@
     }
 }
 
-
-.chat-close-btn {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 24px;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-}
-
-.chat-close-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: rotate(90deg);
-}

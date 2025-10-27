@@ -32,6 +32,15 @@
             
             <div class="chat-footer">
                 <input 
+                    type="file" 
+                    id="chatImageInput" 
+                    accept="image/*" 
+                    style="display: none;"
+                >
+                <button class="chat-image-btn" id="chatImageBtn" title="Прикрепить изображение">
+                    📷
+                </button>
+                <input 
                     type="text" 
                     class="chat-input" 
                     id="chatInput" 
@@ -57,6 +66,8 @@
         const chatSendBtn = document.getElementById('chatSendBtn');
         const chatNotification = document.getElementById('chatNotification');
         const chatCloseBtn = document.getElementById('chatCloseBtn');
+        const chatImageBtn = document.getElementById('chatImageBtn');
+        const chatImageInput = document.getElementById('chatImageInput');
         
         let isOpen = false;
         let botMessageShown = false;
@@ -164,6 +175,69 @@
             }
         }
         
+        // Отправка изображения
+        async function sendImage(file) {
+            try {
+                // Создаем имя клиента если его нет
+                if (!ticketId && !customerName) {
+                    customerName = 'Гость';
+                }
+                
+                // Показываем предпросмотр изображения сразу
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    addUserImage(e.target.result);
+                };
+                reader.readAsDataURL(file);
+                
+                // Загружаем изображение на сервер
+                const formData = new FormData();
+                formData.append('image', file);
+                
+                const uploadResponse = await fetch('/api/support/upload-image', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const uploadData = await uploadResponse.json();
+                
+                if (!uploadData.success) {
+                    console.error('Ошибка загрузки изображения');
+                    return;
+                }
+                
+                const imageUrl = uploadData.imageUrl;
+                
+                // Отправляем сообщение с изображением
+                const response = await fetch('/api/support/send-message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ticketId: ticketId,
+                        customerName: customerName,
+                        customerEmail: customerEmail,
+                        message: '📷 Изображение',
+                        imageUrl: imageUrl
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.ticketId) {
+                    ticketId = data.ticketId;
+                    localStorage.setItem('supportTicketId', ticketId);
+                    console.log('✅ Изображение отправлено, тикет:', ticketId);
+                    
+                    // Если это первое сообщение, запускаем polling
+                    if (!pollingInterval) {
+                        startPolling();
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка отправки изображения:', error);
+            }
+        }
+        
         // Загрузка истории чата
         async function loadChatHistory() {
             if (!ticketId) return;
@@ -184,9 +258,17 @@
                     // Отображаем все сообщения
                     data.messages.forEach(msg => {
                         if (msg.sender_type === 'customer') {
-                            addUserMessage(msg.message, false);
+                            if (msg.image_url) {
+                                addUserImage(msg.image_url, false);
+                            } else {
+                                addUserMessage(msg.message, false);
+                            }
                         } else if (msg.sender_type === 'admin') {
-                            addAdminMessage(msg.message, msg.sender_name);
+                            if (msg.image_url) {
+                                addAdminImage(msg.image_url, msg.sender_name);
+                            } else {
+                                addAdminMessage(msg.message, msg.sender_name);
+                            }
                         } else if (msg.sender_type === 'system') {
                             addSystemMessage(msg.message);
                         }
@@ -227,7 +309,11 @@
                                     showTypingIndicator();
                                     setTimeout(() => {
                                         hideTypingIndicator();
-                                        addAdminMessage(msg.message, msg.sender_name);
+                                        if (msg.image_url) {
+                                            addAdminImage(msg.image_url, msg.sender_name);
+                                        } else {
+                                            addAdminMessage(msg.message, msg.sender_name);
+                                        }
                                     }, 1000);
                                 }
                                 
@@ -236,9 +322,9 @@
                                 
                                 // Если чат закрыт - показываем уведомление на сайте
                                 if (!isOpen) {
-                                    const shortMessage = msg.message.length > 80 
+                                    const shortMessage = msg.image_url ? '📷 Вам отправили изображение' : (msg.message.length > 80 
                                         ? msg.message.substring(0, 80) + '...' 
-                                        : msg.message;
+                                        : msg.message);
                                     showSiteNotification(shortMessage);
                                     chatNotification.style.display = 'block';
                                 }
@@ -360,41 +446,11 @@
         }
         
         // Функция воспроизведения звука уведомления
-        let audioContext = null;
-        
         function playNotificationSound() {
             try {
-                // Инициализируем AudioContext только один раз
-                if (!audioContext) {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                
-                // Создаем приятный двойной beep
-                const now = audioContext.currentTime;
-                
-                // Первый тон
-                const osc1 = audioContext.createOscillator();
-                const gain1 = audioContext.createGain();
-                osc1.connect(gain1);
-                gain1.connect(audioContext.destination);
-                osc1.frequency.value = 800;
-                osc1.type = 'sine';
-                gain1.gain.setValueAtTime(0.3, now);
-                gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                osc1.start(now);
-                osc1.stop(now + 0.1);
-                
-                // Второй тон (чуть позже и выше)
-                const osc2 = audioContext.createOscillator();
-                const gain2 = audioContext.createGain();
-                osc2.connect(gain2);
-                gain2.connect(audioContext.destination);
-                osc2.frequency.value = 1000;
-                osc2.type = 'sine';
-                gain2.gain.setValueAtTime(0.3, now + 0.1);
-                gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                osc2.start(now + 0.1);
-                osc2.stop(now + 0.2);
+                const audio = new Audio('notification.mp3');
+                audio.volume = 0.5; // Громкость 50%
+                audio.play().catch(err => console.log('Звук не воспроизведен:', err));
             } catch (error) {
                 console.log('Звук не воспроизведен:', error);
             }
@@ -406,6 +462,34 @@
             if (e.key === 'Enter') {
                 sendMessage();
             }
+        });
+        
+        // Обработчик кнопки прикрепления изображения
+        chatImageBtn.addEventListener('click', function() {
+            chatImageInput.click();
+        });
+        
+        // Обработчик выбора файла
+        chatImageInput.addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Проверка размера (макс 5 МБ)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Размер файла не должен превышать 5 МБ');
+                chatImageInput.value = '';
+                return;
+            }
+            
+            // Проверка типа
+            if (!file.type.startsWith('image/')) {
+                alert('Можно загружать только изображения');
+                chatImageInput.value = '';
+                return;
+            }
+            
+            await sendImage(file);
+            chatImageInput.value = '';
         });
         
         // Функция добавления сообщения бота
@@ -459,6 +543,26 @@
             if (shouldScroll) scrollToBottom();
         }
         
+        // Функция добавления изображения пользователя
+        function addUserImage(imageUrl, shouldScroll = true) {
+            const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            
+            const messageHTML = `
+                <div class="chat-message user">
+                    <div class="chat-message-avatar">👤</div>
+                    <div class="chat-message-content">
+                        <div class="chat-message-bubble" style="padding: 4px;">
+                            <img src="${imageUrl}" alt="Изображение" style="max-width: 100%; border-radius: 10px; cursor: pointer;" onclick="window.open('${imageUrl}', '_blank')">
+                        </div>
+                        <div class="chat-message-time">${time}</div>
+                    </div>
+                </div>
+            `;
+            
+            chatBody.insertAdjacentHTML('beforeend', messageHTML);
+            if (shouldScroll) scrollToBottom();
+        }
+        
         // Функция добавления сообщения от админа
         function addAdminMessage(text, senderName = 'Поддержка') {
             const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
@@ -473,6 +577,31 @@
                             ${senderName}
                         </div>
                         <div class="chat-message-bubble">${text}</div>
+                        <div class="chat-message-time">${time}</div>
+                    </div>
+                </div>
+            `;
+            
+            chatBody.insertAdjacentHTML('beforeend', messageHTML);
+            scrollToBottom();
+        }
+        
+        // Функция добавления изображения от админа
+        function addAdminImage(imageUrl, senderName = 'Поддержка') {
+            const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            
+            const messageHTML = `
+                <div class="chat-message bot">
+                    <div class="chat-message-avatar">
+                        <img src="support-image.png" alt="Support" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                    </div>
+                    <div class="chat-message-content">
+                        <div style="font-size: 11px; color: #667eea; font-weight: 600; margin-bottom: 4px;">
+                            ${senderName}
+                        </div>
+                        <div class="chat-message-bubble" style="padding: 4px;">
+                            <img src="${imageUrl}" alt="Изображение" style="max-width: 100%; border-radius: 10px; cursor: pointer;" onclick="window.open('${imageUrl}', '_blank')">
+                        </div>
                         <div class="chat-message-time">${time}</div>
                     </div>
                 </div>
