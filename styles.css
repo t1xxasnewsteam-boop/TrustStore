@@ -950,10 +950,11 @@ body {
 
 .reviews-slider {
     margin-top: 40px;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: visible;
     position: relative;
     width: 100%;
-    padding: 30px 0;
+    padding: 50px 0;
     border: 2px solid #e8e8e8;
     border-radius: 24px;
     background: linear-gradient(to bottom, #fafafa 0%, #ffffff 100%);
@@ -983,7 +984,7 @@ body {
     padding: 30px;
     border-radius: 20px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     border: 2px solid #f0f0f0;
     min-width: 480px;
     max-width: 480px;
@@ -991,13 +992,14 @@ body {
     margin-right: 30px;
     position: relative;
     z-index: 1;
+    will-change: transform;
 }
 
 .review-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 40px rgba(102, 126, 234, 0.2);
+    transform: translateY(-15px) scale(1.02);
+    box-shadow: 0 20px 50px rgba(102, 126, 234, 0.25);
     border-color: #667eea;
-    z-index: 2;
+    z-index: 100;
 }
 
 .review-header {
@@ -1019,11 +1021,12 @@ body {
     flex-shrink: 0;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
     border: 3px solid #fafafa;
-    transition: transform 0.3s ease;
+    transition: all 0.4s ease;
 }
 
 .review-card:hover .review-avatar {
-    transform: scale(1.05);
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
 }
 
 .review-info {
