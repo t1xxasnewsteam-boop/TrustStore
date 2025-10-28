@@ -656,8 +656,11 @@
                 
                 totalPrice += itemTotal;
                 
+                // Создаем URL для товара
+                const productUrl = getProductUrl(item.name);
+                
                 return `
-                    <div class="cart-item" data-index="${index}">
+                    <div class="cart-item" data-index="${index}" onclick="openProductFromCart(event, '${productUrl}')" style="cursor: pointer;">
                         <div class="cart-item-image">
                             <img src="${item.image || 'logo.png'}" alt="${item.name}">
                         </div>
@@ -668,7 +671,7 @@
                             </div>
                             <div class="cart-item-actions">
                                 ${priceHTML}
-                                <div class="quantity-controls">
+                                <div class="quantity-controls" onclick="event.stopPropagation()">
                                     <button class="quantity-btn" onclick="decreaseCartQuantity(${index})">−</button>
                                     <input type="text" class="quantity-input" value="${item.quantity}" 
                                            onchange="updateCartQuantityManual(${index}, this.value)"
@@ -677,7 +680,7 @@
                                 </div>
                             </div>
                         </div>
-                        <button class="btn-remove-cart-item" onclick="removeFromCartByIndex(${index})" title="Удалить товар">×</button>
+                        <button class="btn-remove-cart-item" onclick="event.stopPropagation(); removeFromCartByIndex(${index})" title="Удалить товар">×</button>
                     </div>
                 `;
             }).join('');
@@ -1002,6 +1005,33 @@
                 if (discountRow) discountRow.style.display = 'none';
                 if (finalTotal) finalTotal.textContent = totalPrice.toLocaleString('ru-RU') + ' ₽';
             }
+        }
+        
+        // Получаем URL товара из названия
+        function getProductUrl(productName) {
+            const urlMap = {
+                'Midjourney': '/product/midjourney',
+                'ChatGPT': '/product/chatgpt',
+                'Claude': '/product/claude',
+                'Gemini': '/product/gemini',
+                'Cursor': '/product/cursor',
+                'YouTube Premium': '/product/youtube',
+                'Adobe': '/product/adobe',
+                'CapCut': '/product/capcut',
+                'VPN': '/product/vpn'
+            };
+            return urlMap[productName] || '/catalog';
+        }
+        
+        // Открываем товар из корзины
+        function openProductFromCart(event, productUrl) {
+            // Проверяем, что клик не был по кнопкам управления
+            if (event.target.closest('.quantity-controls') || 
+                event.target.closest('.btn-remove-cart-item')) {
+                return;
+            }
+            
+            window.location.href = productUrl;
         }
         
         // Initialize cart display

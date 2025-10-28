@@ -82,8 +82,11 @@ function displayCartWidget() {
         totalPrice += itemTotal;
         originalTotalPrice += originalPrice; // Всегда добавляем цену БЕЗ промокода для итого
         
+        // Создаем URL для товара
+        const productUrl = getProductUrl(item.name);
+        
         return `
-            <div class="cart-widget-item">
+            <div class="cart-widget-item" onclick="openProductFromWidget(event, '${productUrl}')" style="cursor: pointer;">
                 <div class="cart-widget-item-image">
                     <img src="${item.image || 'logo.png'}" alt="${item.name}">
                 </div>
@@ -92,7 +95,7 @@ function displayCartWidget() {
                     <div class="cart-widget-item-duration">${item.duration}</div>
                     <div class="cart-widget-item-bottom">
                         ${priceHTML}
-                        <div class="widget-quantity-controls">
+                        <div class="widget-quantity-controls" onclick="event.stopPropagation()">
                             <button class="widget-quantity-btn" onclick="decreaseWidgetQuantity(${index})">−</button>
                             <input type="text" class="widget-quantity-input" value="${quantity}" 
                                    onchange="updateWidgetQuantityManual(${index}, this.value)"
@@ -101,7 +104,7 @@ function displayCartWidget() {
                         </div>
                     </div>
                 </div>
-                <button class="cart-widget-item-remove" onclick="removeFromCartWidget(${index})" title="Удалить">×</button>
+                <button class="cart-widget-item-remove" onclick="event.stopPropagation(); removeFromCartWidget(${index})" title="Удалить">×</button>
             </div>
         `;
     }).join('');
@@ -234,6 +237,33 @@ function checkoutFromWidget() {
     // Перенаправляем на checkout с параметром fromCart=true
     // Checkout сам загрузит все товары из корзины
     window.location.href = '/checkout?fromCart=true';
+}
+
+// Получаем URL товара из названия
+function getProductUrl(productName) {
+    const urlMap = {
+        'Midjourney': '/product/midjourney',
+        'ChatGPT': '/product/chatgpt',
+        'Claude': '/product/claude',
+        'Gemini': '/product/gemini',
+        'Cursor': '/product/cursor',
+        'YouTube Premium': '/product/youtube',
+        'Adobe': '/product/adobe',
+        'CapCut': '/product/capcut',
+        'VPN': '/product/vpn'
+    };
+    return urlMap[productName] || '/catalog';
+}
+
+// Открываем товар из виджета
+function openProductFromWidget(event, productUrl) {
+    // Проверяем, что клик не был по кнопкам управления
+    if (event.target.closest('.widget-quantity-controls') || 
+        event.target.closest('.cart-widget-item-remove')) {
+        return;
+    }
+    
+    window.location.href = productUrl;
 }
 
 // Initialize cart widget on page load
