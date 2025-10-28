@@ -950,8 +950,6 @@ body {
 
 .reviews-slider {
     margin-top: 40px;
-    overflow-x: hidden;
-    overflow-y: visible;
     position: relative;
     width: 100%;
     padding: 50px 30px;
@@ -967,21 +965,19 @@ body {
     position: absolute;
     top: 0;
     bottom: 0;
-    width: 100px;
+    width: 150px;
     pointer-events: none;
-    z-index: 5;
+    z-index: 0;
 }
 
 .reviews-slider::before {
     left: 0;
-    background: linear-gradient(to right, rgba(250, 250, 250, 0.95) 0%, transparent 100%);
-    border-radius: 24px 0 0 24px;
+    background: linear-gradient(to right, rgba(250, 250, 250, 1) 0%, rgba(250, 250, 250, 0.7) 60%, transparent 100%);
 }
 
 .reviews-slider::after {
     right: 0;
-    background: linear-gradient(to left, rgba(250, 250, 250, 0.95) 0%, transparent 100%);
-    border-radius: 0 24px 24px 0;
+    background: linear-gradient(to left, rgba(250, 250, 250, 1) 0%, rgba(250, 250, 250, 0.7) 60%, transparent 100%);
 }
 
 .reviews-track {
