@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Claude AI Pro - Trust Store</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="search.css">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../search.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -249,7 +249,7 @@
                 <div style="display: flex; flex-direction: column; gap: 0px;">
                     <a href="/" style="text-decoration: none;">
                         <div class="logo">
-                            <img src="logo.png" alt="Trust Store" class="logo-image">
+                            <img src="../logo.png" alt="Trust Store" class="logo-image">
                             <h1>Trust Store</h1>
                         </div>
                     </a>
@@ -277,7 +277,7 @@
             
             <div class="product-detail">
                 <div class="product-image-large" style="position: relative;">
-                    <img src="claude-image.png" alt="Claude AI Pro" style="max-width: 80%; max-height: 80%; object-fit: contain; transform: translateY(-20px); border-radius: 20px;">
+                    <img src="../claude-image.png" alt="Claude AI Pro" style="max-width: 80%; max-height: 80%; object-fit: contain; transform: translateY(-20px); border-radius: 20px;">
                     <div style="position: absolute; top: 25px; right: 60px; z-index: 10;">
                         <div class="product-badge badge-category" style="white-space: nowrap;">AI Генерация</div>
                     </div>
@@ -407,11 +407,11 @@
         </div>
     </footer>
 
-    <script src="script.js"></script>
-    <script src="tracking.js"></script>
-    <script src="cart.js"></script>
-    <script src="cart-widget.js"></script>
-    <script src="notification.js"></script>
+    <script src="../script.js"></script>
+    <script src="../tracking.js"></script>
+    <script src="../cart.js"></script>
+    <script src="../cart-widget.js"></script>
+    <script src="../notification.js"></script>
     <script>
         let currentPrice = 2250;
         let discountApplied = false;
@@ -518,7 +518,7 @@
                 price: parseInt(document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '')),
                 duration: window.selectedDuration || '1 месяц',
                 category: 'AI Генерация',
-                image: 'claude-image.png'
+                image: '/claude-image.png'
             };
             addToCart(product);
         }
@@ -570,7 +570,7 @@
         </div>
     </div>
     
-    <script src="search.js"></script>
+    <script src="../search.js"></script>
 </body>
 </html>
 

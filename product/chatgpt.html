@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChatGPT Plus - Trust Store</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="search.css">
-    <link rel="stylesheet" href="cart-widget.css">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../search.css">
+    <link rel="stylesheet" href="../cart-widget.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -258,7 +258,7 @@
                 <div style="display: flex; flex-direction: column; gap: 0px;">
                     <a href="/" style="text-decoration: none;">
                         <div class="logo">
-                            <img src="logo.png" alt="Trust Store" class="logo-image">
+                            <img src="../logo.png" alt="Trust Store" class="logo-image">
                             <h1>Trust Store</h1>
                         </div>
                     </a>
@@ -290,7 +290,7 @@
                         <div class="product-badge badge-hit">🔥 Хит</div>
                         <div class="product-badge badge-category">Подписка</div>
                     </div>
-                    <img src="gpt-image.png" alt="ChatGPT Plus" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 20px; transform: translateY(-40px);">
+                    <img src="../gpt-image.png" alt="ChatGPT Plus" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 20px; transform: translateY(-40px);">
                 </div>
                 
                 <div class="product-detail-info">
@@ -412,8 +412,8 @@
         </div>
     </footer>
 
-    <script src="script.js"></script>
-    <script src="tracking.js"></script>
+    <script src="../script.js"></script>
+    <script src="../tracking.js"></script>
     <script>
         let currentPrice = 2250;
         let discountApplied = false;
@@ -826,7 +826,7 @@
                 price: parseInt(document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '')),
                 duration: window.selectedDuration || '1 месяц',
                 category: 'AI Генерация',
-                image: 'gpt-image.png'
+                image: '/gpt-image.png'
             };
             
             addToCart(product);
@@ -836,9 +836,9 @@
         document.addEventListener('DOMContentLoaded', updateCartCount);
     </script>
     
-    <script src="cart.js"></script>
-    <script src="cart-widget.js"></script>
-    <script src="notification.js"></script>
+    <script src="../cart.js"></script>
+    <script src="../cart-widget.js"></script>
+    <script src="../notification.js"></script>
     
     <!-- Search Modal -->
     <div id="search-modal">
@@ -885,7 +885,7 @@
         </div>
     </div>
     
-    <script src="search.js"></script>
+    <script src="../search.js"></script>
 </body>
 </html>
 
