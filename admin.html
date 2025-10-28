@@ -1435,9 +1435,17 @@
                     credentials: 'include'
                 });
                 
-                if (!response.ok) throw new Error('Failed to load stats');
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        console.log('Unauthorized - redirecting to login');
+                        window.location.href = '/admin';
+                        return;
+                    }
+                    throw new Error(`Failed to load stats: ${response.status}`);
+                }
                 
                 const data = await response.json();
+                console.log('Dashboard data loaded:', data);
                 
                 // Update stats
                 document.getElementById('stat-sessions').textContent = data.sessions?.total || 0;
@@ -1457,7 +1465,7 @@
                 
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
-                showNotification('Ошибка', 'Не удалось загрузить данные', '❌');
+                showNotification('Ошибка', `Не удалось загрузить данные: ${error.message}`, '❌');
             }
         }
 

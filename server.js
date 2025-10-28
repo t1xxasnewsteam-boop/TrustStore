@@ -1276,6 +1276,7 @@ app.post('/api/promo-codes/:id/toggle', authMiddleware, (req, res) => {
 // Получение расширенной статистики для новой админ-панели
 app.get('/api/admin-stats', authMiddleware, (req, res) => {
     try {
+        console.log('📊 Loading admin stats...');
         // Сессии
         const totalSessions = db.prepare('SELECT COUNT(*) as count FROM sessions').get();
         const totalPageViews = db.prepare('SELECT COUNT(*) as count FROM visits').get();
@@ -1458,9 +1459,10 @@ app.get('/api/admin-stats', authMiddleware, (req, res) => {
                 bounceRate: 42.5 // TODO: реальный расчет
             }
         });
+        console.log('✅ Admin stats loaded successfully');
     } catch (error) {
-        console.error('Ошибка получения админ статистики:', error);
-        res.status(500).json({ error: 'Ошибка сервера' });
+        console.error('❌ Ошибка получения админ статистики:', error);
+        res.status(500).json({ error: 'Ошибка сервера', details: error.message });
     }
 });
 
