@@ -302,6 +302,28 @@
     <script src="search.js"></script>
     <script src="cart.js"></script>
     <script src="cart-widget.js"></script>
+    
+    <!-- 🔥 Предотвращаем добавление в корзину при клике на кнопку Купить -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Останавливаем всплытие события от кнопок "Купить"
+            document.querySelectorAll('.btn-buy').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Предотвращаем всплытие до product-card
+                    console.log('🔗 Переход на страницу товара:', this.href);
+                });
+            });
+            
+            // Убираем обработчики кликов с карточек товаров
+            document.querySelectorAll('.product-card').forEach(card => {
+                // Клонируем элемент, чтобы удалить ВСЕ обработчики событий
+                const newCard = card.cloneNode(true);
+                card.parentNode.replaceChild(newCard, card);
+            });
+            
+            console.log('✅ Обработчики кликов на карточках отключены!');
+        });
+    </script>
 </body>
 </html>
 
