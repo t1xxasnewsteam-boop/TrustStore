@@ -236,7 +236,7 @@
                     <div class="reviews-stats">
                         <div class="stat-card">
                             <div class="stat-value">4.8</div>
-                            <div class="stat-stars">⭐⭐⭐⭐⭐</div>
+                            <div class="stat-stars"><span>⭐</span><span>⭐</span><span>⭐</span><span>⭐</span><span>⭐</span></div>
                             <div class="stat-label rating-count">на основе 549 отзывов</div>
                         </div>
                     </div>
@@ -682,6 +682,29 @@
             
             // Загружаем отзывы из Telegram
             loadTelegramReviews();
+            
+            // Анимация звезд при скролле
+            const observerOptions = {
+                threshold: 0.3,
+                rootMargin: '0px'
+            };
+            
+            const animateStars = (entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const stars = entry.target.querySelector('.stat-stars');
+                        if (stars && !stars.classList.contains('animate')) {
+                            stars.classList.add('animate');
+                        }
+                    }
+                });
+            };
+            
+            const observer = new IntersectionObserver(animateStars, observerOptions);
+            const reviewsHeader = document.querySelector('.reviews-header');
+            if (reviewsHeader) {
+                observer.observe(reviewsHeader);
+            }
         });
         
         // Функция загрузки отзывов из API
