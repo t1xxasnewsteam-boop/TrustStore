@@ -1523,86 +1523,75 @@ app.get('/api/telegram-reviews', (req, res) => {
     }
 });
 
-// Функция синхронизации отзывов из Telegram (парсинг HTML)
+// Функция синхронизации отзывов из Telegram (через getUpdates)
 async function syncTelegramReviews() {
     try {
-        console.log('🔄 Синхронизация отзывов из Telegram...');
+        console.log('🔄 Синхронизация отзывов из Telegram через getUpdates...');
         
-        // URL поста: https://t.me/truststoreru/19
-        const postUrl = 'https://t.me/truststoreru/19?embed=1&mode=tme';
-        
-        // Получаем HTML страницы
-        const response = await fetch(postUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            }
-        });
+        // Получаем обновления от бота
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?offset=-100&limit=100`;
+        const response = await fetch(url);
         
         if (!response.ok) {
-            console.error('❌ Ошибка загрузки страницы Telegram');
+            console.error('❌ Ошибка запроса к Telegram API');
             return;
         }
         
-        const html = await response.text();
-        const $ = cheerio.load(html);
+        const data = await response.json();
         
-        // Парсим комментарии из embed виджета
-        const comments = [];
-        
-        // Telegram embed использует специальную структуру
-        // Ищем все сообщения с классом .tgme_widget_message
-        $('.tgme_widget_message_bubble').each((i, element) => {
-            const $el = $(element);
-            const author = $el.find('.tgme_widget_message_author_name').text().trim();
-            const text = $el.find('.tgme_widget_message_text').text().trim();
-            const link = $el.closest('.tgme_widget_message').find('.tgme_widget_message_date').attr('href');
-            
-            if (author && text && link) {
-                // Извлекаем ID комментария из ссылки
-                const match = link.match(/\/(\d+)$/);
-                const commentId = match ? parseInt(match[1]) : null;
-                
-                if (commentId) {
-                    comments.push({
-                        author,
-                        text,
-                        commentId
-                    });
-                }
-            }
-        });
-        
-        console.log(`📝 Найдено комментариев на странице: ${comments.length}`);
-        
-        // Если комментарии не найдены через embed, пробуем альтернативный метод
-        if (comments.length === 0) {
-            console.log('ℹ️ Комментарии в embed не найдены. Используем демо-данные.');
-            console.log('💡 Для реальной синхронизации подключи бота к группе обсуждений канала.');
+        if (!data.ok || !data.result) {
+            console.error('❌ Некорректный ответ от Telegram API');
+            return;
         }
         
-        // Сохраняем каждый комментарий в БД
+        console.log(`📨 Получено обновлений: ${data.result.length}`);
+        
         let added = 0;
-        for (const comment of comments) {
-            try {
-                // Проверяем, не добавлен ли уже этот комментарий
-                const existing = db.prepare('SELECT id FROM telegram_reviews WHERE telegram_comment_id = ?').get(comment.commentId);
+        
+        // Обрабатываем каждое сообщение
+        for (const update of data.result) {
+            // Проверяем что это сообщение из группы обсуждений
+            if (update.message && update.message.chat && update.message.from) {
+                const message = update.message;
                 
-                if (!existing && comment.text.length > 0) {
-                    db.prepare(`
-                        INSERT INTO telegram_reviews (author_name, review_text, rating, telegram_comment_id)
-                        VALUES (?, ?, 5, ?)
-                    `).run(comment.author, comment.text, comment.commentId);
-                    
-                    added++;
-                    console.log(`✅ Добавлен отзыв от ${comment.author}`);
+                // Пропускаем сообщения от ботов
+                if (message.from.is_bot) continue;
+                
+                // Получаем автора
+                const firstName = message.from.first_name || '';
+                const lastName = message.from.last_name || '';
+                const author = (firstName + ' ' + lastName).trim();
+                
+                // Получаем текст
+                const text = message.text || message.caption || '';
+                
+                // Пропускаем пустые сообщения
+                if (!text.trim() || text.length < 10) continue;
+                
+                // Проверяем, не добавлен ли уже этот комментарий
+                const existing = db.prepare('SELECT id FROM telegram_reviews WHERE telegram_comment_id = ?').get(message.message_id);
+                
+                if (!existing) {
+                    try {
+                        db.prepare(`
+                            INSERT INTO telegram_reviews (telegram_user_id, author_name, review_text, rating, telegram_comment_id)
+                            VALUES (?, ?, ?, 5, ?)
+                        `).run(message.from.id, author, text, message.message_id);
+                        
+                        added++;
+                        console.log(`✅ Добавлен отзыв от ${author}: "${text.substring(0, 50)}..."`);
+                    } catch (err) {
+                        // Игнорируем дубли (UNIQUE constraint)
+                        if (!err.message.includes('UNIQUE')) {
+                            console.error(`❌ Ошибка добавления отзыва:`, err.message);
+                        }
+                    }
                 }
-            } catch (err) {
-                console.error(`❌ Ошибка добавления отзыва:`, err.message);
             }
         }
         
         if (added > 0) {
-            console.log(`✅ Синхронизация завершена! Добавлено новых отзывов: ${added}`);
+            console.log(`🎉 Синхронизация завершена! Добавлено новых отзывов: ${added}`);
         } else {
             console.log('ℹ️ Новых отзывов не обнаружено');
         }
