@@ -1020,6 +1020,7 @@ body {
     flex-shrink: 0;
     position: relative;
     z-index: 2;
+    cursor: pointer;
 }
 
 .review-card:hover {

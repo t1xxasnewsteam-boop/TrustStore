@@ -759,6 +759,14 @@
                         // Дублируем карточки ПОЛНОСТЬЮ для бесконечного скролла (создаем 2 полных набора)
                         reviewsTrack.innerHTML = reviewCards + reviewCards;
                         
+                        // Добавляем обработчик клика на карточки отзывов
+                        reviewsTrack.addEventListener('click', (e) => {
+                            const card = e.target.closest('.review-card');
+                            if (card) {
+                                window.open('https://t.me/truststoreru/19', '_blank');
+                            }
+                        });
+                        
                         console.log('✅ Отзывы из Telegram загружены и отображены!');
                     }
                 } else {
