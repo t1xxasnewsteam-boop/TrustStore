@@ -222,27 +222,17 @@
     <!-- Reviews Section -->
     <section class="reviews-section">
         <div class="container">
-            <div class="reviews-header">
-                <h2 class="reviews-main-title">Отзывы наших клиентов</h2>
-                <p class="reviews-description">Реальные отзывы из нашего Telegram канала</p>
-            </div>
-            
-            <div class="reviews-stats">
-                <div class="stat-card">
-                    <div class="stat-icon">⭐</div>
-                    <div class="stat-value">4.8</div>
-                    <div class="stat-label">Средний рейтинг</div>
+            <h2 class="section-title">Наши отзывы</h2>
+            <div class="reviews-info">
+                <div class="reviews-source">
+                    <span class="telegram-badge">📱 Отзывы из нашего Telegram канала</span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">💬</div>
-                    <div class="stat-value rating-count">549</div>
-                    <div class="stat-label">Всего отзывов</div>
+                <div class="reviews-rating">
+                    <span class="rating-stars">⭐⭐⭐⭐⭐</span>
+                    <span class="rating-score">4.8</span>
+                    <span class="rating-count">на основе 549 отзывов</span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">📱</div>
-                    <div class="stat-value">Telegram</div>
-                    <div class="stat-label">Наш канал</div>
-                </div>
+                <div class="reviews-subtitle">Последние 10 отзывов</div>
             </div>
             <div class="reviews-slider">
                 <div class="reviews-track">
@@ -600,7 +590,7 @@
                 const ratingCount = document.querySelector('.rating-count');
                 if (ratingCount) {
                     const totalCount = data.totalComments || data.count;
-                    ratingCount.textContent = totalCount;
+                    ratingCount.textContent = `на основе ${totalCount} отзывов`;
                     console.log(`📊 Всего комментариев под постом в Telegram: ${totalCount}`);
                 }
                     
