@@ -1097,7 +1097,7 @@ body {
 }
 
 .review-card:hover .review-stars {
-    transform: scale(1.05) translateX(3px);
+    transform: scale(1.05) translateX(8px);
     text-shadow: 2px 2px 4px rgba(255, 193, 7, 0.3);
     animation: sparkle 1.5s ease-in-out infinite;
 }
