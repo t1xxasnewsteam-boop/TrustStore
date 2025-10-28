@@ -951,12 +951,40 @@ body {
     margin-top: 40px;
     width: 100%;
     overflow: hidden;
-    border: 2px solid #e8e8e8;
     border-radius: 24px;
     padding: 30px;
     background: linear-gradient(to bottom, #fafafa 0%, #ffffff 100%);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
     position: relative;
+}
+
+.reviews-slider::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 24px;
+    padding: 2px;
+    background: linear-gradient(
+        90deg,
+        #667eea 0%,
+        #764ba2 25%,
+        #f093fb 50%,
+        #764ba2 75%,
+        #667eea 100%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: gradient-rotate 3s linear infinite;
+    background-size: 200% 100%;
+}
+
+@keyframes gradient-rotate {
+    0% {
+        background-position: 0% 0%;
+    }
+    100% {
+        background-position: 200% 0%;
+    }
 }
 
 .reviews-track {
