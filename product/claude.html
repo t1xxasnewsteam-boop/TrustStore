@@ -550,7 +550,7 @@
         function addProductToCart() {
             const product = {
                 name: 'Claude AI │ Pro',
-                price: parseInt(document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '')),
+                price: currentPrice, // ✅ ОРИГИНАЛЬНАЯ цена БЕЗ промокода!
                 duration: window.selectedDuration || '1 месяц',
                 category: 'AI Генерация',
                 image: '/claude-image.png'

@@ -545,7 +545,7 @@
         function addProductToCart() {
             const product = {
                 name: 'YouTube Premium + Music Premium',
-                price: parseInt(document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '')),
+                price: currentPrice, // ✅ ОРИГИНАЛЬНАЯ цена БЕЗ промокода!
                 duration: window.selectedDuration || '1 месяц',
                 category: 'Видео',
                 image: '/youtube-image.png'

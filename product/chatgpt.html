@@ -867,7 +867,7 @@
         function addProductToCart() {
             const product = {
                 name: 'ChatGPT Plus',
-                price: parseInt(document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '')),
+                price: currentPrice, // ✅ ОРИГИНАЛЬНАЯ цена БЕЗ промокода!
                 duration: window.selectedDuration || '1 месяц',
                 category: 'AI Генерация',
                 image: '/gpt-image.png'

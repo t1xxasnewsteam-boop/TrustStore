@@ -587,7 +587,7 @@
         function addProductToCart() {
             const product = {
                 name: 'Личный VPN',
-                price: parseInt(document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '')),
+                price: currentPrice, // ✅ ОРИГИНАЛЬНАЯ цена БЕЗ промокода!
                 duration: window.selectedDuration || '1 месяц',
                 category: 'Безопасность',
                 image: '/vpn-image.png'

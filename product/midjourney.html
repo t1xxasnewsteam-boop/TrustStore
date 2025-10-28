@@ -633,7 +633,7 @@
         function addProductToCart() {
             const product = {
                 name: 'Midjourney',
-                price: parseInt(document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '')),
+                price: currentPrice, // ✅ ОРИГИНАЛЬНАЯ цена БЕЗ промокода!
                 duration: window.selectedDuration || 'Standard Plan',
                 category: 'AI Генерация',
                 image: '/midjourney-image.png'

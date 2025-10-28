@@ -598,7 +598,7 @@
         function addProductToCart() {
             const product = {
                 name: 'CapCut Pro',
-                price: parseInt(document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '')),
+                price: currentPrice, // ✅ ОРИГИНАЛЬНАЯ цена БЕЗ промокода!
                 duration: window.selectedDuration || '1 месяц',
                 category: 'Монтаж',
                 image: '/capcut-image.png'
