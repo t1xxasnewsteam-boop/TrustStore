@@ -680,7 +680,7 @@
             
             if (orderItems.length === 0) {
                 alert('Корзина пуста!');
-                window.location.href = 'cart';
+                window.location.href = '/cart';
             }
             
             // Добавляем quantity если его нет
@@ -694,8 +694,21 @@
             const productName = urlParams.get('product') || 'Товар';
             const productPrice = urlParams.get('price') || '0';
             const productDuration = urlParams.get('duration') || '';
-            const productImage = urlParams.get('image') || 'logo.png';
             
+            // Маппинг товаров на изображения
+            const productImageMap = {
+                'ChatGPT Plus': 'gpt-image.png',
+                'Midjourney': 'midjourney-image.png',
+                'Личный VPN': 'vpn-image.png',
+                'Google Gemini + Veo 3': 'gemini-image.png',
+                'Cursor AI │ Pro': 'cursor-image.png',
+                'Claude AI │ Pro': 'claude-image.png',
+                'YouTube Premium + Music Premium': 'youtube-image.png',
+                'Adobe Creative Cloud': 'adobe-image.png',
+                'CapCut Pro': 'capcut-image.png'
+            };
+            
+            const productImage = productImageMap[productName] || 'logo.png';
             const unitPrice = parseInt(productPrice.replace(/\s/g, ''));
             
             orderItems = [{
@@ -846,7 +859,7 @@
                         saveCart(orderItems);
                     }
                     alert('🛒 Последний товар удалён. Возвращаемся в корзину...');
-                    window.location.href = 'cart';
+                    window.location.href = '/cart';
                     return;
                 }
                 
