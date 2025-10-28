@@ -982,6 +982,35 @@ body {
     font-weight: 500;
 }
 
+/* Подзаголовок "Последние 10 отзывов" */
+.reviews-subtitle-wrapper {
+    text-align: center;
+    margin: 40px 0 30px;
+}
+
+.reviews-subtitle {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+    letter-spacing: -0.3px;
+    position: relative;
+    display: inline-block;
+    padding-bottom: 12px;
+}
+
+.reviews-subtitle::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    border-radius: 2px;
+}
+
 /* Медиа-запросы для мобильных */
 @media (max-width: 768px) {
     .reviews-header-content {
@@ -1006,6 +1035,10 @@ body {
     .stat-divider {
         width: 100%;
         height: 2px;
+    }
+    
+    .reviews-subtitle {
+        font-size: 20px;
     }
 }
 
