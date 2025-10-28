@@ -953,7 +953,11 @@ body {
     overflow: hidden;
     position: relative;
     width: 100%;
-    padding: 20px 0;
+    padding: 30px 0;
+    border: 2px solid #e8e8e8;
+    border-radius: 24px;
+    background: linear-gradient(to bottom, #fafafa 0%, #ffffff 100%);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .reviews-track {
@@ -962,6 +966,7 @@ body {
     animation: scroll 60s linear infinite;
     width: fit-content;
     will-change: transform;
+    padding: 0 30px;
 }
 
 @keyframes scroll {
