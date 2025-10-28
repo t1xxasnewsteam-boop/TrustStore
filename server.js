@@ -1528,8 +1528,8 @@ async function syncTelegramReviews() {
     try {
         console.log('🔄 Синхронизация отзывов из Telegram через getUpdates...');
         
-        // Получаем обновления от бота
-        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?offset=-100&limit=100`;
+        // Получаем обновления от бота (максимум возможных)
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?limit=100`;
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -1565,8 +1565,8 @@ async function syncTelegramReviews() {
                 // Получаем текст
                 const text = message.text || message.caption || '';
                 
-                // Пропускаем пустые сообщения
-                if (!text.trim() || text.length < 10) continue;
+                // Пропускаем пустые сообщения и технические (с паролями)
+                if (!text.trim() || text.length < 5 || text.includes('o-4zWa6SFWUGo')) continue;
                 
                 // Проверяем, не добавлен ли уже этот комментарий
                 const existing = db.prepare('SELECT id FROM telegram_reviews WHERE telegram_comment_id = ?').get(message.message_id);
