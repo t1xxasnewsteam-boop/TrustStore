@@ -1611,11 +1611,10 @@ async function syncTelegramReviews() {
                 // Пропускаем пустые сообщения и технические (с паролями)
                 if (!text.trim() || text.length < 5 || text.includes('o-4zWa6SFWUGo')) continue;
                 
-                // Фильтр по дате: игнорируем сообщения старше 29 октября 2025 00:53:00 MSK (1730157180)
-                // Это предотвращает повторную обработку старых сообщений при перезапуске
-                const CUTOFF_DATE = 1730157180; // 29 октября 2025, 00:53 MSK
-                if (message.date && message.date < CUTOFF_DATE) {
-                    continue; // Пропускаем старые сообщения
+                // Черный список старых сообщений Maria (message_id)
+                const BLACKLISTED_MESSAGES = [1239, 1241, 1242, 1246];
+                if (BLACKLISTED_MESSAGES.includes(message.message_id)) {
+                    continue; // Пропускаем заблокированные сообщения
                 }
                 
                 // Проверяем, не добавлен ли уже этот комментарий
