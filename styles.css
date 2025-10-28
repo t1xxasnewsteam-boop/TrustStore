@@ -963,7 +963,7 @@ body {
     display: flex;
     gap: 30px;
     padding: 20px 0;
-    animation: scroll-horizontal 40s linear infinite;
+    animation: scroll-horizontal 55s linear infinite;
     width: max-content;
 }
 
