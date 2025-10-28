@@ -892,13 +892,7 @@
                 const itemTotal = item.unitPrice * item.quantity;
                 originalTotalPrice += itemTotal;
                 
-                // Проверяем наличие промокода у товара
-                const promoHTML = item.appliedPromo ? 
-                    `<div style="display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; padding: 4px 10px; background: linear-gradient(135deg, #26de81 0%, #20bf6b 100%); border-radius: 8px;">
-                        <span style="font-size: 11px; font-weight: 600; color: white;">🎫 ${item.appliedPromo.code} (-${item.appliedPromo.discount}%)</span>
-                    </div>` : '';
-                
-                // Если есть промокод, показываем старую цену и скидку
+                // Если есть промокод, показываем только старую и новую цену без бейджей
                 let priceHTML;
                 if (item.appliedPromo) {
                     const originalPrice = Math.round(itemTotal / (1 - item.appliedPromo.discount / 100));
@@ -906,9 +900,6 @@
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <div style="text-decoration: line-through; color: #999; font-size: 14px;">${originalPrice.toLocaleString('ru-RU')} ₽</div>
                             <div class="order-item-price">${itemTotal.toLocaleString('ru-RU')} ₽</div>
-                            <div style="background: linear-gradient(135deg, #26de81 0%, #20bf6b 100%); color: white; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;">
-                                -${item.appliedPromo.discount}%
-                            </div>
                         </div>
                     `;
                 } else {
@@ -923,7 +914,6 @@
                         <div class="order-item-info">
                             <div class="order-item-name">${item.name}</div>
                             <div class="order-item-duration">${item.duration}</div>
-                            ${promoHTML}
                         </div>
                         ${priceHTML}
                         <div class="quantity-controls">
