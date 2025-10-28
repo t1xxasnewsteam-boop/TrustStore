@@ -912,8 +912,8 @@ body {
     box-shadow: 0 5px 30px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
     border: 1px solid #f0f0f0;
-    min-width: 380px;
-    max-width: 380px;
+    min-width: 500px;
+    max-width: 500px;
     flex-shrink: 0;
 }
 
@@ -1103,8 +1103,8 @@ body {
     }
 
     .review-card {
-        min-width: 300px;
-        max-width: 300px;
+        min-width: 350px;
+        max-width: 350px;
     }
 }
 
