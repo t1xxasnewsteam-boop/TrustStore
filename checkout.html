@@ -453,9 +453,10 @@
             justify-content: center;
         }
         
-        .payment-method-icon svg {
+        .payment-method-icon img {
             width: 100%;
             height: 100%;
+            object-fit: contain;
         }
         
         .payment-method-info {
@@ -720,10 +721,7 @@
                         <div class="payment-methods">
                             <div class="payment-method selected" data-method="yoomoney">
                                 <div class="payment-method-icon">
-                                    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <circle cx="50" cy="50" r="50" fill="#8B3FFD"/>
-                                        <path d="M35 35C35 31.686 37.686 29 41 29H50C53.314 29 56 31.686 56 35V46C56 49.314 53.314 52 50 52H44V65C44 68.314 46.686 71 50 71H59C62.314 71 65 68.314 65 65V29H71V65C71 71.627 65.627 77 59 77H50C43.373 77 38 71.627 38 65V52C38 48.686 40.686 46 44 46H50V35H41C37.686 35 35 37.686 35 41V48H29V35Z" fill="white"/>
-                                    </svg>
+                                    <img src="/yoomoney-logo.png" alt="ЮMoney">
                                 </div>
                                 <div class="payment-method-info">
                                     <div class="payment-method-name">ЮMoney (YooMoney)</div>
