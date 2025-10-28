@@ -272,7 +272,7 @@ body {
 
 /* Catalog Hero - Simple Animated Gradient */
 .catalog-hero {
-    background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe, #43e97b, #38f9d7);
+    background: linear-gradient(-45deg, #4a5bb8, #5d3c82, #c975d4, #3d8dd0, #2ea85e, #2bc7ab);
     background-size: 400% 400%;
     animation: catalogGradient 25s ease infinite;
     padding: 60px 0 40px;
