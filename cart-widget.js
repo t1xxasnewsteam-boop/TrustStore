@@ -50,6 +50,9 @@ function displayCartWidget() {
     // Calculate total
     let totalPrice = 0;
     
+    // Calculate original total if there are promos
+    let originalTotalPrice = 0;
+    
     // Render items with quantity
     const itemsHTML = cart.map((item, index) => {
         const unitPrice = item.unitPrice || item.price;
@@ -57,24 +60,21 @@ function displayCartWidget() {
         const itemTotal = unitPrice * quantity;
         totalPrice += itemTotal;
         
-        // Проверяем наличие промокода у товара
-        const promoHTML = item.appliedPromo ? 
-            `<div style="display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; padding: 3px 8px; background: linear-gradient(135deg, #26de81 0%, #20bf6b 100%); border-radius: 6px;">
-                <span style="font-size: 10px; font-weight: 600; color: white;">🎫 ${item.appliedPromo.code} (-${item.appliedPromo.discount}%)</span>
-            </div>` : '';
+        // Если есть промокод, рассчитываем оригинальную цену
+        if (item.appliedPromo) {
+            const originalItemPrice = Math.round(itemTotal / (1 - item.appliedPromo.discount / 100));
+            originalTotalPrice += originalItemPrice;
+        } else {
+            originalTotalPrice += itemTotal;
+        }
         
-        // Если есть промокод, показываем старую цену и скидку
+        // Если есть промокод, показываем старую цену зачеркнутой
         let priceHTML;
         if (item.appliedPromo) {
             const originalPrice = Math.round(itemTotal / (1 - item.appliedPromo.discount / 100));
             priceHTML = `
-                <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <div style="text-decoration: line-through; color: #999; font-size: 12px;">${originalPrice.toLocaleString('ru-RU')} ₽</div>
-                        <div style="background: linear-gradient(135deg, #26de81 0%, #20bf6b 100%); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600;">
-                            -${item.appliedPromo.discount}%
-                        </div>
-                    </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <div style="text-decoration: line-through; color: #999; font-size: 12px;">${originalPrice.toLocaleString('ru-RU')} ₽</div>
                     <div class="cart-widget-item-price">${itemTotal.toLocaleString('ru-RU')} ₽</div>
                 </div>
             `;
@@ -90,7 +90,6 @@ function displayCartWidget() {
                 <div class="cart-widget-item-info">
                     <div class="cart-widget-item-title">${item.name}</div>
                     <div class="cart-widget-item-duration">${item.duration}</div>
-                    ${promoHTML}
                     <div class="cart-widget-item-bottom">
                         ${priceHTML}
                         <div class="widget-quantity-controls">
@@ -109,8 +108,20 @@ function displayCartWidget() {
     
     itemsContainer.innerHTML = itemsHTML;
     
-    // Update total
-    document.getElementById('cartWidgetTotalPrice').textContent = `${totalPrice.toLocaleString('ru-RU')} ₽`;
+    // Update total with discount if applicable
+    const totalElement = document.getElementById('cartWidgetTotalPrice');
+    if (originalTotalPrice > totalPrice) {
+        // Есть скидка - показываем старую и новую цену
+        totalElement.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="text-decoration: line-through; color: #999; font-size: 14px;">${originalTotalPrice.toLocaleString('ru-RU')} ₽</span>
+                <span style="color: #667eea; font-weight: 600;">${totalPrice.toLocaleString('ru-RU')} ₽</span>
+            </div>
+        `;
+    } else {
+        // Нет скидки - просто цена
+        totalElement.textContent = `${totalPrice.toLocaleString('ru-RU')} ₽`;
+    }
 }
 
 // Увеличение количества товара в виджете
