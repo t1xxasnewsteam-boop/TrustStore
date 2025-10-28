@@ -952,7 +952,7 @@ body {
     width: 100%;
     overflow: hidden;
     border-radius: 24px;
-    padding: 30px;
+    padding: 50px 30px;
     background: linear-gradient(to bottom, #fafafa 0%, #ffffff 100%);
     position: relative;
 }
