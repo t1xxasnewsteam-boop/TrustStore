@@ -711,11 +711,11 @@
             document.querySelectorAll('.smooth-scroll').forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
-                    // Скроллим к прямоугольнику отзывов, а не к секции
+                    // Скроллим к прямоугольнику отзывов
                     const reviewsBox = document.querySelector('.reviews-header-content');
                     if (reviewsBox) {
                         const offsetTop = reviewsBox.getBoundingClientRect().top + window.pageYOffset;
-                        const offset = 120; // Отступ сверху для полной видимости
+                        const offset = 100; // Отступ для header + небольшой отступ
                         window.scrollTo({
                             top: offsetTop - offset,
                             behavior: 'smooth'
