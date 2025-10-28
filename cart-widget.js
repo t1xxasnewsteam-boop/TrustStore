@@ -57,30 +57,30 @@ function displayCartWidget() {
     const itemsHTML = cart.map((item, index) => {
         const unitPrice = item.unitPrice || item.price;
         const quantity = item.quantity || 1;
-        const itemTotal = unitPrice * quantity;
-        totalPrice += itemTotal;
+        const originalPrice = unitPrice * quantity; // Цена БЕЗ промокода
         
-        // Если есть промокод, рассчитываем оригинальную цену
-        if (item.appliedPromo) {
-            const originalItemPrice = Math.round(itemTotal / (1 - item.appliedPromo.discount / 100));
-            originalTotalPrice += originalItemPrice;
-        } else {
-            originalTotalPrice += itemTotal;
-        }
-        
-        // Если есть промокод, показываем старую цену зачеркнутой
+        // Если есть промокод, показываем старую цену и новую цену со скидкой
         let priceHTML;
+        let itemTotal;
+        
         if (item.appliedPromo) {
-            const originalPrice = Math.round(itemTotal / (1 - item.appliedPromo.discount / 100));
+            // Рассчитываем цену СО скидкой
+            const discountedPrice = Math.round(originalPrice * (1 - item.appliedPromo.discount / 100));
+            itemTotal = discountedPrice;
+            
             priceHTML = `
                 <div style="display: flex; align-items: center; gap: 6px;">
                     <div style="text-decoration: line-through; color: #999; font-size: 12px;">${originalPrice.toLocaleString('ru-RU')} ₽</div>
-                    <div class="cart-widget-item-price">${itemTotal.toLocaleString('ru-RU')} ₽</div>
+                    <div class="cart-widget-item-price">${discountedPrice.toLocaleString('ru-RU')} ₽</div>
                 </div>
             `;
         } else {
-            priceHTML = `<div class="cart-widget-item-price">${itemTotal.toLocaleString('ru-RU')} ₽</div>`;
+            itemTotal = originalPrice;
+            priceHTML = `<div class="cart-widget-item-price">${originalPrice.toLocaleString('ru-RU')} ₽</div>`;
         }
+        
+        totalPrice += itemTotal;
+        originalTotalPrice += originalPrice; // Всегда добавляем цену БЕЗ промокода для итого
         
         return `
             <div class="cart-widget-item">
