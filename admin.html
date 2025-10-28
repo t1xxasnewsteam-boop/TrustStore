@@ -818,6 +818,10 @@
                     <span class="nav-label">Предложения</span>
                     <span class="nav-badge" id="suggestionsBadge">0</span>
                 </a>
+                <a class="nav-item" data-section="promo">
+                    <span class="nav-icon">🎫</span>
+                    <span class="nav-label">Промокоды</span>
+                </a>
                 <a class="nav-item" data-section="settings">
                     <span class="nav-icon">⚙️</span>
                     <span class="nav-label">Настройки</span>
@@ -1198,6 +1202,67 @@
                     </thead>
                     <tbody id="suggestions-table"></tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- Promo Codes Section -->
+        <div class="content-section" id="promo">
+            <div class="top-bar">
+                <h1 class="page-title">🎫 Промокоды</h1>
+                <button class="btn btn-primary" onclick="showCreatePromoModal()">
+                    <span>+</span> Создать промокод
+                </button>
+            </div>
+
+            <!-- Таблица промокодов -->
+            <div class="glass-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Код</th>
+                            <th>Скидка</th>
+                            <th>Использовано</th>
+                            <th>Истекает</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="promo-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Модальное окно создания промокода -->
+        <div id="promo-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 2000; align-items: center; justify-content: center;">
+            <div style="background: var(--bg-card); border-radius: 20px; max-width: 500px; width: 90%; padding: 30px; border: 1px solid var(--border-color);">
+                <h2 style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin-bottom: 20px;">🎫 Создать промокод</h2>
+                
+                <form id="createPromoForm">
+                    <div class="input-group">
+                        <label class="input-label">Код промокода</label>
+                        <input type="text" id="promoCode" class="input-field" placeholder="SUMMER2024" required style="text-transform: uppercase;">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label class="input-label">Скидка (%)</label>
+                        <input type="number" id="promoDiscount" class="input-field" placeholder="10" min="1" max="100" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label class="input-label">Максимум использований</label>
+                        <input type="number" id="promoMaxUses" class="input-field" placeholder="100" min="1" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label class="input-label">Действует до</label>
+                        <input type="datetime-local" id="promoExpiresAt" class="input-field" required>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button type="button" onclick="closePromoModal()" class="btn btn-secondary" style="flex: 1;">Отмена</button>
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">✨ Создать</button>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -2198,6 +2263,9 @@
                     case 'suggestions':
                         loadSuggestions();
                         break;
+                    case 'promo':
+                        loadPromoCodes();
+                        break;
                     case 'orders':
                         loadOrders();
                         break;
@@ -2366,6 +2434,143 @@
         
         // Filter handler for suggestions
         document.getElementById('suggestions-filter')?.addEventListener('change', displaySuggestions);
+
+        // === ПРОМОКОДЫ ===
+        let allPromoCodes = [];
+        
+        async function loadPromoCodes() {
+            try {
+                const response = await fetch('/api/promo-codes', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    allPromoCodes = await response.json();
+                    displayPromoCodes();
+                }
+            } catch (error) {
+                console.error('Error loading promo codes:', error);
+            }
+        }
+        
+        function displayPromoCodes() {
+            const tbody = document.getElementById('promo-table');
+            if (allPromoCodes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">Нет промокодов</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = allPromoCodes.map(promo => {
+                const expiresAt = new Date(promo.expires_at);
+                const isExpired = new Date() > expiresAt;
+                const isExhausted = promo.current_uses >= promo.max_uses;
+                
+                let statusBadge = '';
+                if (!promo.is_active) {
+                    statusBadge = '<span class="badge badge-secondary">Выключен</span>';
+                } else if (isExpired) {
+                    statusBadge = '<span class="badge badge-danger">Истёк</span>';
+                } else if (isExhausted) {
+                    statusBadge = '<span class="badge badge-warning">Исчерпан</span>';
+                } else {
+                    statusBadge = '<span class="badge badge-success">Активен</span>';
+                }
+                
+                return `
+                    <tr>
+                        <td><strong>${promo.code}</strong></td>
+                        <td><span style="color: var(--primary); font-weight: 600;">-${promo.discount}%</span></td>
+                        <td>${promo.current_uses} / ${promo.max_uses}</td>
+                        <td>${expiresAt.toLocaleDateString('ru-RU')}</td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <button class="btn btn-sm ${promo.is_active ? 'btn-warning' : 'btn-success'}" onclick="togglePromoCode(${promo.id})">
+                                ${promo.is_active ? '⏸️ Выключить' : '▶️ Включить'}
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deletePromoCode(${promo.id})">🗑️ Удалить</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function showCreatePromoModal() {
+            document.getElementById('promo-modal').style.display = 'flex';
+            // Устанавливаем дату на неделю вперед по умолчанию
+            const nextWeek = new Date();
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            document.getElementById('promoExpiresAt').value = nextWeek.toISOString().slice(0, 16);
+        }
+        
+        function closePromoModal() {
+            document.getElementById('promo-modal').style.display = 'none';
+            document.getElementById('createPromoForm').reset();
+        }
+        
+        document.getElementById('createPromoForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const code = document.getElementById('promoCode').value;
+            const discount = parseInt(document.getElementById('promoDiscount').value);
+            const max_uses = parseInt(document.getElementById('promoMaxUses').value);
+            const expires_at = document.getElementById('promoExpiresAt').value;
+            
+            try {
+                const response = await fetch('/api/promo-codes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ code, discount, max_uses, expires_at })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    closePromoModal();
+                    await loadPromoCodes();
+                    alert('✅ Промокод успешно создан!');
+                } else {
+                    alert('❌ ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error creating promo code:', error);
+                alert('❌ Ошибка создания промокода');
+            }
+        });
+        
+        async function togglePromoCode(id) {
+            try {
+                const response = await fetch(`/api/promo-codes/${id}/toggle`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    await loadPromoCodes();
+                }
+            } catch (error) {
+                console.error('Error toggling promo code:', error);
+            }
+        }
+        
+        async function deletePromoCode(id) {
+            if (!confirm('Вы уверены, что хотите удалить этот промокод?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/promo-codes/${id}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    await loadPromoCodes();
+                }
+            } catch (error) {
+                console.error('Error deleting promo code:', error);
+            }
+        }
 
         // Auto-refresh every 30 seconds
         setInterval(() => {

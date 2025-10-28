@@ -380,6 +380,17 @@ db.exec(`
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS promo_codes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code TEXT UNIQUE NOT NULL,
+        discount INTEGER NOT NULL,
+        max_uses INTEGER NOT NULL,
+        current_uses INTEGER DEFAULT 0,
+        expires_at DATETIME NOT NULL,
+        is_active INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_session_id ON visits(session_id);
     CREATE INDEX IF NOT EXISTS idx_timestamp ON visits(timestamp);
     CREATE INDEX IF NOT EXISTS idx_country ON visits(country_code);
@@ -1061,7 +1072,7 @@ app.post('/api/create-order', (req, res) => {
 });
 
 // API для предложения товара
-app.post('/api/suggest-product', (req, res) => {
+app.post('/api/suggest-product', async (req, res) => {
     try {
         const { product_name, description, email } = req.body;
         
@@ -1075,6 +1086,18 @@ app.post('/api/suggest-product', (req, res) => {
         `).run(product_name, description || '', email || '');
         
         console.log(`💡 Новое предложение товара: ${product_name}`);
+        
+        // Отправляем уведомление в Telegram
+        const telegramMessage = `
+💡 <b>НОВОЕ ПРЕДЛОЖЕНИЕ ТОВАРА</b>
+
+📦 <b>Товар:</b> ${product_name}
+${description ? `📝 <b>Описание:</b> ${description}\n` : ''}${email ? `📧 <b>Email:</b> ${email}\n` : ''}
+⏰ <b>Время:</b> ${new Date().toLocaleString('ru-RU')}
+        `.trim();
+        
+        await sendTelegramNotification(telegramMessage);
+        
         res.json({ success: true });
     } catch (error) {
         console.error('Ошибка сохранения предложения:', error);
@@ -1111,6 +1134,141 @@ app.post('/api/product-suggestion-status', authMiddleware, (req, res) => {
         res.json({ success: true });
     } catch (error) {
         console.error('Ошибка обновления статуса:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// === ПРОМОКОДЫ ===
+
+// Создание промокода (админ)
+app.post('/api/promo-codes', authMiddleware, (req, res) => {
+    try {
+        const { code, discount, max_uses, expires_at } = req.body;
+        
+        if (!code || !discount || !max_uses || !expires_at) {
+            return res.status(400).json({ error: 'Все поля обязательны' });
+        }
+        
+        db.prepare(`
+            INSERT INTO promo_codes (code, discount, max_uses, expires_at)
+            VALUES (?, ?, ?, ?)
+        `).run(code.toUpperCase(), discount, max_uses, expires_at);
+        
+        console.log(`🎫 Создан промокод: ${code} (-${discount}%)`);
+        res.json({ success: true });
+    } catch (error) {
+        if (error.message.includes('UNIQUE')) {
+            res.status(400).json({ error: 'Промокод уже существует' });
+        } else {
+            console.error('Ошибка создания промокода:', error);
+            res.status(500).json({ error: 'Ошибка сервера' });
+        }
+    }
+});
+
+// Получение всех промокодов (админ)
+app.get('/api/promo-codes', authMiddleware, (req, res) => {
+    try {
+        const promoCodes = db.prepare(`
+            SELECT * FROM promo_codes 
+            ORDER BY created_at DESC
+        `).all();
+        
+        res.json(promoCodes);
+    } catch (error) {
+        console.error('Ошибка получения промокодов:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Проверка промокода (клиент)
+app.post('/api/validate-promo', (req, res) => {
+    try {
+        const { code } = req.body;
+        
+        if (!code) {
+            return res.status(400).json({ error: 'Промокод не указан' });
+        }
+        
+        const promoCode = db.prepare(`
+            SELECT * FROM promo_codes 
+            WHERE code = ? AND is_active = 1
+        `).get(code.toUpperCase());
+        
+        if (!promoCode) {
+            return res.json({ valid: false, message: 'Промокод не найден' });
+        }
+        
+        // Проверяем срок действия
+        const now = new Date();
+        const expiresAt = new Date(promoCode.expires_at);
+        if (now > expiresAt) {
+            return res.json({ valid: false, message: 'Промокод истек' });
+        }
+        
+        // Проверяем количество использований
+        if (promoCode.current_uses >= promoCode.max_uses) {
+            return res.json({ valid: false, message: 'Промокод исчерпан' });
+        }
+        
+        res.json({ 
+            valid: true, 
+            discount: promoCode.discount,
+            code: promoCode.code
+        });
+    } catch (error) {
+        console.error('Ошибка проверки промокода:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Применение промокода (увеличение счетчика использований)
+app.post('/api/apply-promo', (req, res) => {
+    try {
+        const { code } = req.body;
+        
+        db.prepare(`
+            UPDATE promo_codes 
+            SET current_uses = current_uses + 1
+            WHERE code = ?
+        `).run(code.toUpperCase());
+        
+        console.log(`🎫 Промокод ${code} использован`);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Ошибка применения промокода:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Удаление промокода (админ)
+app.delete('/api/promo-codes/:id', authMiddleware, (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        db.prepare('DELETE FROM promo_codes WHERE id = ?').run(id);
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Ошибка удаления промокода:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Переключение активности промокода (админ)
+app.post('/api/promo-codes/:id/toggle', authMiddleware, (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        db.prepare(`
+            UPDATE promo_codes 
+            SET is_active = 1 - is_active
+            WHERE id = ?
+        `).run(id);
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Ошибка переключения промокода:', error);
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 });

@@ -817,8 +817,10 @@
         let originalTotalPrice = 0;
         let currentTotalPrice = 0;
         let promoApplied = false;
+        let promoDiscount = 0; // Процент скидки от промокода
+        let currentPromoCode = ''; // Текущий промокод
         
-        // Промокоды (10% скидка) - синхронизированы со страницами товаров
+        // Промокоды (10% скидка) - устарело, теперь используется API
         const validPromoCodes = ['TRUST10', 'SALE10', 'DISCOUNT10', 'GPT5'];
         
         // Получение примененного промокода
@@ -828,8 +830,8 @@
         }
         
         // Сохранение примененного промокода
-        function saveAppliedPromo(promoCode) {
-            localStorage.setItem('appliedPromoCode', JSON.stringify(promoCode));
+        function saveAppliedPromo(promoCode, discount) {
+            localStorage.setItem('appliedPromoCode', JSON.stringify({ code: promoCode, discount: discount }));
         }
         
         if (fromCart) {
@@ -917,7 +919,12 @@
         
         // Обновление общей суммы
         function updateTotalPrice() {
-            currentTotalPrice = promoApplied ? Math.round(originalTotalPrice * 0.9) : originalTotalPrice;
+            if (promoApplied && promoDiscount > 0) {
+                const discountMultiplier = (100 - promoDiscount) / 100;
+                currentTotalPrice = Math.round(originalTotalPrice * discountMultiplier);
+            } else {
+                currentTotalPrice = originalTotalPrice;
+            }
             document.getElementById('total-price').textContent = currentTotalPrice.toLocaleString('ru-RU') + ' ₽';
         }
         
@@ -1032,10 +1039,11 @@
         }
         
         // Применение промокода
-        function applyPromoCode() {
+        async function applyPromoCode() {
             const promoInput = document.getElementById('promo-input');
             const promoCode = promoInput.value.trim().toUpperCase();
             const messageElement = document.getElementById('promo-message');
+            const applyButton = document.querySelector('.btn-apply-promo');
             
             messageElement.style.display = 'none';
             
@@ -1053,23 +1061,55 @@
                 return;
             }
             
-            if (validPromoCodes.includes(promoCode)) {
-                promoApplied = true;
-                promoInput.disabled = true;
-                document.querySelector('.btn-apply-promo').disabled = true;
+            // Показываем загрузку
+            applyButton.disabled = true;
+            applyButton.textContent = 'Проверка...';
+            
+            try {
+                // Проверяем промокод через API
+                const response = await fetch('/api/validate-promo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: promoCode })
+                });
                 
-                // Сохраняем промокод
-                saveAppliedPromo(promoCode);
+                const data = await response.json();
                 
-                messageElement.className = 'promo-message success';
-                messageElement.textContent = '✓ Промокод применён! Скидка 10%';
-                messageElement.style.display = 'block';
-                
-                updateTotalPrice();
-            } else {
+                if (data.valid) {
+                    // Промокод валиден
+                    promoApplied = true;
+                    promoDiscount = data.discount;
+                    currentPromoCode = data.code;
+                    
+                    promoInput.disabled = true;
+                    applyButton.disabled = true;
+                    applyButton.textContent = 'Применен';
+                    
+                    // Сохраняем промокод
+                    saveAppliedPromo(promoCode, data.discount);
+                    
+                    messageElement.className = 'promo-message success';
+                    messageElement.textContent = `✓ Промокод применён! Скидка ${data.discount}%`;
+                    messageElement.style.display = 'block';
+                    
+                    updateTotalPrice();
+                } else {
+                    // Промокод невалиден
+                    messageElement.className = 'promo-message error';
+                    messageElement.textContent = `❌ ${data.message || 'Неверный промокод'}`;
+                    messageElement.style.display = 'block';
+                    
+                    applyButton.disabled = false;
+                    applyButton.textContent = 'Применить';
+                }
+            } catch (error) {
+                console.error('Error validating promo code:', error);
                 messageElement.className = 'promo-message error';
-                messageElement.textContent = '❌ Неверный промокод';
+                messageElement.textContent = '❌ Ошибка проверки промокода';
                 messageElement.style.display = 'block';
+                
+                applyButton.disabled = false;
+                applyButton.textContent = 'Применить';
             }
         }
         
@@ -1079,27 +1119,33 @@
         // Автоматически применяем сохраненный промокод
         setTimeout(() => {
             const savedPromo = getAppliedPromo();
-            if (savedPromo && validPromoCodes.includes(savedPromo)) {
+            if (savedPromo) {
+                const promoCode = typeof savedPromo === 'string' ? savedPromo : savedPromo.code;
+                const discount = typeof savedPromo === 'object' ? savedPromo.discount : 10;
+                
                 const promoInput = document.getElementById('promo-input');
                 const promoMessage = document.getElementById('promo-message');
+                const promoButton = document.querySelector('.btn-apply-promo');
                 
                 if (promoInput) {
-                    promoInput.value = savedPromo;
+                    promoInput.value = promoCode;
                     promoInput.disabled = true;
                 }
                 
-                const promoButton = document.querySelector('.btn-apply-promo');
                 if (promoButton) {
                     promoButton.disabled = true;
+                    promoButton.textContent = 'Применен';
                 }
                 
                 if (promoMessage) {
                     promoMessage.className = 'promo-message success';
-                    promoMessage.textContent = '✓ Промокод применён! Скидка 10%';
+                    promoMessage.textContent = `✓ Промокод применён! Скидка ${discount}%`;
                     promoMessage.style.display = 'block';
                 }
                 
                 promoApplied = true;
+                promoDiscount = discount;
+                currentPromoCode = promoCode;
                 updateTotalPrice();
             }
         }, 100);
@@ -1128,7 +1174,7 @@
             
             // Добавляем информацию о промокоде в описание
             const fullDescription = promoApplied 
-                ? `${orderDescription} | Промокод применён (-10%)`
+                ? `${orderDescription} | Промокод ${currentPromoCode} (-${promoDiscount}%)`
                 : orderDescription;
             
             // Сначала сохраняем заказ в базу данных через API
@@ -1152,6 +1198,20 @@
                 if (response.ok) {
                     const result = await response.json();
                     console.log('✅ Заказ создан:', result.orderId);
+                    
+                    // Применяем промокод (увеличиваем счетчик использований)
+                    if (promoApplied && currentPromoCode) {
+                        try {
+                            await fetch('/api/apply-promo', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ code: currentPromoCode })
+                            });
+                            console.log('✅ Промокод применен:', currentPromoCode);
+                        } catch (error) {
+                            console.error('Error applying promo code:', error);
+                        }
+                    }
                     
                     // Очищаем корзину после успешного создания заказа
                     clearCart();
