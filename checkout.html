@@ -1085,8 +1085,8 @@
                     applyButton.disabled = true;
                     applyButton.textContent = 'Применен';
                     
-                    // Сохраняем промокод
-                    saveAppliedPromo(promoCode, data.discount);
+                    // НЕ сохраняем промокод - пользователь должен вводить заново
+                    // saveAppliedPromo(promoCode, data.discount);
                     
                     messageElement.className = 'promo-message success';
                     messageElement.textContent = `✓ Промокод применён! Скидка ${data.discount}%`;
@@ -1116,7 +1116,9 @@
         // Отображаем товары при загрузке
         displayOrderItems();
         
-        // Автоматически применяем сохраненный промокод
+        // Автоматическое применение промокода ОТКЛЮЧЕНО
+        // Промокод нужно вводить заново для каждого заказа
+        /*
         setTimeout(() => {
             const savedPromo = getAppliedPromo();
             if (savedPromo) {
@@ -1149,6 +1151,7 @@
                 updateTotalPrice();
             }
         }, 100);
+        */
         
         // Обработка формы
         document.getElementById('checkout-form').addEventListener('submit', async function(e) {
@@ -1213,8 +1216,9 @@
                         }
                     }
                     
-                    // Очищаем корзину после успешного создания заказа
+                    // Очищаем корзину и промокод после успешного создания заказа
                     clearCart();
+                    localStorage.removeItem('appliedPromoCode'); // Удаляем промокод
                     
                     // Формируем данные для оплаты
                     const paymentData = {
