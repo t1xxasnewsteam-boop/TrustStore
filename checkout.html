@@ -892,6 +892,12 @@
                 const itemTotal = item.unitPrice * item.quantity;
                 originalTotalPrice += itemTotal;
                 
+                // Проверяем наличие промокода у товара
+                const promoHTML = item.appliedPromo ? 
+                    `<div style="display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; padding: 4px 10px; background: linear-gradient(135deg, #26de81 0%, #20bf6b 100%); border-radius: 8px;">
+                        <span style="font-size: 11px; font-weight: 600; color: white;">🎫 ${item.appliedPromo.code} (-${item.appliedPromo.discount}%)</span>
+                    </div>` : '';
+                
                 return `
                     <div class="order-item" data-index="${index}">
                         <div class="order-item-image">
@@ -900,6 +906,7 @@
                         <div class="order-item-info">
                             <div class="order-item-name">${item.name}</div>
                             <div class="order-item-duration">${item.duration}</div>
+                            ${promoHTML}
                         </div>
                         <div class="order-item-price">${itemTotal.toLocaleString('ru-RU')} ₽</div>
                         <div class="quantity-controls">

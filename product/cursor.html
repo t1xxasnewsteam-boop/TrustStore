@@ -553,6 +553,15 @@
                 category: 'AI Генерация',
                 image: '/cursor-image.png'
             };
+            
+            // Если применен промокод, добавляем его к товару
+            if (discountApplied && appliedPromoCode) {
+                product.appliedPromo = {
+                    code: appliedPromoCode,
+                    discount: appliedPromoDiscount
+                };
+            }
+            
             addToCart(product);
         }
         
