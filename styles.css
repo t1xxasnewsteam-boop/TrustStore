@@ -1002,8 +1002,7 @@ body {
 }
 
 .review-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.2);
+    box-shadow: 0 15px 50px rgba(102, 126, 234, 0.15);
     border-color: #667eea;
 }
 
@@ -1026,11 +1025,6 @@ body {
     flex-shrink: 0;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
     border: 3px solid #f8f9ff;
-    transition: transform 0.3s ease;
-}
-
-.review-card:hover .review-avatar {
-    transform: scale(1.1);
 }
 
 .review-info {
