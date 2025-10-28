@@ -4,7 +4,7 @@
 const products = [
     { 
         name: 'ChatGPT Plus', 
-        url: 'product', 
+        url: '/product/chatgpt', 
         category: 'AI Генерация', 
         price: 'от 2 250 ₽', 
         image: 'gpt-image.png',
@@ -12,7 +12,7 @@ const products = [
     },
     { 
         name: 'Midjourney', 
-        url: 'midjourney', 
+        url: '/product/midjourney', 
         category: 'AI Генерация', 
         price: 'от 500 ₽', 
         image: 'midjourney-image.png',
@@ -20,7 +20,7 @@ const products = [
     },
     { 
         name: 'Личный VPN', 
-        url: 'vpn', 
+        url: '/product/vpn', 
         category: 'Безопасность', 
         price: 'от 500 ₽', 
         image: 'vpn-image.png',
@@ -28,7 +28,7 @@ const products = [
     },
     { 
         name: 'Google Gemini', 
-        url: 'gemini', 
+        url: '/product/gemini', 
         category: 'AI Генерация', 
         price: 'от 2 250 ₽', 
         image: 'gemini-image.png',
@@ -36,7 +36,7 @@ const products = [
     },
     { 
         name: 'Gemini Veo 3', 
-        url: 'gemini', 
+        url: '/product/gemini', 
         category: 'AI Генерация', 
         price: 'от 2 250 ₽', 
         image: 'gemini-image.png',
@@ -44,7 +44,7 @@ const products = [
     },
     { 
         name: 'Cursor AI Pro', 
-        url: 'cursor', 
+        url: '/product/cursor', 
         category: 'AI Генерация', 
         price: 'от 2 250 ₽', 
         image: 'cursor-image.png',
@@ -52,7 +52,7 @@ const products = [
     },
     { 
         name: 'Claude AI Pro', 
-        url: 'claude', 
+        url: '/product/claude', 
         category: 'AI Генерация', 
         price: 'от 2 250 ₽', 
         image: 'claude-image.png',
@@ -60,7 +60,7 @@ const products = [
     },
     { 
         name: 'YouTube Premium', 
-        url: 'youtube', 
+        url: '/product/youtube', 
         category: 'Видео', 
         price: 'от 800 ₽', 
         image: 'youtube-image.png',
@@ -68,7 +68,7 @@ const products = [
     },
     { 
         name: 'Music Premium', 
-        url: 'youtube', 
+        url: '/product/youtube', 
         category: 'Видео', 
         price: 'от 800 ₽', 
         image: 'youtube-image.png',
@@ -76,7 +76,7 @@ const products = [
     },
     { 
         name: 'Adobe Creative Cloud', 
-        url: 'adobe', 
+        url: '/product/adobe', 
         category: 'Дизайн', 
         price: 'от 1 700 ₽', 
         image: 'adobe-image.png',
@@ -84,7 +84,7 @@ const products = [
     },
     { 
         name: 'CapCut Pro', 
-        url: 'capcut', 
+        url: '/product/capcut', 
         category: 'Монтаж', 
         price: 'от 1 250 ₽', 
         image: 'capcut-image.png',
@@ -92,7 +92,7 @@ const products = [
     },
     { 
         name: 'VPN', 
-        url: 'vpn', 
+        url: '/product/vpn', 
         category: 'Безопасность', 
         price: 'от 500 ₽', 
         image: 'vpn-image.png',

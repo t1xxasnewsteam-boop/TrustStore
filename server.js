@@ -1295,42 +1295,7 @@ app.get('/admin', (req, res) => {
     res.redirect('/');
 });
 
-// Товары с красивыми URL
-app.get('/product/chatgpt', (req, res) => {
-    res.sendFile(path.join(__dirname, 'product.html'));
-});
-
-app.get('/product/midjourney', (req, res) => {
-    res.sendFile(path.join(__dirname, 'midjourney.html'));
-});
-
-app.get('/product/vpn', (req, res) => {
-    res.sendFile(path.join(__dirname, 'vpn.html'));
-});
-
-app.get('/product/youtube', (req, res) => {
-    res.sendFile(path.join(__dirname, 'youtube.html'));
-});
-
-app.get('/product/adobe', (req, res) => {
-    res.sendFile(path.join(__dirname, 'adobe.html'));
-});
-
-app.get('/product/capcut', (req, res) => {
-    res.sendFile(path.join(__dirname, 'capcut.html'));
-});
-
-app.get('/product/gemini', (req, res) => {
-    res.sendFile(path.join(__dirname, 'gemini.html'));
-});
-
-app.get('/product/cursor', (req, res) => {
-    res.sendFile(path.join(__dirname, 'cursor.html'));
-});
-
-app.get('/product/claude', (req, res) => {
-    res.sendFile(path.join(__dirname, 'claude.html'));
-});
+// Старые роуты удалены - используется универсальный роут /product/:productName выше
 
 // Запуск сервера
 app.listen(PORT, () => {
