@@ -636,6 +636,46 @@
                 width: 100%;
             }
         }
+        
+        /* Анимации для промокодов */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0) rotate(-10deg);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            25% { transform: translateY(-20px) scale(1.1); }
+            50% { transform: translateY(0) scale(1); }
+            75% { transform: translateY(-10px) scale(1.05); }
+        }
+        
+        @keyframes confettiFall {
+            0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(100vh) rotate(720deg);
+            }
+        }
     </style>
 </head>
 <body>
@@ -1049,11 +1089,11 @@
             summaryHTML += `
                     <div style="display: flex; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
                         <span style="font-size: 16px; font-weight: 600;">Итого</span>
-                        <span style="font-size: 16px; font-weight: 600;">${currentTotalPrice.toLocaleString('ru-RU')} ₽</span>
+                        <span style="font-size: 16px; font-weight: 600;">${totalFinalPrice.toLocaleString('ru-RU')} ₽</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-top: 20px; padding-top: 20px; border-top: 2px solid #f0f0f0;">
                         <span style="font-size: 20px; font-weight: 700; color: #667eea;">К оплате:</span>
-                        <span style="font-size: 24px; font-weight: 700; color: #667eea;">${currentTotalPrice.toLocaleString('ru-RU')} ₽</span>
+                        <span style="font-size: 24px; font-weight: 700; color: #667eea;">${totalFinalPrice.toLocaleString('ru-RU')} ₽</span>
                     </div>
                 </div>
             `;
@@ -1209,6 +1249,84 @@
             }, 300);
         }
         
+        // Красивая анимация успешной активации промокода
+        function showPromoSuccessAnimation(promoCode, discount) {
+            // Создаем overlay с анимацией
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(102, 126, 234, 0.95);
+                z-index: 100000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            overlay.innerHTML = `
+                <div style="
+                    background: white;
+                    border-radius: 30px;
+                    padding: 50px 60px;
+                    text-align: center;
+                    box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+                    animation: scaleIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                    position: relative;
+                    overflow: hidden;
+                ">
+                    <div style="font-size: 80px; margin-bottom: 20px; animation: bounce 0.6s ease 0.2s;">🎉</div>
+                    <h2 style="font-size: 32px; font-weight: 800; color: #1a1a1a; margin-bottom: 15px;">
+                        Промокод активирован!
+                    </h2>
+                    <div style="font-size: 24px; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;">
+                        ${promoCode}
+                    </div>
+                    <div style="font-size: 20px; color: #10b981; font-weight: 600;">
+                        Скидка ${discount}%
+                    </div>
+                    <div style="margin-top: 30px; font-size: 14px; color: #999;">
+                        Промокод применен к товарам
+                    </div>
+                </div>
+            `;
+            
+            // Добавляем конфетти
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                const colors = ['#667eea', '#764ba2', '#10b981', '#f59e0b', '#ef4444'];
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                const randomX = Math.random() * 100;
+                const randomDelay = Math.random() * 0.3;
+                const randomDuration = 1 + Math.random();
+                
+                confetti.style.cssText = `
+                    position: absolute;
+                    width: 10px;
+                    height: 10px;
+                    background: ${randomColor};
+                    top: -10px;
+                    left: ${randomX}%;
+                    animation: confettiFall ${randomDuration}s ease-in ${randomDelay}s forwards;
+                    opacity: 0;
+                `;
+                
+                overlay.appendChild(confetti);
+            }
+            
+            // Добавляем на страницу
+            document.body.appendChild(overlay);
+            
+            // Убираем через 2 секунды
+            setTimeout(() => {
+                overlay.style.animation = 'fadeOut 0.3s ease forwards';
+                setTimeout(() => overlay.remove(), 300);
+            }, 2000);
+        }
+        
         // Применение промокода
         async function applyPromoCode() {
             const promoInput = document.getElementById('promo-input');
@@ -1276,8 +1394,13 @@
                     messageElement.textContent = `✓ Промокод применён к ${itemsWithoutPromo.length} товар(ам)! Скидка ${data.discount}%`;
                     messageElement.style.display = 'block';
                     
-                    // Перерисовываем заказ
-                    displayOrderItems();
+                    // Красивая анимация успешной активации промокода
+                    showPromoSuccessAnimation(data.code, data.discount);
+                    
+                    // Перерисовываем заказ с небольшой задержкой для анимации
+                    setTimeout(() => {
+                        displayOrderItems();
+                    }, 300);
                 } else {
                     // Промокод невалиден
                     messageElement.className = 'promo-message error';
