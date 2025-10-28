@@ -270,14 +270,9 @@ body {
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
 }
 
-/* Catalog Hero - Premium Mesh Gradient */
+/* Catalog Hero - Red Smoke Effect */
 .catalog-hero {
-    background: 
-        radial-gradient(at 0% 0%, rgba(102, 126, 234, 0.3) 0%, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(118, 75, 162, 0.3) 0%, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(240, 147, 251, 0.3) 0%, transparent 50%),
-        radial-gradient(at 0% 100%, rgba(79, 172, 254, 0.3) 0%, transparent 50%),
-        linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1a0000 0%, #4a0000 50%, #1a0000 100%);
     padding: 60px 0 40px;
     text-align: center;
     color: white;
@@ -285,8 +280,123 @@ body {
     overflow: hidden;
 }
 
+.catalog-hero::before {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: -100%;
+    width: 300%;
+    height: 300%;
+    background: 
+        radial-gradient(circle at 30% 50%, rgba(255, 50, 50, 0.4) 0%, transparent 40%),
+        radial-gradient(circle at 70% 30%, rgba(200, 0, 0, 0.5) 0%, transparent 50%),
+        radial-gradient(circle at 50% 70%, rgba(255, 80, 80, 0.3) 0%, transparent 45%);
+    animation: smokeMove 30s ease-in-out infinite;
+    filter: blur(60px);
+    pointer-events: none;
+}
+
+.catalog-hero::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: 
+        radial-gradient(circle at 20% 60%, rgba(255, 100, 100, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 40%, rgba(180, 0, 0, 0.4) 0%, transparent 50%);
+    animation: smokeMove2 25s ease-in-out infinite reverse;
+    filter: blur(80px);
+    pointer-events: none;
+}
+
 .particles-container {
-    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.particle {
+    position: absolute;
+    background: radial-gradient(circle, rgba(255, 50, 50, 0.6) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(30px);
+    pointer-events: none;
+}
+
+.particle:nth-child(1) { width: 300px; height: 300px; top: 20%; left: 10%; animation: float1 20s ease-in-out infinite; }
+.particle:nth-child(2) { width: 250px; height: 250px; top: 60%; left: 70%; animation: float2 18s ease-in-out infinite; }
+.particle:nth-child(3) { width: 280px; height: 280px; top: 40%; left: 50%; animation: float3 22s ease-in-out infinite; }
+.particle:nth-child(4) { width: 320px; height: 320px; top: 10%; left: 80%; animation: float1 24s ease-in-out infinite; }
+.particle:nth-child(5) { width: 260px; height: 260px; top: 70%; left: 20%; animation: float2 19s ease-in-out infinite; }
+.particle:nth-child(6) { width: 290px; height: 290px; top: 30%; left: 40%; animation: float3 21s ease-in-out infinite; }
+.particle:nth-child(7) { width: 310px; height: 310px; top: 50%; left: 60%; animation: float1 23s ease-in-out infinite; }
+.particle:nth-child(8) { width: 270px; height: 270px; top: 80%; left: 90%; animation: float2 17s ease-in-out infinite; }
+.particle:nth-child(9) { width: 300px; height: 300px; top: 15%; left: 30%; animation: float3 25s ease-in-out infinite; }
+.particle:nth-child(10) { width: 280px; height: 280px; top: 65%; left: 55%; animation: float1 20s ease-in-out infinite; }
+
+@keyframes smokeMove {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.8;
+    }
+    33% {
+        transform: translate(-10%, -15%) scale(1.2);
+        opacity: 0.6;
+    }
+    66% {
+        transform: translate(10%, -10%) scale(0.9);
+        opacity: 0.9;
+    }
+}
+
+@keyframes smokeMove2 {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.7;
+    }
+    50% {
+        transform: translate(-15%, 10%) scale(1.1);
+        opacity: 0.9;
+    }
+}
+
+@keyframes float1 {
+    0%, 100% {
+        transform: translate(0, 0);
+        opacity: 0.3;
+    }
+    50% {
+        transform: translate(30px, -40px);
+        opacity: 0.6;
+    }
+}
+
+@keyframes float2 {
+    0%, 100% {
+        transform: translate(0, 0);
+        opacity: 0.4;
+    }
+    50% {
+        transform: translate(-40px, -30px);
+        opacity: 0.7;
+    }
+}
+
+@keyframes float3 {
+    0%, 100% {
+        transform: translate(0, 0);
+        opacity: 0.35;
+    }
+    50% {
+        transform: translate(20px, -50px);
+        opacity: 0.65;
+    }
 }
 
 /* Products Section */
