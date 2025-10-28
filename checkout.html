@@ -638,42 +638,25 @@
         }
         
         /* Анимации для промокодов */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-        
-        @keyframes scaleIn {
+        @keyframes slideDown {
             from {
-                transform: scale(0) rotate(-10deg);
+                transform: translateX(-50%) translateY(-120%);
                 opacity: 0;
             }
             to {
-                transform: scale(1) rotate(0deg);
+                transform: translateX(-50%) translateY(0);
                 opacity: 1;
             }
         }
         
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0) scale(1); }
-            25% { transform: translateY(-20px) scale(1.1); }
-            50% { transform: translateY(0) scale(1); }
-            75% { transform: translateY(-10px) scale(1.05); }
-        }
-        
-        @keyframes confettiFall {
-            0% {
+        @keyframes slideUp {
+            from {
+                transform: translateX(-50%) translateY(0);
                 opacity: 1;
-                transform: translateY(0) rotate(0deg);
             }
-            100% {
+            to {
+                transform: translateX(-50%) translateY(-120%);
                 opacity: 0;
-                transform: translateY(100vh) rotate(720deg);
             }
         }
     </style>
@@ -1251,80 +1234,46 @@
         
         // Красивая анимация успешной активации промокода
         function showPromoSuccessAnimation(promoCode, discount) {
-            // Создаем overlay с анимацией
-            const overlay = document.createElement('div');
-            overlay.style.cssText = `
+            // Создаем тонкое уведомление сверху
+            const notification = document.createElement('div');
+            notification.style.cssText = `
                 position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(102, 126, 234, 0.95);
+                top: 80px;
+                left: 50%;
+                transform: translateX(-50%) translateY(-120%);
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 20px 40px;
+                border-radius: 16px;
+                box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
                 z-index: 100000;
                 display: flex;
                 align-items: center;
-                justify-content: center;
-                animation: fadeIn 0.3s ease;
+                gap: 15px;
+                animation: slideDown 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+                backdrop-filter: blur(10px);
             `;
             
-            overlay.innerHTML = `
-                <div style="
-                    background: white;
-                    border-radius: 30px;
-                    padding: 50px 60px;
-                    text-align: center;
-                    box-shadow: 0 30px 80px rgba(0,0,0,0.3);
-                    animation: scaleIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-                    position: relative;
-                    overflow: hidden;
-                ">
-                    <div style="font-size: 80px; margin-bottom: 20px; animation: bounce 0.6s ease 0.2s;">🎉</div>
-                    <h2 style="font-size: 32px; font-weight: 800; color: #1a1a1a; margin-bottom: 15px;">
-                        Промокод активирован!
-                    </h2>
-                    <div style="font-size: 24px; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;">
-                        ${promoCode}
+            notification.innerHTML = `
+                <div style="font-size: 28px;">✓</div>
+                <div>
+                    <div style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">
+                        Промокод ${promoCode} активирован!
                     </div>
-                    <div style="font-size: 20px; color: #10b981; font-weight: 600;">
-                        Скидка ${discount}%
-                    </div>
-                    <div style="margin-top: 30px; font-size: 14px; color: #999;">
-                        Промокод применен к товарам
+                    <div style="font-size: 14px; opacity: 0.9;">
+                        Скидка ${discount}% применена
                     </div>
                 </div>
             `;
             
-            // Добавляем конфетти
-            for (let i = 0; i < 50; i++) {
-                const confetti = document.createElement('div');
-                const colors = ['#667eea', '#764ba2', '#10b981', '#f59e0b', '#ef4444'];
-                const randomColor = colors[Math.floor(Math.random() * colors.length)];
-                const randomX = Math.random() * 100;
-                const randomDelay = Math.random() * 0.3;
-                const randomDuration = 1 + Math.random();
-                
-                confetti.style.cssText = `
-                    position: absolute;
-                    width: 10px;
-                    height: 10px;
-                    background: ${randomColor};
-                    top: -10px;
-                    left: ${randomX}%;
-                    animation: confettiFall ${randomDuration}s ease-in ${randomDelay}s forwards;
-                    opacity: 0;
-                `;
-                
-                overlay.appendChild(confetti);
-            }
-            
             // Добавляем на страницу
-            document.body.appendChild(overlay);
+            document.body.appendChild(notification);
             
-            // Убираем через 2 секунды
+            // Убираем через 3 секунды
             setTimeout(() => {
-                overlay.style.animation = 'fadeOut 0.3s ease forwards';
-                setTimeout(() => overlay.remove(), 300);
-            }, 2000);
+                notification.style.animation = 'slideUp 0.4s ease forwards';
+                setTimeout(() => notification.remove(), 400);
+            }, 3000);
         }
         
         // Применение промокода
