@@ -1525,10 +1525,11 @@ app.get('/socials', (req, res) => {
 // API для получения отзывов из Telegram
 app.get('/api/telegram-reviews', (req, res) => {
     try {
+        // Сортируем по дате из Telegram (новые первыми), потом по ID
         const reviews = db.prepare(`
             SELECT * FROM telegram_reviews 
-            ORDER BY created_at DESC 
-            LIMIT 20
+            ORDER BY telegram_date DESC, id DESC 
+            LIMIT 10
         `).all();
         
         res.json({ success: true, reviews, count: reviews.length });
@@ -1616,6 +1617,27 @@ async function syncTelegramReviews() {
         
         if (added > 0) {
             console.log(`🎉 Синхронизация завершена! Добавлено новых отзывов: ${added}`);
+            
+            // 🎲 СИСТЕМА ДОМИНО: Оставляем только последние 10 отзывов
+            try {
+                const allReviews = db.prepare(`
+                    SELECT id FROM telegram_reviews 
+                    ORDER BY telegram_date DESC, id DESC
+                `).all();
+                
+                if (allReviews.length > 10) {
+                    // Берем ID отзывов, которые нужно удалить (все после 10-го)
+                    const reviewsToDelete = allReviews.slice(10).map(r => r.id);
+                    const placeholders = reviewsToDelete.map(() => '?').join(',');
+                    
+                    db.prepare(`DELETE FROM telegram_reviews WHERE id IN (${placeholders})`).run(...reviewsToDelete);
+                    
+                    console.log(`🎲 ДОМИНО: Удалено старых отзывов: ${reviewsToDelete.length} (осталось 10)`);
+                    console.log(`   Удалены ID: ${reviewsToDelete.join(', ')}`);
+                }
+            } catch (err) {
+                console.error('❌ Ошибка очистки старых отзывов:', err.message);
+            }
         } else {
             console.log('ℹ️ Новых отзывов не обнаружено');
         }
