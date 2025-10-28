@@ -715,7 +715,7 @@
                     const targetSection = document.querySelector(targetId);
                     if (targetSection) {
                         const offsetTop = targetSection.getBoundingClientRect().top + window.pageYOffset;
-                        const offset = 80; // Отступ сверху в пикселях
+                        const offset = 60; // Отступ сверху (полностью виден прямоугольник)
                         window.scrollTo({
                             top: offsetTop - offset,
                             behavior: 'smooth'
