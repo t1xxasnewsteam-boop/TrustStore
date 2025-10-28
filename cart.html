@@ -509,6 +509,34 @@
         </div>
     </section>
 
+    <!-- Cart Widget Overlay -->
+    <div id="cartWidgetOverlay" class="cart-widget-overlay"></div>
+    
+    <!-- Cart Widget -->
+    <div id="cartWidget" class="cart-widget">
+        <div class="cart-widget-header">
+            <h3>🛒 Корзина</h3>
+            <button class="cart-widget-close" onclick="closeCartWidget()">×</button>
+        </div>
+        <div class="cart-widget-items" id="cartWidgetItems">
+            <!-- Items will be inserted here by JavaScript -->
+        </div>
+        <div class="cart-widget-footer" id="cartWidgetFooter">
+            <div class="cart-widget-total">
+                <span class="cart-widget-total-label">Итого:</span>
+                <span class="cart-widget-total-price" id="cartWidgetTotalPrice">0 ₽</span>
+            </div>
+            <div class="cart-widget-actions">
+                <button class="btn-view-full-cart" onclick="window.location.href='/cart'">
+                    Открыть корзину
+                </button>
+                <button class="btn-cart-checkout" onclick="checkoutFromWidget()">
+                    Оформить
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
