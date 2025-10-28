@@ -188,7 +188,7 @@ body {
     background: linear-gradient(-45deg, #c5563d, #b5306a, #1c85b0, #1baa8a, #5363c3, #5d3c82, #c975d4, #3d8dd0);
     background-size: 400% 400%;
     animation: euphoriaGradient 30s ease infinite;
-    padding: 80px 0;
+    padding: 60px 0;
     text-align: center;
     color: white;
     position: relative;
