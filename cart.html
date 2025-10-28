@@ -1078,13 +1078,13 @@
                     messageElement.className = 'promo-message-cart success';
                     messageElement.textContent = `✓ Промокод применён к ${itemsWithoutPromo.length} товар(ам)! Скидка ${data.discount}%`;
                     
-                    // Красивая анимация успешной активации промокода
-                    showPromoSuccessAnimation(data.code, data.discount);
+                    // Перерисовываем корзину СРАЗУ (без задержки)
+                    displayCart();
                     
-                    // Перерисовываем корзину с небольшой задержкой для анимации
+                    // Красивая анимация успешной активации промокода (после обновления)
                     setTimeout(() => {
-                        displayCart();
-                    }, 300);
+                        showPromoSuccessAnimation(data.code, data.discount);
+                    }, 100);
                 } else {
                     // Промокод невалиден
                     messageElement.className = 'promo-message-cart error';

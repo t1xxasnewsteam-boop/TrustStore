@@ -1343,13 +1343,13 @@
                     messageElement.textContent = `✓ Промокод применён к ${itemsWithoutPromo.length} товар(ам)! Скидка ${data.discount}%`;
                     messageElement.style.display = 'block';
                     
-                    // Красивая анимация успешной активации промокода
-                    showPromoSuccessAnimation(data.code, data.discount);
+                    // Перерисовываем заказ СРАЗУ (без задержки)
+                    displayOrderItems();
                     
-                    // Перерисовываем заказ с небольшой задержкой для анимации
+                    // Красивая анимация успешной активации промокода (после обновления)
                     setTimeout(() => {
-                        displayOrderItems();
-                    }, 300);
+                        showPromoSuccessAnimation(data.code, data.discount);
+                    }, 100);
                 } else {
                     // Промокод невалиден
                     messageElement.className = 'promo-message error';
