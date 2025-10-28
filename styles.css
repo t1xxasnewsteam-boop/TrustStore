@@ -976,6 +976,8 @@ body {
     mask-composite: exclude;
     animation: gradient-rotate 3s linear infinite;
     background-size: 200% 100%;
+    z-index: 10;
+    pointer-events: none;
 }
 
 @keyframes gradient-rotate {
@@ -993,6 +995,8 @@ body {
     padding: 20px 0;
     animation: scroll-horizontal 55s linear infinite;
     width: max-content;
+    position: relative;
+    z-index: 1;
 }
 
 @keyframes scroll-horizontal {
@@ -1015,6 +1019,7 @@ body {
     max-width: 450px;
     flex-shrink: 0;
     position: relative;
+    z-index: 2;
 }
 
 .review-card:hover {
