@@ -898,6 +898,23 @@
                         <span style="font-size: 11px; font-weight: 600; color: white;">🎫 ${item.appliedPromo.code} (-${item.appliedPromo.discount}%)</span>
                     </div>` : '';
                 
+                // Если есть промокод, показываем старую цену и скидку
+                let priceHTML;
+                if (item.appliedPromo) {
+                    const originalPrice = Math.round(itemTotal / (1 - item.appliedPromo.discount / 100));
+                    priceHTML = `
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="text-decoration: line-through; color: #999; font-size: 14px;">${originalPrice.toLocaleString('ru-RU')} ₽</div>
+                            <div class="order-item-price">${itemTotal.toLocaleString('ru-RU')} ₽</div>
+                            <div style="background: linear-gradient(135deg, #26de81 0%, #20bf6b 100%); color: white; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;">
+                                -${item.appliedPromo.discount}%
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    priceHTML = `<div class="order-item-price">${itemTotal.toLocaleString('ru-RU')} ₽</div>`;
+                }
+                
                 return `
                     <div class="order-item" data-index="${index}">
                         <div class="order-item-image">
@@ -908,7 +925,7 @@
                             <div class="order-item-duration">${item.duration}</div>
                             ${promoHTML}
                         </div>
-                        <div class="order-item-price">${itemTotal.toLocaleString('ru-RU')} ₽</div>
+                        ${priceHTML}
                         <div class="quantity-controls">
                             <button class="quantity-btn" onclick="decreaseQuantity(${index})">−</button>
                             <input type="text" class="quantity-input" value="${item.quantity}" 
