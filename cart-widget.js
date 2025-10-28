@@ -33,7 +33,7 @@ function displayCartWidget() {
                 <div class="cart-widget-empty-icon">🛒</div>
                 <h4>Корзина пуста</h4>
                 <p>Добавьте товары из каталога</p>
-                <button class="cart-widget-empty-btn" onclick="closeCartWidget(); window.location.href='catalog'">
+                <button class="cart-widget-empty-btn" onclick="closeCartWidget(); window.location.href='/catalog'">
                     В каталог
                 </button>
             </div>
@@ -196,7 +196,7 @@ function checkoutFromWidget() {
     
     // Перенаправляем на checkout с параметром fromCart=true
     // Checkout сам загрузит все товары из корзины
-    window.location.href = 'checkout?fromCart=true';
+    window.location.href = '/checkout?fromCart=true';
 }
 
 // Initialize cart widget on page load
