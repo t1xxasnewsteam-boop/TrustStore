@@ -613,8 +613,8 @@
                         const reviewsToShow = data.reviews.slice(0, 10);
                         
                         // Функция форматирования даты в МСК
-                        function formatMoscowDateTime(unixTimestamp) {
-                            if (!unixTimestamp) return 'Отзыв из Telegram';
+                        function formatMoscowDate(unixTimestamp) {
+                            if (!unixTimestamp) return { source: 'Отзыв из Telegram', date: '' };
                             
                             const date = new Date(unixTimestamp * 1000); // Unix timestamp в миллисекунды
                             
@@ -627,13 +627,16 @@
                             const hours = moscowDate.getUTCHours().toString().padStart(2, '0');
                             const minutes = moscowDate.getUTCMinutes().toString().padStart(2, '0');
                             
-                            return `Отзыв из Telegram • ${day}.${month}.${year} ${hours}:${minutes} МСК`;
+                            return {
+                                source: 'Отзыв из Telegram',
+                                date: `${day}.${month}.${year} ${hours}:${minutes} МСК`
+                            };
                         }
                         
                         // Создаем карточки
                         const reviewCards = reviewsToShow.map((review, index) => {
                             const gradient = gradients[index % gradients.length];
-                            const dateTime = formatMoscowDateTime(review.telegram_date);
+                            const dateInfo = formatMoscowDate(review.telegram_date);
                             
                             return `
                                 <div class="review-card">
@@ -645,7 +648,8 @@
                                         </div>
                                         <div class="review-info">
                                             <div class="review-name">${review.author_name}</div>
-                                            <div class="review-telegram">${dateTime}</div>
+                                            <div class="review-source">${dateInfo.source}</div>
+                                            ${dateInfo.date ? `<div class="review-date">${dateInfo.date}</div>` : ''}
                                         </div>
                                     </div>
                                     <div class="review-stars">⭐⭐⭐⭐⭐</div>
