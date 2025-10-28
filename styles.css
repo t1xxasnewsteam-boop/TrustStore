@@ -260,7 +260,7 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    animation: fadeInUp 0.8s ease 2.5s backwards;
+    animation: fadeInUp 0.8s ease 1s backwards;
     text-decoration: none;
     display: inline-block;
 }
