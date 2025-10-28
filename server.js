@@ -1577,8 +1577,7 @@ async function syncTelegramReviews() {
         
         console.log(`📨 Получено обновлений: ${data.result.length}`);
         
-        let added = 0;
-        let totalValidComments = 0; // Счетчик ВСЕХ валидных комментариев
+        let added = 0; // Счетчик только НОВЫХ комментариев
         const TARGET_POST_ID = 15; // ID сообщения в группе обсуждений (пост #19 в канале = сообщение #15 в группе)
         
         // Обрабатываем каждое сообщение
@@ -1612,9 +1611,6 @@ async function syncTelegramReviews() {
                 // Пропускаем пустые сообщения и технические (с паролями)
                 if (!text.trim() || text.length < 5 || text.includes('o-4zWa6SFWUGo')) continue;
                 
-                // ✅ Этот комментарий валидный - считаем его!
-                totalValidComments++;
-                
                 // Проверяем, не добавлен ли уже этот комментарий
                 const existing = db.prepare('SELECT id FROM telegram_reviews WHERE telegram_comment_id = ?').get(message.message_id);
                 
@@ -1640,17 +1636,24 @@ async function syncTelegramReviews() {
             }
         }
         
-        // 📊 Сохраняем общее количество комментариев
+        // 📊 Обновляем счетчик комментариев (добавляем ТОЛЬКО новые)
         try {
+            // Получаем текущее значение
+            const currentStats = db.prepare('SELECT total_comments FROM telegram_stats WHERE id = 1').get();
+            const currentTotal = currentStats ? currentStats.total_comments : 0;
+            
+            // Добавляем только НОВЫЕ комментарии к существующему числу
+            const newTotal = currentTotal + added;
+            
             db.prepare(`
                 INSERT INTO telegram_stats (id, total_comments, last_updated) 
                 VALUES (1, ?, CURRENT_TIMESTAMP)
                 ON CONFLICT(id) DO UPDATE SET 
                     total_comments = excluded.total_comments,
                     last_updated = CURRENT_TIMESTAMP
-            `).run(totalValidComments);
+            `).run(newTotal);
             
-            console.log(`📊 Всего валидных комментариев под постом: ${totalValidComments}`);
+            console.log(`📊 Комментариев: ${currentTotal} + ${added} новых = ${newTotal} всего`);
         } catch (err) {
             console.error('❌ Ошибка сохранения статистики:', err.message);
         }
