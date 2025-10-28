@@ -144,32 +144,11 @@ app.use((req, res, next) => {
 app.get('/product/:productName', (req, res) => {
     const productName = req.params.productName;
     
-    // Маппинг URL на реальные файлы
-    const productMap = {
-        'chatgpt': 'product.html',
-        'midjourney': 'midjourney.html',
-        'vpn': 'vpn.html',
-        'gemini': 'gemini.html',
-        'cursor': 'cursor.html',
-        'claude': 'claude.html',
-        'youtube': 'youtube.html',
-        'adobe': 'adobe.html',
-        'capcut': 'capcut.html'
-    };
+    // Ищем файл в папке product/
+    const productFile = path.join(__dirname, 'product', `${productName}.html`);
     
-    const fileName = productMap[productName];
-    
-    if (fileName) {
-        const productFile = path.join(__dirname, fileName);
-        if (fs.existsSync(productFile)) {
-            return res.sendFile(productFile);
-        }
-    }
-    
-    // Если не найдено, пробуем прямой файл
-    const directFile = path.join(__dirname, `${productName}.html`);
-    if (fs.existsSync(directFile)) {
-        return res.sendFile(directFile);
+    if (fs.existsSync(productFile)) {
+        return res.sendFile(productFile);
     }
     
     res.status(404).send('Product not found');
