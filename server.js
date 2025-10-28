@@ -144,6 +144,12 @@ app.use((req, res, next) => {
 app.get('/product/:productName', (req, res) => {
     const productName = req.params.productName;
     
+    // Проверяем, что это не служебная страница
+    const reservedWords = ['cart', 'checkout', 'admin', 'catalog', 'socials'];
+    if (reservedWords.includes(productName)) {
+        return res.status(404).send('Product not found');
+    }
+    
     // Ищем файл в папке product/
     const productFile = path.join(__dirname, 'product', `${productName}.html`);
     

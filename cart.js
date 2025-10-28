@@ -147,7 +147,7 @@ function showAddToCartAnimation() {
 
 // Перейти в корзину
 function goToCart() {
-    window.location.href = 'cart';
+    window.location.href = '/cart';
 }
 
 // Удалить товар из корзины
