@@ -53,7 +53,7 @@
         <div class="container">
             <div class="products-grid">
                 <!-- Product Card 1 - ChatGPT -->
-                <div class="product-card">
+                <div class="product-card" onclick="window.location.href='product/chatgpt';" style="cursor: pointer;">
                     <div class="product-image">
                         <div class="product-badge badge-hit">🔥 Хит</div>
                         <div class="product-badge badge-category">Подписка</div>
@@ -74,7 +74,7 @@
                 </div>
 
                 <!-- Product Card 2 - Midjourney -->
-                <div class="product-card">
+                <div class="product-card" onclick="window.location.href='product/midjourney';" style="cursor: pointer;">
                     <div class="product-image">
                         <div class="product-badge badge-category" style="white-space: nowrap;">AI Генерация</div>
                         <div class="product-img-placeholder" style="background: transparent;">
@@ -94,7 +94,7 @@
                 </div>
 
                 <!-- Product Card 3 - VPN -->
-                <div class="product-card">
+                <div class="product-card" onclick="window.location.href='product/vpn';" style="cursor: pointer;">
                     <div class="product-image">
                         <div class="product-badge badge-category">Безопасность</div>
                         <div class="product-img-placeholder" style="background: transparent;">
@@ -114,7 +114,7 @@
                 </div>
 
                 <!-- Product Card 4 -->
-                <div class="product-card">
+                <div class="product-card" onclick="window.location.href='product/gemini';" style="cursor: pointer;">
                     <div class="product-image">
                         <div class="product-badge badge-category" style="white-space: nowrap;">AI Генерация</div>
                         <div class="product-img-placeholder" style="background: transparent;">
@@ -134,7 +134,7 @@
                 </div>
 
                 <!-- Product Card 5 -->
-                <div class="product-card">
+                <div class="product-card" onclick="window.location.href='product/cursor';" style="cursor: pointer;">
                     <div class="product-image">
                         <div class="product-badge badge-category" style="white-space: nowrap;">AI Генерация</div>
                         <div class="product-img-placeholder" style="background: transparent;">
@@ -154,7 +154,7 @@
                 </div>
 
                 <!-- Product Card 6 -->
-                <div class="product-card">
+                <div class="product-card" onclick="window.location.href='product/claude';" style="cursor: pointer;">
                     <div class="product-image">
                         <div class="product-badge badge-category" style="white-space: nowrap;">AI Генерация</div>
                         <div class="product-img-placeholder" style="background: transparent;">
@@ -174,7 +174,7 @@
                 </div>
 
                 <!-- Product Card 7 -->
-                <div class="product-card">
+                <div class="product-card" onclick="window.location.href='product/youtube';" style="cursor: pointer;">
                     <div class="product-image">
                         <div class="product-badge badge-category">Видео</div>
                         <div class="product-img-placeholder" style="background: transparent;">
@@ -194,7 +194,7 @@
                 </div>
 
                 <!-- Product Card 8 -->
-                <div class="product-card">
+                <div class="product-card" onclick="window.location.href='product/adobe';" style="cursor: pointer;">
                     <div class="product-image">
                         <div class="product-badge badge-category">Дизайн</div>
                         <div class="product-img-placeholder" style="background: transparent;">
@@ -214,7 +214,7 @@
                 </div>
 
                 <!-- Product Card 9 -->
-                <div class="product-card">
+                <div class="product-card" onclick="window.location.href='product/capcut';" style="cursor: pointer;">
                     <div class="product-image">
                         <div class="product-badge badge-category">Монтаж</div>
                         <div class="product-img-placeholder" style="background: transparent;">
@@ -326,7 +326,7 @@
     <script src="chat-widget.js"></script>
     <script src="notification.js"></script>
     
-    <!-- 🔥 Предотвращаем добавление в корзину при клике на кнопку Купить -->
+    <!-- 🔥 Предотвращаем всплытие клика от кнопки Купить к карточке -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Останавливаем всплытие события от кнопок "Купить"
@@ -337,14 +337,7 @@
                 });
             });
             
-            // Убираем обработчики кликов с карточек товаров
-            document.querySelectorAll('.product-card').forEach(card => {
-                // Клонируем элемент, чтобы удалить ВСЕ обработчики событий
-                const newCard = card.cloneNode(true);
-                card.parentNode.replaceChild(newCard, card);
-            });
-            
-            console.log('✅ Обработчики кликов на карточках отключены!');
+            console.log('✅ Карточки кликабельны, кнопки перекидывают на страницы!');
         });
     </script>
 </body>

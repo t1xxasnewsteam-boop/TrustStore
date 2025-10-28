@@ -143,16 +143,33 @@ app.use((req, res, next) => {
 // 🔥 Роутинг для /product/:name
 app.get('/product/:productName', (req, res) => {
     const productName = req.params.productName;
-    const productFile = path.join(__dirname, `${productName}.html`);
     
-    if (fs.existsSync(productFile)) {
-        return res.sendFile(productFile);
+    // Маппинг URL на реальные файлы
+    const productMap = {
+        'chatgpt': 'product.html',
+        'midjourney': 'midjourney.html',
+        'vpn': 'vpn.html',
+        'gemini': 'gemini.html',
+        'cursor': 'cursor.html',
+        'claude': 'claude.html',
+        'youtube': 'youtube.html',
+        'adobe': 'adobe.html',
+        'capcut': 'capcut.html'
+    };
+    
+    const fileName = productMap[productName];
+    
+    if (fileName) {
+        const productFile = path.join(__dirname, fileName);
+        if (fs.existsSync(productFile)) {
+            return res.sendFile(productFile);
+        }
     }
     
-    // Если файла нет, отправляем на product.html (общая страница)
-    const defaultProduct = path.join(__dirname, 'product.html');
-    if (fs.existsSync(defaultProduct)) {
-        return res.sendFile(defaultProduct);
+    // Если не найдено, пробуем прямой файл
+    const directFile = path.join(__dirname, `${productName}.html`);
+    if (fs.existsSync(directFile)) {
+        return res.sendFile(directFile);
     }
     
     res.status(404).send('Product not found');
