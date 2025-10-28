@@ -813,6 +813,11 @@
                     <span class="nav-label">Поддержка</span>
                     <span class="nav-badge" id="supportBadge">0</span>
                 </a>
+                <a class="nav-item" data-section="suggestions">
+                    <span class="nav-icon">💡</span>
+                    <span class="nav-label">Предложения</span>
+                    <span class="nav-badge" id="suggestionsBadge">0</span>
+                </a>
                 <a class="nav-item" data-section="settings">
                     <span class="nav-icon">⚙️</span>
                     <span class="nav-label">Настройки</span>
@@ -1143,6 +1148,56 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Product Suggestions Section -->
+        <div class="content-section" id="suggestions">
+            <div class="top-bar">
+                <h1 class="page-title">💡 Предложения товаров</h1>
+            </div>
+
+            <!-- Статистика -->
+            <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="stat-card">
+                    <div class="stat-title">Всего предложений</div>
+                    <div class="stat-value" id="suggestions-total">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Новые</div>
+                    <div class="stat-value" id="suggestions-new">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Обработано</div>
+                    <div class="stat-value" id="suggestions-processed">0</div>
+                </div>
+            </div>
+
+            <!-- Список предложений -->
+            <div class="glass-card" style="margin-top: 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 class="card-title">Предложения от пользователей</h3>
+                    <select id="suggestions-filter" style="padding: 10px; border: 2px solid var(--border-color); border-radius: 10px; font-size: 14px; background: var(--bg-card); color: var(--text-primary);">
+                        <option value="all">Все предложения</option>
+                        <option value="new">Новые</option>
+                        <option value="processed">Обработано</option>
+                        <option value="rejected">Отклонено</option>
+                    </select>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Товар</th>
+                            <th>Описание</th>
+                            <th>Email</th>
+                            <th>Дата</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="suggestions-table"></tbody>
+                </table>
             </div>
         </div>
 
@@ -2136,6 +2191,9 @@
                     case 'support':
                         loadSupport();
                         break;
+                    case 'suggestions':
+                        loadSuggestions();
+                        break;
                     case 'orders':
                         loadOrders();
                         break;
@@ -2188,6 +2246,108 @@
                 console.error('Error loading geography:', error);
             }
         }
+
+        // === PRODUCT SUGGESTIONS ===
+        let allSuggestions = [];
+        
+        async function loadSuggestions() {
+            try {
+                const response = await fetch('/api/product-suggestions', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    allSuggestions = await response.json();
+                    displaySuggestions();
+                    updateSuggestionsStats();
+                }
+            } catch (error) {
+                console.error('Error loading suggestions:', error);
+            }
+        }
+        
+        function displaySuggestions() {
+            const filter = document.getElementById('suggestions-filter').value;
+            const filtered = filter === 'all' 
+                ? allSuggestions 
+                : allSuggestions.filter(s => s.status === filter);
+            
+            const tbody = document.getElementById('suggestions-table');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">Нет предложений</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = filtered.map(suggestion => {
+                const date = new Date(suggestion.created_at);
+                const statusColors = {
+                    'new': 'primary',
+                    'processed': 'success',
+                    'rejected': 'danger'
+                };
+                const statusLabels = {
+                    'new': 'Новое',
+                    'processed': 'Обработано',
+                    'rejected': 'Отклонено'
+                };
+                
+                return `
+                    <tr>
+                        <td>#${suggestion.id}</td>
+                        <td><strong>${suggestion.product_name}</strong></td>
+                        <td>${suggestion.description || '<span style="color: var(--text-secondary);">—</span>'}</td>
+                        <td>${suggestion.email || '<span style="color: var(--text-secondary);">—</span>'}</td>
+                        <td>${date.toLocaleDateString('ru-RU')}</td>
+                        <td><span class="badge badge-${statusColors[suggestion.status]}">${statusLabels[suggestion.status]}</span></td>
+                        <td>
+                            ${suggestion.status === 'new' ? `
+                                <button class="btn btn-sm btn-success" onclick="updateSuggestionStatus(${suggestion.id}, 'processed')">✅ Обработано</button>
+                                <button class="btn btn-sm btn-danger" onclick="updateSuggestionStatus(${suggestion.id}, 'rejected')">❌ Отклонить</button>
+                            ` : `
+                                <button class="btn btn-sm btn-secondary" onclick="updateSuggestionStatus(${suggestion.id}, 'new')">↩️ Вернуть</button>
+                            `}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function updateSuggestionsStats() {
+            const total = allSuggestions.length;
+            const newCount = allSuggestions.filter(s => s.status === 'new').length;
+            const processed = allSuggestions.filter(s => s.status === 'processed').length;
+            
+            document.getElementById('suggestions-total').textContent = total;
+            document.getElementById('suggestions-new').textContent = newCount;
+            document.getElementById('suggestions-processed').textContent = processed;
+            document.getElementById('suggestionsBadge').textContent = newCount;
+            
+            if (newCount > 0) {
+                document.getElementById('suggestionsBadge').style.display = 'block';
+            } else {
+                document.getElementById('suggestionsBadge').style.display = 'none';
+            }
+        }
+        
+        async function updateSuggestionStatus(id, status) {
+            try {
+                const response = await fetch('/api/product-suggestion-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ id, status })
+                });
+                
+                if (response.ok) {
+                    await loadSuggestions();
+                }
+            } catch (error) {
+                console.error('Error updating suggestion status:', error);
+            }
+        }
+        
+        // Filter handler for suggestions
+        document.getElementById('suggestions-filter')?.addEventListener('change', displaySuggestions);
 
         // Auto-refresh every 30 seconds
         setInterval(() => {

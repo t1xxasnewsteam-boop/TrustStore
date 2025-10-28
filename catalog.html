@@ -337,6 +337,107 @@
     <!-- Chat Widget -->
     <link rel="stylesheet" href="chat-widget.css">
     <script src="chat-widget.js"></script>
+    <!-- Секция предложения товара -->
+    <section class="suggest-product-section">
+        <div class="container">
+            <div class="suggest-box">
+                <h3>Не нашли желаемый товар?</h3>
+                <p>Напишите нам и мы добавим его в ближайшее время!</p>
+                <form id="suggestForm" class="suggest-form">
+                    <input type="text" id="productName" placeholder="Название товара" required>
+                    <textarea id="productDescription" placeholder="Описание (необязательно)" rows="3"></textarea>
+                    <input type="email" id="userEmail" placeholder="Ваш email (необязательно)">
+                    <button type="submit" class="btn-primary">Предложить товар</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <style>
+        .suggest-product-section {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .suggest-box {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .suggest-box h3 {
+            font-size: 28px;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+        .suggest-box p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .suggest-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .suggest-form input,
+        .suggest-form textarea {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+        .suggest-form input:focus,
+        .suggest-form textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .suggest-form textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .suggest-form button {
+            margin-top: 10px;
+        }
+    </style>
+
+    <script>
+        document.getElementById('suggestForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const productName = document.getElementById('productName').value;
+            const productDescription = document.getElementById('productDescription').value;
+            const userEmail = document.getElementById('userEmail').value;
+            
+            try {
+                const response = await fetch('/api/suggest-product', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        product_name: productName,
+                        description: productDescription,
+                        email: userEmail
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('✅ Спасибо! Ваше предложение отправлено!');
+                    this.reset();
+                } else {
+                    alert('❌ Ошибка отправки. Попробуйте позже.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Ошибка отправки. Попробуйте позже.');
+            }
+        });
+    </script>
+
     <script src="notification.js"></script>
     
     <!-- 🔥 Предотвращаем всплытие клика от кнопки Купить к карточке -->

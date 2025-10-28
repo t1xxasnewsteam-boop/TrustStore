@@ -371,6 +371,15 @@ db.exec(`
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS product_suggestions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        product_name TEXT NOT NULL,
+        description TEXT,
+        email TEXT,
+        status TEXT DEFAULT 'new',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_session_id ON visits(session_id);
     CREATE INDEX IF NOT EXISTS idx_timestamp ON visits(timestamp);
     CREATE INDEX IF NOT EXISTS idx_country ON visits(country_code);
@@ -1047,6 +1056,61 @@ app.post('/api/create-order', (req, res) => {
         res.json({ success: true, orderId });
     } catch (error) {
         console.error('Ошибка создания заказа:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// API для предложения товара
+app.post('/api/suggest-product', (req, res) => {
+    try {
+        const { product_name, description, email } = req.body;
+        
+        if (!product_name) {
+            return res.status(400).json({ error: 'Название товара обязательно' });
+        }
+        
+        db.prepare(`
+            INSERT INTO product_suggestions (product_name, description, email)
+            VALUES (?, ?, ?)
+        `).run(product_name, description || '', email || '');
+        
+        console.log(`💡 Новое предложение товара: ${product_name}`);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Ошибка сохранения предложения:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// API для получения предложений товаров (админ)
+app.get('/api/product-suggestions', authMiddleware, (req, res) => {
+    try {
+        const suggestions = db.prepare(`
+            SELECT * FROM product_suggestions 
+            ORDER BY created_at DESC
+        `).all();
+        
+        res.json(suggestions);
+    } catch (error) {
+        console.error('Ошибка получения предложений:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// API для обновления статуса предложения (админ)
+app.post('/api/product-suggestion-status', authMiddleware, (req, res) => {
+    try {
+        const { id, status } = req.body;
+        
+        db.prepare(`
+            UPDATE product_suggestions 
+            SET status = ?
+            WHERE id = ?
+        `).run(status, id);
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Ошибка обновления статуса:', error);
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 });
