@@ -950,27 +950,30 @@ body {
 .reviews-slider {
     margin-top: 40px;
     width: 100%;
-    overflow-x: auto;
-    overflow-y: visible;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    overflow: hidden;
     border: 2px solid #e8e8e8;
     border-radius: 24px;
     padding: 30px;
     background: linear-gradient(to bottom, #fafafa 0%, #ffffff 100%);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-}
-
-.reviews-slider::-webkit-scrollbar {
-    display: none;
+    position: relative;
 }
 
 .reviews-track {
     display: flex;
     gap: 30px;
     padding: 20px 0;
+    animation: scroll-horizontal 40s linear infinite;
     width: max-content;
+}
+
+@keyframes scroll-horizontal {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(calc(-50% - 15px));
+    }
 }
 
 .review-card {
