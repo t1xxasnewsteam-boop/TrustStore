@@ -270,11 +270,9 @@ body {
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
 }
 
-/* Catalog Hero - Simple Animated Gradient */
+/* Catalog Hero - Psychedelic Effect */
 .catalog-hero {
-    background: linear-gradient(-45deg, #4a5bb8, #5d3c82, #c975d4, #3d8dd0, #2ea85e, #2bc7ab);
-    background-size: 400% 400%;
-    animation: catalogGradient 25s ease infinite;
+    background: #1a0033;
     padding: 60px 0 40px;
     text-align: center;
     color: white;
@@ -283,24 +281,154 @@ body {
 }
 
 .particles-container {
-    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
 }
 
-@keyframes catalogGradient {
-    0% {
-        background-position: 0% 50%;
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    pointer-events: none;
+}
+
+.particle:nth-child(1) { 
+    width: 600px; 
+    height: 600px; 
+    top: -20%; 
+    left: -10%; 
+    background: radial-gradient(circle, rgba(199, 117, 212, 0.6) 0%, transparent 70%);
+    animation: psychedelic1 20s ease-in-out infinite;
+}
+
+.particle:nth-child(2) { 
+    width: 500px; 
+    height: 500px; 
+    top: 50%; 
+    left: 60%; 
+    background: radial-gradient(circle, rgba(74, 91, 184, 0.7) 0%, transparent 70%);
+    animation: psychedelic2 18s ease-in-out infinite;
+}
+
+.particle:nth-child(3) { 
+    width: 550px; 
+    height: 550px; 
+    top: 30%; 
+    left: 20%; 
+    background: radial-gradient(circle, rgba(139, 63, 253, 0.5) 0%, transparent 70%);
+    animation: psychedelic3 22s ease-in-out infinite;
+}
+
+.particle:nth-child(4) { 
+    width: 450px; 
+    height: 450px; 
+    top: -10%; 
+    left: 70%; 
+    background: radial-gradient(circle, rgba(240, 147, 251, 0.6) 0%, transparent 70%);
+    animation: psychedelic1 24s ease-in-out infinite reverse;
+}
+
+.particle:nth-child(5) { 
+    width: 520px; 
+    height: 520px; 
+    top: 60%; 
+    left: -5%; 
+    background: radial-gradient(circle, rgba(93, 60, 130, 0.7) 0%, transparent 70%);
+    animation: psychedelic2 16s ease-in-out infinite;
+}
+
+.particle:nth-child(6) { 
+    width: 480px; 
+    height: 480px; 
+    top: 20%; 
+    left: 50%; 
+    background: radial-gradient(circle, rgba(118, 75, 162, 0.5) 0%, transparent 70%);
+    animation: psychedelic3 19s ease-in-out infinite reverse;
+}
+
+.particle:nth-child(7) { 
+    width: 580px; 
+    height: 580px; 
+    top: 70%; 
+    left: 80%; 
+    background: radial-gradient(circle, rgba(201, 117, 212, 0.6) 0%, transparent 70%);
+    animation: psychedelic1 21s ease-in-out infinite;
+}
+
+.particle:nth-child(8) { 
+    width: 500px; 
+    height: 500px; 
+    top: 40%; 
+    left: 30%; 
+    background: radial-gradient(circle, rgba(61, 141, 208, 0.5) 0%, transparent 70%);
+    animation: psychedelic2 23s ease-in-out infinite reverse;
+}
+
+.particle:nth-child(9) { 
+    width: 530px; 
+    height: 530px; 
+    top: 10%; 
+    left: 90%; 
+    background: radial-gradient(circle, rgba(240, 147, 251, 0.7) 0%, transparent 70%);
+    animation: psychedelic3 17s ease-in-out infinite;
+}
+
+.particle:nth-child(10) { 
+    width: 490px; 
+    height: 490px; 
+    top: 80%; 
+    left: 40%; 
+    background: radial-gradient(circle, rgba(74, 91, 184, 0.6) 0%, transparent 70%);
+    animation: psychedelic1 25s ease-in-out infinite reverse;
+}
+
+@keyframes psychedelic1 {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+    }
+    33% {
+        transform: translate(50px, -80px) scale(1.3);
+    }
+    66% {
+        transform: translate(-60px, 40px) scale(0.8);
+    }
+}
+
+@keyframes psychedelic2 {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
     }
     25% {
-        background-position: 50% 100%;
+        transform: translate(-70px, -60px) scale(1.2);
     }
     50% {
-        background-position: 100% 50%;
+        transform: translate(40px, 80px) scale(1.4);
     }
     75% {
-        background-position: 50% 0%;
+        transform: translate(60px, -40px) scale(0.9);
     }
-    100% {
-        background-position: 0% 50%;
+}
+
+@keyframes psychedelic3 {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+    }
+    20% {
+        transform: translate(80px, 60px) scale(1.1);
+    }
+    40% {
+        transform: translate(-50px, -70px) scale(1.3);
+    }
+    60% {
+        transform: translate(70px, -50px) scale(0.85);
+    }
+    80% {
+        transform: translate(-40px, 30px) scale(1.15);
     }
 }
 
