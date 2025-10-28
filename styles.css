@@ -879,6 +879,62 @@ body {
     overflow: hidden;
 }
 
+.reviews-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.reviews-source {
+    display: flex;
+    justify-content: center;
+}
+
+.telegram-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.reviews-rating {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+}
+
+.rating-stars {
+    font-size: 20px;
+    letter-spacing: 2px;
+}
+
+.rating-score {
+    font-size: 32px;
+    font-weight: 700;
+    color: #667eea;
+}
+
+.rating-count {
+    color: #666;
+    font-size: 15px;
+}
+
+.reviews-subtitle {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-top: 10px;
+}
+
 .reviews-slider {
     margin-top: 40px;
     overflow: hidden;
@@ -1101,6 +1157,25 @@ body {
     .review-card {
         min-width: 350px;
         max-width: 350px;
+    }
+
+    .reviews-rating {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+    }
+
+    .telegram-badge {
+        font-size: 13px;
+        padding: 8px 20px;
+    }
+
+    .rating-score {
+        font-size: 28px;
+    }
+
+    .reviews-subtitle {
+        font-size: 16px;
     }
 }
 
