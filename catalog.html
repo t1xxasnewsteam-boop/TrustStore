@@ -318,6 +318,57 @@
     </style>
 
     <script>
+        // Красивое уведомление для предложения товара
+        function showSuggestionNotification(productName, isSuccess) {
+            // Удаляем предыдущее если есть
+            const existing = document.querySelector('.suggestion-notification');
+            if (existing) existing.remove();
+            
+            // Создаем уведомление
+            const notification = document.createElement('div');
+            notification.className = 'suggestion-notification';
+            
+            if (isSuccess) {
+                notification.innerHTML = `
+                    <div class="notification-content">
+                        <div class="notification-icon success">
+                            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                                <circle cx="20" cy="20" r="20" fill="#10b981"/>
+                                <path d="M12 20L17 25L28 14" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="notification-text">
+                            <h4>✓ Предложение отправлено!</h4>
+                            <p>${productName}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                notification.innerHTML = `
+                    <div class="notification-content">
+                        <div class="notification-icon error">
+                            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                                <circle cx="20" cy="20" r="20" fill="#ef4444"/>
+                                <path d="M15 15L25 25M25 15L15 25" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="notification-text">
+                            <h4>✗ Ошибка отправки</h4>
+                            <p>Попробуйте позже</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            document.body.appendChild(notification);
+            
+            // Автоматически убираем через 4 секунды
+            setTimeout(() => {
+                notification.classList.add('fade-out');
+                setTimeout(() => notification.remove(), 800);
+            }, 4000);
+        }
+        
         document.getElementById('suggestForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -335,17 +386,108 @@
                 });
                 
                 if (response.ok) {
-                    alert('✅ Спасибо! Ваше предложение отправлено!');
+                    showSuggestionNotification(productName, true);
                     this.reset();
                 } else {
-                    alert('❌ Ошибка отправки. Попробуйте позже.');
+                    showSuggestionNotification(productName, false);
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('❌ Ошибка отправки. Попробуйте позже.');
+                showSuggestionNotification(productName, false);
             }
         });
     </script>
+    
+    <style>
+        .suggestion-notification {
+            position: fixed;
+            top: 80px;
+            right: 30px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            padding: 20px;
+            z-index: 10000;
+            min-width: 320px;
+            animation: slideInRight 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .suggestion-notification.fade-out {
+            animation: slideOutRight 0.5s ease-in-out forwards;
+        }
+        
+        @keyframes slideOutRight {
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+        
+        .suggestion-notification .notification-content {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .suggestion-notification .notification-icon {
+            flex-shrink: 0;
+            animation: iconPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.2s both;
+        }
+        
+        @keyframes iconPop {
+            0% {
+                transform: scale(0) rotate(-45deg);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+        
+        .suggestion-notification .notification-text h4 {
+            margin: 0 0 6px 0;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+        
+        .suggestion-notification .notification-icon.success + .notification-text h4 {
+            color: #10b981;
+        }
+        
+        .suggestion-notification .notification-icon.error + .notification-text h4 {
+            color: #ef4444;
+        }
+        
+        .suggestion-notification .notification-text p {
+            margin: 0;
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            .suggestion-notification {
+                right: 20px;
+                left: 20px;
+                min-width: auto;
+                top: 70px;
+            }
+        }
+    </style>
 
     <!-- Footer -->
     <footer class="footer">

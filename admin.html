@@ -2183,6 +2183,10 @@
                 document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
                 document.getElementById(section).classList.add('active');
                 
+                // Останавливаем все polling при смене секции
+                if (ticketsListPolling) clearInterval(ticketsListPolling);
+                if (suggestionsPolling) clearInterval(suggestionsPolling);
+                
                 // Load section-specific data
                 switch(section) {
                     case 'dashboard':
@@ -2249,8 +2253,22 @@
 
         // === PRODUCT SUGGESTIONS ===
         let allSuggestions = [];
+        let suggestionsPolling = null;
         
         async function loadSuggestions() {
+            await refreshSuggestions();
+            
+            // Запускаем автообновление списка предложений
+            if (suggestionsPolling) {
+                clearInterval(suggestionsPolling);
+            }
+            
+            suggestionsPolling = setInterval(async () => {
+                await refreshSuggestions();
+            }, 10000); // Каждые 10 секунд обновляем список
+        }
+        
+        async function refreshSuggestions() {
             try {
                 const response = await fetch('/api/product-suggestions', {
                     credentials: 'include'
