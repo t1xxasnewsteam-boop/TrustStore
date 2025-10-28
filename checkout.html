@@ -1275,15 +1275,31 @@
                     const result = await response.json();
                     console.log('✅ Заказ создан:', result.orderId);
                     
-                    // Применяем промокод (увеличиваем счетчик использований)
+                    // Применяем ВСЕ промокоды (увеличиваем счетчик использований)
+                    // Собираем уникальные промокоды из товаров
+                    const usedPromoCodes = new Set();
+                    
+                    // 1. Промокоды из товаров
+                    orderItems.forEach(item => {
+                        if (item.appliedPromo && item.appliedPromo.code) {
+                            usedPromoCodes.add(item.appliedPromo.code);
+                        }
+                    });
+                    
+                    // 2. Промокод, введенный на странице checkout (если есть)
                     if (promoApplied && currentPromoCode) {
+                        usedPromoCodes.add(currentPromoCode);
+                    }
+                    
+                    // Применяем каждый уникальный промокод
+                    for (const promoCode of usedPromoCodes) {
                         try {
                             await fetch('/api/apply-promo', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ code: currentPromoCode })
+                                body: JSON.stringify({ code: promoCode })
                             });
-                            console.log('✅ Промокод применен:', currentPromoCode);
+                            console.log('✅ Промокод применен:', promoCode);
                         } catch (error) {
                             console.error('Error applying promo code:', error);
                         }
