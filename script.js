@@ -53,16 +53,6 @@ document.querySelectorAll('.btn-buy').forEach(button => {
         cartCount++;
         updateCartBadge();
         
-        // Button animation
-        const originalText = this.textContent;
-        this.textContent = '✓ Добавлено';
-        this.style.background = 'linear-gradient(135deg, #26de81 0%, #20bf6b 100%)';
-        
-        setTimeout(() => {
-            this.textContent = originalText;
-            this.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-        }, 1500);
-        
         // Show notification
         showNotification('Товар добавлен в корзину!');
     });
