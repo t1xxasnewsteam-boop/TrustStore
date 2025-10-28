@@ -47,6 +47,7 @@
                 <h2 class="hero-title">Лучшие цифровые товары</h2>
                 <p class="hero-subtitle">Безопасные покупки. Мгновенная доставка. Гарантия качества.</p>
                 <a href="#products" class="btn-primary">Популярные товары</a>
+                <a href="#reviews" class="reviews-link smooth-scroll">Отзывы о нашей работе</a>
             </div>
         </div>
     </section>
@@ -220,7 +221,7 @@
     </section>
 
     <!-- Reviews Section -->
-    <section class="reviews-section">
+    <section id="reviews" class="reviews-section">
         <div class="container">
             <div class="reviews-header">
                 <div class="reviews-header-content">
@@ -705,6 +706,21 @@
             if (reviewsHeader) {
                 observer.observe(reviewsHeader);
             }
+            
+            // Плавный скролл к секции отзывов
+            document.querySelectorAll('.smooth-scroll').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    const targetSection = document.querySelector(targetId);
+                    if (targetSection) {
+                        targetSection.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
         });
         
         // Функция загрузки отзывов из API

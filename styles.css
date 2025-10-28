@@ -271,6 +271,25 @@ body {
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
 }
 
+/* Ссылка на отзывы под кнопкой */
+.reviews-link {
+    display: block;
+    margin-top: 20px;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.8s ease 1.2s backwards;
+}
+
+.reviews-link:hover {
+    color: #e0e0e0;
+    text-decoration-thickness: 2px;
+}
+
 /* Catalog Hero - Psychedelic Effect */
 .catalog-hero {
     background: #1a0033;
