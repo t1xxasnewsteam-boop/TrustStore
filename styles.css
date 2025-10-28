@@ -23,6 +23,7 @@ body {
     padding: 0 20px;
     position: relative;
     z-index: 1;
+    overflow: visible;
 }
 
 /* Header */
@@ -876,7 +877,7 @@ body {
 .reviews-section {
     padding: 80px 0;
     background: #ffffff;
-    overflow: hidden;
+    overflow: visible;
     width: 100%;
     position: relative;
 }
