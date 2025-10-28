@@ -1563,7 +1563,7 @@ async function syncTelegramReviews() {
         console.log(`📨 Получено обновлений: ${data.result.length}`);
         
         let added = 0;
-        const TARGET_POST_ID = 19; // ID поста truststoreru/19
+        const TARGET_POST_ID = 15; // ID сообщения в группе обсуждений (пост #19 в канале = сообщение #15 в группе)
         
         // Обрабатываем каждое сообщение
         for (const update of data.result) {
@@ -1571,9 +1571,9 @@ async function syncTelegramReviews() {
             if (update.message && update.message.chat && update.message.from) {
                 const message = update.message;
                 
-                // ВАЖНО: Проверяем что это комментарий ТОЛЬКО к посту #19
+                // ВАЖНО: Проверяем что это комментарий ТОЛЬКО к нужному посту
                 if (!message.reply_to_message || message.reply_to_message.message_id !== TARGET_POST_ID) {
-                    continue; // Пропускаем все сообщения НЕ под постом #19
+                    continue; // Пропускаем все сообщения НЕ под нужным постом
                 }
                 
                 // Пропускаем сообщения от ботов
