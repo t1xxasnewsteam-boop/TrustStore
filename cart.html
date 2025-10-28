@@ -670,6 +670,10 @@
             document.body.classList.remove('cart-empty');
             
             let totalPrice = 0;
+            let originalTotalPrice = 0; // Для итоговой цены БЕЗ скидок
+            
+            // Для сбора информации о промокодах
+            const promoSummary = new Map(); // { code: { discount: %, totalSaved: amount } }
             
             // Добавляем quantity если его нет и сохраняем
             const updatedCart = cart.map(item => ({
@@ -685,6 +689,7 @@
             
             const itemsHTML = updatedCart.map((item, index) => {
                 const originalPrice = item.unitPrice * item.quantity; // Цена БЕЗ промокода
+                originalTotalPrice += originalPrice; // Накапливаем оригинальную цену
                 
                 // Если есть промокод, показываем старую цену и новую цену со скидкой
                 let priceHTML;
@@ -694,6 +699,17 @@
                     // Рассчитываем цену СО скидкой
                     const discountedPrice = Math.round(originalPrice * (1 - item.appliedPromo.discount / 100));
                     itemTotal = discountedPrice;
+                    
+                    // Накапливаем информацию о промокодах для итогового блока
+                    const savedAmount = originalPrice - discountedPrice;
+                    if (promoSummary.has(item.appliedPromo.code)) {
+                        promoSummary.get(item.appliedPromo.code).totalSaved += savedAmount;
+                    } else {
+                        promoSummary.set(item.appliedPromo.code, {
+                            discount: item.appliedPromo.discount,
+                            totalSaved: savedAmount
+                        });
+                    }
                     
                     priceHTML = `
                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -752,9 +768,17 @@
                         <h3>Итого</h3>
                         <div class="cart-summary-row">
                             <span>Товары (${updatedCart.length})</span>
-                            <span id="cart-subtotal">${totalPrice.toLocaleString('ru-RU')} ₽</span>
+                            <span id="cart-subtotal">${originalTotalPrice.toLocaleString('ru-RU')} ₽</span>
                         </div>
                         
+                        ${promoSummary.size > 0 ? Array.from(promoSummary.entries()).map(([code, data]) => `
+                            <div class="cart-summary-row" style="color: #10b981;">
+                                <span>🎁 Промокод ${code} (-${data.discount}%)</span>
+                                <span>-${data.totalSaved.toLocaleString('ru-RU')} ₽</span>
+                            </div>
+                        `).join('') : ''}
+                        
+                        ${promoSummary.size === 0 ? `
                         <!-- Промокод -->
                         <div class="promo-section-cart">
                             <h4>🎁 Есть промокод?</h4>
@@ -764,11 +788,7 @@
                             </div>
                             <div id="cart-promo-message" class="promo-message-cart"></div>
                         </div>
-                        
-                        <div id="cart-discount-row" class="cart-summary-row" style="display: none; color: #26de81;">
-                            <span>Промокод (-10%)</span>
-                            <span id="cart-discount-amount">0 ₽</span>
-                        </div>
+                        ` : ''}
                         
                         <div class="cart-summary-row">
                             <span>Доставка</span>

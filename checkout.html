@@ -694,9 +694,8 @@
                     </div>
                     
                     <!-- Итого -->
-                    <div class="order-total-section">
-                        <div class="order-total">Итого к оплате:</div>
-                        <div class="order-item-price order-total" id="total-price">0 ₽</div>
+                    <div class="order-total-section" id="order-total-section">
+                        <!-- Будет заполнено через JavaScript -->
                     </div>
                 </div>
                 
@@ -938,14 +937,23 @@
             }];
         }
         
+        // Для сбора информации о промокодах
+        const promoSummary = new Map(); // { code: { discount: %, totalSaved: amount } }
+        let totalOriginalPrice = 0; // Цена БЕЗ промокодов
+        let totalFinalPrice = 0; // Цена С промокодами
+        
         // Функция отображения товаров
         function displayOrderItems() {
             const itemsList = document.getElementById('order-items-list');
             
             originalTotalPrice = 0;
+            totalOriginalPrice = 0;
+            totalFinalPrice = 0;
+            promoSummary.clear();
             
             itemsList.innerHTML = orderItems.map((item, index) => {
                 const originalPrice = item.unitPrice * item.quantity; // Цена БЕЗ промокода
+                totalOriginalPrice += originalPrice; // Накапливаем оригинальную цену
                 
                 // Если есть промокод, показываем старую цену и новую цену со скидкой
                 let priceHTML;
@@ -955,6 +963,17 @@
                     // Рассчитываем цену СО скидкой
                     const discountedPrice = Math.round(originalPrice * (1 - item.appliedPromo.discount / 100));
                     itemTotal = discountedPrice;
+                    
+                    // Накапливаем информацию о промокодах для итогового блока
+                    const savedAmount = originalPrice - discountedPrice;
+                    if (promoSummary.has(item.appliedPromo.code)) {
+                        promoSummary.get(item.appliedPromo.code).totalSaved += savedAmount;
+                    } else {
+                        promoSummary.set(item.appliedPromo.code, {
+                            discount: item.appliedPromo.discount,
+                            totalSaved: savedAmount
+                        });
+                    }
                     
                     priceHTML = `
                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -968,6 +987,7 @@
                 }
                 
                 originalTotalPrice += itemTotal;
+                totalFinalPrice += itemTotal;
                 
                 return `
                     <div class="order-item" data-index="${index}">
@@ -1002,7 +1022,39 @@
             } else {
                 currentTotalPrice = originalTotalPrice;
             }
-            document.getElementById('total-price').textContent = currentTotalPrice.toLocaleString('ru-RU') + ' ₽';
+            
+            // Формируем итоговый блок с детализацией
+            const totalSection = document.getElementById('order-total-section');
+            
+            let summaryHTML = `
+                <div style="padding: 20px 0; border-top: 2px solid #f0f0f0;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span style="font-size: 16px; color: #666;">Товары (${orderItems.length})</span>
+                        <span style="font-size: 16px; font-weight: 600;">${totalOriginalPrice.toLocaleString('ru-RU')} ₽</span>
+                    </div>
+            `;
+            
+            // Добавляем строки для каждого промокода
+            if (promoSummary.size > 0) {
+                for (const [code, data] of promoSummary.entries()) {
+                    summaryHTML += `
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                            <span style="font-size: 16px; color: #10b981;">🎁 Промокод ${code} (-${data.discount}%)</span>
+                            <span style="font-size: 16px; font-weight: 600; color: #10b981;">-${data.totalSaved.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                    `;
+                }
+            }
+            
+            summaryHTML += `
+                    <div style="display: flex; justify-content: space-between; margin-top: 20px; padding-top: 20px; border-top: 2px solid #f0f0f0;">
+                        <span style="font-size: 20px; font-weight: 700; color: #667eea;">Итого к оплате:</span>
+                        <span style="font-size: 24px; font-weight: 700; color: #667eea;">${currentTotalPrice.toLocaleString('ru-RU')} ₽</span>
+                    </div>
+                </div>
+            `;
+            
+            totalSection.innerHTML = summaryHTML;
         }
         
         // Сброс промокода при изменении корзины
