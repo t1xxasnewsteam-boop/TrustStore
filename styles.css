@@ -292,7 +292,7 @@ body {
         radial-gradient(circle at 90% 80%, rgba(100, 200, 255, 0.7) 0%, transparent 30%),
         radial-gradient(circle at 50% 50%, rgba(255, 50, 180, 0.6) 0%, transparent 35%),
         radial-gradient(circle at 30% 70%, rgba(150, 255, 200, 0.5) 0%, transparent 30%);
-    animation: lightLeaks 20s ease-in-out infinite;
+    animation: lightLeaks 10s ease-in-out infinite;
     pointer-events: none;
     mix-blend-mode: screen;
     z-index: 2;
@@ -314,39 +314,59 @@ body {
         radial-gradient(circle 160px at 30% 80%, rgba(255, 150, 255, 0.3), transparent),
         radial-gradient(circle 100px at 90% 40%, rgba(150, 255, 255, 0.35), transparent),
         radial-gradient(circle 120px at 10% 60%, rgba(255, 180, 255, 0.3), transparent);
-    animation: circles 15s ease-in-out infinite;
+    animation: circles 7s ease-in-out infinite;
     pointer-events: none;
     z-index: 3;
     filter: blur(40px);
 }
 
 @keyframes lightLeaks {
-    0%, 100% {
-        transform: translate(0, 0) rotate(0deg);
+    0% {
+        transform: translate(0, 0) rotate(0deg) scale(1);
         opacity: 0.6;
     }
-    33% {
-        transform: translate(15%, -10%) rotate(120deg);
+    25% {
+        transform: translate(20%, -15%) rotate(90deg) scale(1.1);
         opacity: 0.9;
     }
-    66% {
-        transform: translate(-10%, 15%) rotate(240deg);
+    50% {
+        transform: translate(-15%, 20%) rotate(180deg) scale(0.95);
         opacity: 0.7;
+    }
+    75% {
+        transform: translate(15%, 10%) rotate(270deg) scale(1.05);
+        opacity: 0.85;
+    }
+    100% {
+        transform: translate(0, 0) rotate(360deg) scale(1);
+        opacity: 0.6;
     }
 }
 
 @keyframes circles {
-    0%, 100% {
-        transform: translate(0, 0) scale(1);
+    0% {
+        transform: translate(0, 0) scale(1) rotate(0deg);
         opacity: 1;
     }
-    33% {
-        transform: translate(40px, -50px) scale(1.2);
+    20% {
+        transform: translate(60px, -40px) scale(1.3) rotate(72deg);
+        opacity: 0.6;
+    }
+    40% {
+        transform: translate(-50px, 60px) scale(0.85) rotate(144deg);
+        opacity: 0.9;
+    }
+    60% {
+        transform: translate(45px, 30px) scale(1.15) rotate(216deg);
         opacity: 0.7;
     }
-    66% {
-        transform: translate(-30px, 40px) scale(0.9);
-        opacity: 0.8;
+    80% {
+        transform: translate(-40px, -35px) scale(0.95) rotate(288deg);
+        opacity: 0.85;
+    }
+    100% {
+        transform: translate(0, 0) scale(1) rotate(360deg);
+        opacity: 1;
     }
 }
 
@@ -373,7 +393,7 @@ body {
     top: -20%; 
     left: -10%; 
     background: radial-gradient(circle, rgba(199, 117, 212, 0.6) 0%, transparent 70%);
-    animation: psychedelic1 20s ease-in-out infinite;
+    animation: psychedelic1 12s ease-in-out infinite;
 }
 
 .particle:nth-child(2) { 
@@ -382,7 +402,7 @@ body {
     top: 50%; 
     left: 60%; 
     background: radial-gradient(circle, rgba(74, 91, 184, 0.7) 0%, transparent 70%);
-    animation: psychedelic2 18s ease-in-out infinite;
+    animation: psychedelic2 10s ease-in-out infinite;
 }
 
 .particle:nth-child(3) { 
@@ -391,7 +411,7 @@ body {
     top: 30%; 
     left: 20%; 
     background: radial-gradient(circle, rgba(139, 63, 253, 0.5) 0%, transparent 70%);
-    animation: psychedelic3 22s ease-in-out infinite;
+    animation: psychedelic3 13s ease-in-out infinite;
 }
 
 .particle:nth-child(4) { 
@@ -400,7 +420,7 @@ body {
     top: -10%; 
     left: 70%; 
     background: radial-gradient(circle, rgba(240, 147, 251, 0.6) 0%, transparent 70%);
-    animation: psychedelic1 24s ease-in-out infinite reverse;
+    animation: psychedelic1 14s ease-in-out infinite reverse;
 }
 
 .particle:nth-child(5) { 
@@ -409,7 +429,7 @@ body {
     top: 60%; 
     left: -5%; 
     background: radial-gradient(circle, rgba(93, 60, 130, 0.7) 0%, transparent 70%);
-    animation: psychedelic2 16s ease-in-out infinite;
+    animation: psychedelic2 9s ease-in-out infinite;
 }
 
 .particle:nth-child(6) { 
@@ -418,7 +438,7 @@ body {
     top: 20%; 
     left: 50%; 
     background: radial-gradient(circle, rgba(118, 75, 162, 0.5) 0%, transparent 70%);
-    animation: psychedelic3 19s ease-in-out infinite reverse;
+    animation: psychedelic3 11s ease-in-out infinite reverse;
 }
 
 .particle:nth-child(7) { 
@@ -427,7 +447,7 @@ body {
     top: 70%; 
     left: 80%; 
     background: radial-gradient(circle, rgba(201, 117, 212, 0.6) 0%, transparent 70%);
-    animation: psychedelic1 21s ease-in-out infinite;
+    animation: psychedelic1 13s ease-in-out infinite;
 }
 
 .particle:nth-child(8) { 
@@ -436,7 +456,7 @@ body {
     top: 40%; 
     left: 30%; 
     background: radial-gradient(circle, rgba(61, 141, 208, 0.5) 0%, transparent 70%);
-    animation: psychedelic2 23s ease-in-out infinite reverse;
+    animation: psychedelic2 13s ease-in-out infinite reverse;
 }
 
 .particle:nth-child(9) { 
@@ -445,7 +465,7 @@ body {
     top: 10%; 
     left: 90%; 
     background: radial-gradient(circle, rgba(240, 147, 251, 0.7) 0%, transparent 70%);
-    animation: psychedelic3 17s ease-in-out infinite;
+    animation: psychedelic3 10s ease-in-out infinite;
 }
 
 .particle:nth-child(10) { 
@@ -454,51 +474,51 @@ body {
     top: 80%; 
     left: 40%; 
     background: radial-gradient(circle, rgba(74, 91, 184, 0.6) 0%, transparent 70%);
-    animation: psychedelic1 25s ease-in-out infinite reverse;
+    animation: psychedelic1 14s ease-in-out infinite reverse;
 }
 
 @keyframes psychedelic1 {
     0%, 100% {
-        transform: translate(0, 0) scale(1);
+        transform: translate(0, 0) scale(1) rotate(0deg);
     }
     33% {
-        transform: translate(50px, -80px) scale(1.3);
+        transform: translate(60px, -90px) scale(1.35) rotate(120deg);
     }
     66% {
-        transform: translate(-60px, 40px) scale(0.8);
+        transform: translate(-70px, 50px) scale(0.75) rotate(240deg);
     }
 }
 
 @keyframes psychedelic2 {
     0%, 100% {
-        transform: translate(0, 0) scale(1);
+        transform: translate(0, 0) scale(1) rotate(0deg);
     }
     25% {
-        transform: translate(-70px, -60px) scale(1.2);
+        transform: translate(-80px, -70px) scale(1.25) rotate(90deg);
     }
     50% {
-        transform: translate(40px, 80px) scale(1.4);
+        transform: translate(50px, 90px) scale(1.45) rotate(180deg);
     }
     75% {
-        transform: translate(60px, -40px) scale(0.9);
+        transform: translate(70px, -50px) scale(0.85) rotate(270deg);
     }
 }
 
 @keyframes psychedelic3 {
     0%, 100% {
-        transform: translate(0, 0) scale(1);
+        transform: translate(0, 0) scale(1) rotate(0deg);
     }
     20% {
-        transform: translate(80px, 60px) scale(1.1);
+        transform: translate(90px, 70px) scale(1.15) rotate(72deg);
     }
     40% {
-        transform: translate(-50px, -70px) scale(1.3);
+        transform: translate(-60px, -80px) scale(1.35) rotate(144deg);
     }
     60% {
-        transform: translate(70px, -50px) scale(0.85);
+        transform: translate(80px, -60px) scale(0.8) rotate(216deg);
     }
     80% {
-        transform: translate(-40px, 30px) scale(1.15);
+        transform: translate(-50px, 40px) scale(1.2) rotate(288deg);
     }
 }
 
