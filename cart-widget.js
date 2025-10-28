@@ -1,5 +1,57 @@
 // Cart Widget functionality
 
+// Проверка валидности промокодов в виджете корзины
+async function validateWidgetPromoCodes() {
+    const cart = getCart();
+    let hasChanges = false;
+    const invalidPromoCodes = new Set();
+    
+    // Проверяем каждый товар с промокодом
+    const validatedCart = await Promise.all(cart.map(async (item) => {
+        if (item.appliedPromo && item.appliedPromo.code) {
+            try {
+                const response = await fetch('/api/validate-promo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: item.appliedPromo.code })
+                });
+                
+                const data = await response.json();
+                
+                // Если промокод невалиден - удаляем его
+                if (!data.valid) {
+                    console.log(`⚠️ Промокод ${item.appliedPromo.code} больше недействителен`);
+                    invalidPromoCodes.add(item.appliedPromo.code);
+                    hasChanges = true;
+                    // Удаляем промокод из товара
+                    const { appliedPromo, ...itemWithoutPromo } = item;
+                    return itemWithoutPromo;
+                }
+            } catch (error) {
+                console.error('Ошибка проверки промокода:', error);
+            }
+        }
+        return item;
+    }));
+    
+    // Если были изменения - сохраняем и уведомляем
+    if (hasChanges) {
+        saveCart(validatedCart);
+        
+        // Показываем уведомление о недействительных промокодах
+        if (invalidPromoCodes.size > 0) {
+            const codes = Array.from(invalidPromoCodes).join(', ');
+            setTimeout(() => {
+                if (typeof showNotification === 'function') {
+                    showNotification(`⚠️ Промокод ${codes} больше не действителен и был удален из корзины`, 'warning');
+                }
+            }, 500);
+        }
+    }
+    
+    return hasChanges;
+}
+
 // Toggle cart widget
 function toggleCartWidget() {
     const widget = document.getElementById('cartWidget');
@@ -9,7 +61,10 @@ function toggleCartWidget() {
     overlay.classList.toggle('active');
     
     if (widget.classList.contains('active')) {
-        displayCartWidget();
+        // Сначала проверяем промокоды, затем отображаем виджет
+        validateWidgetPromoCodes().then(() => {
+            displayCartWidget();
+        });
     }
 }
 

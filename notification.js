@@ -251,6 +251,99 @@ notifStyle.textContent = `
             font-size: 13px;
         }
     }
+    
+    /* Универсальное уведомление */
+    .simple-notification {
+        position: fixed;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-150%);
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        padding: 16px 24px;
+        z-index: 10001;
+        min-width: 400px;
+        max-width: 90vw;
+        animation: slideDownNotif 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .simple-notification.warning {
+        border-left: 4px solid #f59e0b;
+    }
+    
+    .simple-notification.error {
+        border-left: 4px solid #ef4444;
+    }
+    
+    .simple-notification.success {
+        border-left: 4px solid #10b981;
+    }
+    
+    .simple-notification.info {
+        border-left: 4px solid #3b82f6;
+    }
+    
+    .simple-notification-text {
+        flex: 1;
+        font-size: 14px;
+        font-weight: 500;
+        color: #374151;
+    }
+    
+    .simple-notification-close {
+        background: transparent;
+        border: none;
+        font-size: 20px;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+    
+    .simple-notification-close:hover {
+        background: #f3f4f6;
+        color: #374151;
+    }
+    
+    @media (max-width: 768px) {
+        .simple-notification {
+            min-width: auto;
+            width: calc(100% - 40px);
+        }
+    }
 `;
 document.head.appendChild(notifStyle);
+
+// Универсальная функция для показа уведомлений
+function showNotification(message, type = 'info') {
+    // Удаляем предыдущее если есть
+    const existing = document.querySelector('.simple-notification');
+    if (existing) existing.remove();
+    
+    // Создаем уведомление
+    const notification = document.createElement('div');
+    notification.className = `simple-notification ${type}`;
+    notification.innerHTML = `
+        <div class="simple-notification-text">${message}</div>
+        <button class="simple-notification-close" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Автоматически убираем через 5 секунд
+    setTimeout(() => {
+        notification.classList.add('fade-out');
+        setTimeout(() => notification.remove(), 800);
+    }, 5000);
+}
 

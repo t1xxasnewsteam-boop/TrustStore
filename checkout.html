@@ -834,6 +834,62 @@
             localStorage.setItem('appliedPromoCode', JSON.stringify({ code: promoCode, discount: discount }));
         }
         
+        // Проверка валидности промокодов в заказе
+        async function validateOrderPromoCodes() {
+            let hasChanges = false;
+            const invalidPromoCodes = new Set();
+            
+            // Проверяем каждый товар с промокодом
+            const validatedItems = await Promise.all(orderItems.map(async (item) => {
+                if (item.appliedPromo && item.appliedPromo.code) {
+                    try {
+                        const response = await fetch('/api/validate-promo', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ code: item.appliedPromo.code })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        // Если промокод невалиден - удаляем его
+                        if (!data.valid) {
+                            console.log(`⚠️ Промокод ${item.appliedPromo.code} больше недействителен`);
+                            invalidPromoCodes.add(item.appliedPromo.code);
+                            hasChanges = true;
+                            // Удаляем промокод из товара
+                            const { appliedPromo, ...itemWithoutPromo } = item;
+                            return itemWithoutPromo;
+                        }
+                    } catch (error) {
+                        console.error('Ошибка проверки промокода:', error);
+                    }
+                }
+                return item;
+            }));
+            
+            // Если были изменения - обновляем orderItems и корзину
+            if (hasChanges) {
+                orderItems = validatedItems;
+                
+                // Если пришли из корзины - обновляем корзину тоже
+                if (fromCart) {
+                    saveCart(orderItems);
+                }
+                
+                // Показываем уведомление о недействительных промокодах
+                if (invalidPromoCodes.size > 0) {
+                    const codes = Array.from(invalidPromoCodes).join(', ');
+                    setTimeout(() => {
+                        if (typeof showNotification === 'function') {
+                            showNotification(`⚠️ Промокод ${codes} больше не действителен и был удален`, 'warning');
+                        }
+                    }, 500);
+                }
+            }
+            
+            return hasChanges;
+        }
+        
         if (fromCart) {
             // Получаем товары из корзины
             orderItems = getCart();
@@ -1187,7 +1243,10 @@
         }
         
         // Отображаем товары при загрузке
-        displayOrderItems();
+        // Сначала проверяем валидность промокодов, затем отображаем товары
+        validateOrderPromoCodes().then(() => {
+            displayOrderItems();
+        });
         
         // Автоматическое применение промокода ОТКЛЮЧЕНО
         // Промокод нужно вводить заново для каждого заказа
