@@ -1579,6 +1579,12 @@ async function syncTelegramReviews() {
                 // Пропускаем сообщения от ботов
                 if (message.from.is_bot) continue;
                 
+                // Пропускаем сообщения от самого канала (официальные ответы магазина)
+                if (message.from.username && message.from.username.toLowerCase() === 'truststoreru') {
+                    console.log('⏭️ Пропущен ответ от канала Trust Store');
+                    continue;
+                }
+                
                 // Получаем автора
                 const firstName = message.from.first_name || '';
                 const lastName = message.from.last_name || '';
