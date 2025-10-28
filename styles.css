@@ -295,7 +295,7 @@ body {
         radial-gradient(circle at 90% 80%, rgba(100, 200, 255, 0.7) 0%, transparent 30%),
         radial-gradient(circle at 50% 50%, rgba(255, 50, 180, 0.6) 0%, transparent 35%),
         radial-gradient(circle at 30% 70%, rgba(150, 255, 200, 0.5) 0%, transparent 30%);
-    animation: lightLeaks 10s ease-in-out infinite;
+    animation: lightLeaks 25s ease infinite;
     pointer-events: none;
     mix-blend-mode: screen;
     z-index: 2;
@@ -317,7 +317,7 @@ body {
         radial-gradient(circle 160px at 30% 80%, rgba(255, 150, 255, 0.3), transparent),
         radial-gradient(circle 100px at 90% 40%, rgba(150, 255, 255, 0.35), transparent),
         radial-gradient(circle 120px at 10% 60%, rgba(255, 180, 255, 0.3), transparent);
-    animation: circles 7s ease-in-out infinite;
+    animation: circles 20s ease infinite;
     pointer-events: none;
     z-index: 3;
     filter: blur(40px);
@@ -396,7 +396,7 @@ body {
     top: -20%; 
     left: -10%; 
     background: radial-gradient(circle, rgba(199, 117, 212, 0.6) 0%, transparent 70%);
-    animation: psychedelic1 12s ease-in-out infinite;
+    animation: psychedelic1 30s ease infinite;
 }
 
 .particle:nth-child(2) { 
@@ -405,7 +405,7 @@ body {
     top: 50%; 
     left: 60%; 
     background: radial-gradient(circle, rgba(74, 91, 184, 0.7) 0%, transparent 70%);
-    animation: psychedelic2 10s ease-in-out infinite;
+    animation: psychedelic2 25s ease infinite;
 }
 
 .particle:nth-child(3) { 
@@ -414,7 +414,7 @@ body {
     top: 30%; 
     left: 20%; 
     background: radial-gradient(circle, rgba(139, 63, 253, 0.5) 0%, transparent 70%);
-    animation: psychedelic3 13s ease-in-out infinite;
+    animation: psychedelic3 32s ease infinite;
 }
 
 .particle:nth-child(4) { 
@@ -423,7 +423,7 @@ body {
     top: -10%; 
     left: 70%; 
     background: radial-gradient(circle, rgba(240, 147, 251, 0.6) 0%, transparent 70%);
-    animation: psychedelic1 14s ease-in-out infinite reverse;
+    animation: psychedelic1 35s ease infinite reverse;
 }
 
 .particle:nth-child(5) { 
@@ -432,7 +432,7 @@ body {
     top: 60%; 
     left: -5%; 
     background: radial-gradient(circle, rgba(93, 60, 130, 0.7) 0%, transparent 70%);
-    animation: psychedelic2 9s ease-in-out infinite;
+    animation: psychedelic2 22s ease infinite;
 }
 
 .particle:nth-child(6) { 
@@ -441,7 +441,7 @@ body {
     top: 20%; 
     left: 50%; 
     background: radial-gradient(circle, rgba(118, 75, 162, 0.5) 0%, transparent 70%);
-    animation: psychedelic3 11s ease-in-out infinite reverse;
+    animation: psychedelic3 28s ease infinite reverse;
 }
 
 .particle:nth-child(7) { 
@@ -450,7 +450,7 @@ body {
     top: 70%; 
     left: 80%; 
     background: radial-gradient(circle, rgba(201, 117, 212, 0.6) 0%, transparent 70%);
-    animation: psychedelic1 13s ease-in-out infinite;
+    animation: psychedelic1 33s ease infinite;
 }
 
 .particle:nth-child(8) { 
@@ -459,7 +459,7 @@ body {
     top: 40%; 
     left: 30%; 
     background: radial-gradient(circle, rgba(61, 141, 208, 0.5) 0%, transparent 70%);
-    animation: psychedelic2 13s ease-in-out infinite reverse;
+    animation: psychedelic2 32s ease infinite reverse;
 }
 
 .particle:nth-child(9) { 
@@ -468,7 +468,7 @@ body {
     top: 10%; 
     left: 90%; 
     background: radial-gradient(circle, rgba(240, 147, 251, 0.7) 0%, transparent 70%);
-    animation: psychedelic3 10s ease-in-out infinite;
+    animation: psychedelic3 25s ease infinite;
 }
 
 .particle:nth-child(10) { 
@@ -477,7 +477,7 @@ body {
     top: 80%; 
     left: 40%; 
     background: radial-gradient(circle, rgba(74, 91, 184, 0.6) 0%, transparent 70%);
-    animation: psychedelic1 14s ease-in-out infinite reverse;
+    animation: psychedelic1 35s ease infinite reverse;
 }
 
 @keyframes psychedelic1 {
