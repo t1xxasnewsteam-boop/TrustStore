@@ -1547,12 +1547,18 @@ async function syncTelegramReviews() {
         console.log(`📨 Получено обновлений: ${data.result.length}`);
         
         let added = 0;
+        const TARGET_POST_ID = 19; // ID поста truststoreru/19
         
         // Обрабатываем каждое сообщение
         for (const update of data.result) {
             // Проверяем что это сообщение из группы обсуждений
             if (update.message && update.message.chat && update.message.from) {
                 const message = update.message;
+                
+                // ВАЖНО: Проверяем что это комментарий ТОЛЬКО к посту #19
+                if (!message.reply_to_message || message.reply_to_message.message_id !== TARGET_POST_ID) {
+                    continue; // Пропускаем все сообщения НЕ под постом #19
+                }
                 
                 // Пропускаем сообщения от ботов
                 if (message.from.is_bot) continue;
