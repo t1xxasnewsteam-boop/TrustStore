@@ -707,15 +707,15 @@
                 observer.observe(reviewsHeader);
             }
             
-            // Плавный скролл к секции отзывов с offset
+            // Плавный скролл к секции отзывов (к прямоугольнику)
             document.querySelectorAll('.smooth-scroll').forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
-                    const targetId = this.getAttribute('href');
-                    const targetSection = document.querySelector(targetId);
-                    if (targetSection) {
-                        const offsetTop = targetSection.getBoundingClientRect().top + window.pageYOffset;
-                        const offset = 120; // Отступ сверху (прямоугольник полностью виден)
+                    // Скроллим к прямоугольнику отзывов, а не к секции
+                    const reviewsBox = document.querySelector('.reviews-header-content');
+                    if (reviewsBox) {
+                        const offsetTop = reviewsBox.getBoundingClientRect().top + window.pageYOffset;
+                        const offset = 120; // Отступ сверху для полной видимости
                         window.scrollTo({
                             top: offsetTop - offset,
                             behavior: 'smooth'
