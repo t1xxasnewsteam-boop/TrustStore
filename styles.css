@@ -280,7 +280,7 @@ body {
     overflow: hidden;
     display: flex;
     align-items: center;
-    min-height: 315px;
+    min-height: 284px;
 }
 
 .catalog-hero::before {
