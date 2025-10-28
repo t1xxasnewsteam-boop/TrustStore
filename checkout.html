@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Оформление заказа - Trust Store</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="cart-widget.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -562,7 +563,7 @@
                 </nav>
                 <div class="header-actions">
                     <button class="btn-icon">🔍</button>
-                    <button class="btn-icon cart-button" onclick="window.location.href='/cart'">🛒 <span class="badge cart-count">0</span></button>
+                    <button class="btn-icon cart-button" onclick="toggleCartWidget()">🛒 <span class="badge cart-count">0</span></button>
                 </div>
             </div>
         </div>
@@ -687,6 +688,7 @@
 
     <script src="tracking.js"></script>
     <script src="cart.js"></script>
+    <script src="cart-widget.js"></script>
     <script src="payment-config.js"></script>
     <script>
         // Получаем данные из URL
