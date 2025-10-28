@@ -527,10 +527,6 @@ body {
     outline: none;
 }
 
-.btn-buy-clicked {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-}
-
 .btn-show-more:hover {
     transform: translateY(-5px);
     box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6) !important;
