@@ -140,6 +140,24 @@ app.use((req, res, next) => {
     next();
 });
 
+// 🔥 Роутинг для /product/:name
+app.get('/product/:productName', (req, res) => {
+    const productName = req.params.productName;
+    const productFile = path.join(__dirname, `${productName}.html`);
+    
+    if (fs.existsSync(productFile)) {
+        return res.sendFile(productFile);
+    }
+    
+    // Если файла нет, отправляем на product.html (общая страница)
+    const defaultProduct = path.join(__dirname, 'product.html');
+    if (fs.existsSync(defaultProduct)) {
+        return res.sendFile(defaultProduct);
+    }
+    
+    res.status(404).send('Product not found');
+});
+
 // 🔥 Middleware для удаления .html из URL
 app.use((req, res, next) => {
     // Если URL заканчивается на .html - редирект на версию без .html
