@@ -989,7 +989,7 @@ body {
 
 .reviews-track {
     display: flex;
-    gap: 0;
+    gap: 30px;
     animation: scroll 60s linear infinite;
     width: fit-content;
     will-change: transform;
@@ -1016,7 +1016,6 @@ body {
     min-width: 480px;
     max-width: 480px;
     flex-shrink: 0;
-    margin-right: 30px;
     position: relative;
     z-index: 1;
     will-change: transform;
@@ -1232,10 +1231,13 @@ body {
         grid-template-columns: 1fr;
     }
 
+    .reviews-track {
+        gap: 20px;
+    }
+
     .review-card {
         min-width: 340px;
         max-width: 340px;
-        margin-right: 20px;
         padding: 25px;
     }
 
