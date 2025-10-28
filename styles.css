@@ -224,8 +224,7 @@ body {
     font-size: 48px;
     font-weight: 700;
     margin-bottom: 20px;
-    animation: fadeInUp 0.8s ease, glow 3s ease-in-out infinite;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    animation: fadeInUp 0.8s ease;
 }
 
 .hero-subtitle {
@@ -237,15 +236,6 @@ body {
     animation: typing 2s steps(60, end) 0.5s forwards;
     clip-path: inset(0 100% 0 0);
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-}
-
-@keyframes glow {
-    0%, 100% {
-        text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-    }
-    50% {
-        text-shadow: 0 0 30px rgba(255, 255, 255, 0.6), 0 0 40px rgba(255, 255, 255, 0.3);
-    }
 }
 
 @keyframes typing {
