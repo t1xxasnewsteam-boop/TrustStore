@@ -983,7 +983,6 @@
         // Увеличение количества товара
         function increaseQuantity(index) {
             orderItems[index].quantity += 1;
-            resetPromoCode(); // Сбрасываем промокод при изменении количества
             displayOrderItems();
             
             // Синхронизируем с корзиной
@@ -1006,7 +1005,6 @@
             
             // Уменьшаем количество
             item.quantity -= 1;
-            resetPromoCode(); // Сбрасываем промокод при изменении количества
             displayOrderItems();
             
             // Синхронизируем с корзиной
@@ -1027,7 +1025,6 @@
             
             // Обновляем количество
             orderItems[index].quantity = numValue;
-            resetPromoCode(); // Сбрасываем промокод при изменении количества
             displayOrderItems();
             
             // Синхронизируем с корзиной
@@ -1071,7 +1068,6 @@
             setTimeout(() => {
                 // Удаляем товар из массива
                 orderItems.splice(index, 1);
-                resetPromoCode(); // Сбрасываем промокод при удалении товара
                 
                 // Если это был последний товар, возвращаем в корзину
                 if (isLastItem) {
@@ -1110,9 +1106,12 @@
                 return;
             }
             
-            if (promoApplied) {
+            // Проверяем, есть ли товары БЕЗ промокода
+            const itemsWithoutPromo = orderItems.filter(item => !item.appliedPromo);
+            
+            if (itemsWithoutPromo.length === 0) {
                 messageElement.className = 'promo-message error';
-                messageElement.textContent = '⚠️ Промокод уже применён';
+                messageElement.textContent = '⚠️ Все товары уже имеют промокод';
                 messageElement.style.display = 'block';
                 return;
             }
@@ -1132,23 +1131,34 @@
                 const data = await response.json();
                 
                 if (data.valid) {
-                    // Промокод валиден
-                    promoApplied = true;
-                    promoDiscount = data.discount;
-                    currentPromoCode = data.code;
+                    // Применяем промокод ТОЛЬКО к товарам без промокода
+                    orderItems = orderItems.map(item => {
+                        if (!item.appliedPromo) {
+                            return {
+                                ...item,
+                                appliedPromo: {
+                                    code: data.code,
+                                    discount: data.discount
+                                }
+                            };
+                        }
+                        return item;
+                    });
                     
-                    promoInput.disabled = true;
-                    applyButton.disabled = true;
-                    applyButton.textContent = 'Применен';
+                    // Сохраняем обновленную корзину
+                    saveCart(orderItems);
                     
-                    // НЕ сохраняем промокод - пользователь должен вводить заново
-                    // saveAppliedPromo(promoCode, data.discount);
+                    // Очищаем поле ввода
+                    promoInput.value = '';
+                    applyButton.disabled = false;
+                    applyButton.textContent = 'Применить';
                     
                     messageElement.className = 'promo-message success';
-                    messageElement.textContent = `✓ Промокод применён! Скидка ${data.discount}%`;
+                    messageElement.textContent = `✓ Промокод применён к ${itemsWithoutPromo.length} товар(ам)! Скидка ${data.discount}%`;
                     messageElement.style.display = 'block';
                     
-                    updateTotalPrice();
+                    // Перерисовываем заказ
+                    displayOrderItems();
                 } else {
                     // Промокод невалиден
                     messageElement.className = 'promo-message error';
@@ -1171,9 +1181,6 @@
         
         // Отображаем товары при загрузке
         displayOrderItems();
-        
-        // ВСЕГДА сбрасываем промокод при загрузке страницы (новая корзина = новый промокод)
-        resetPromoCode();
         
         // Автоматическое применение промокода ОТКЛЮЧЕНО
         // Промокод нужно вводить заново для каждого заказа
