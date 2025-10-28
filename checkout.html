@@ -87,9 +87,10 @@
         }
         
         .order-item {
-            display: flex;
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
             padding: 25px;
             background: white;
             border-radius: 20px;
@@ -136,7 +137,8 @@
         }
         
         .order-item-info {
-            flex: 1;
+            flex: 0 1 auto;
+            min-width: 150px;
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -170,7 +172,6 @@
             font-weight: 700;
             color: #667eea;
             flex-shrink: 0;
-            margin-right: 15px;
         }
         
         .quantity-controls {
@@ -591,9 +592,20 @@
             }
             
             .order-item {
-                flex-wrap: wrap;
+                grid-template-columns: auto 1fr;
                 padding: 20px;
                 gap: 15px;
+            }
+            
+            .order-item-price {
+                grid-column: 1 / -1;
+                text-align: center;
+                font-size: 18px;
+            }
+            
+            .quantity-controls {
+                grid-column: 1 / -1;
+                justify-content: center;
             }
             
             .order-item-image {
