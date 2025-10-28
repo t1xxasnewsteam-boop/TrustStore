@@ -955,6 +955,11 @@ body {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    border: 2px solid #e8e8e8;
+    border-radius: 24px;
+    padding: 30px;
+    background: linear-gradient(to bottom, #fafafa 0%, #ffffff 100%);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
 .reviews-slider::-webkit-scrollbar {
