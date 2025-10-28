@@ -525,7 +525,7 @@
             const productName = 'YouTube Premium + Music Premium';
             const finalPrice = document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '');
             const duration = window.selectedDuration;
-            window.location.href = `checkout?product=${encodeURIComponent(productName)}&price=${finalPrice}&duration=${encodeURIComponent(duration)}`;
+            window.location.href = `/checkout?product=${encodeURIComponent(productName)}&price=${finalPrice}&duration=${encodeURIComponent(duration)}`;
         }
     </script>
     

@@ -519,7 +519,7 @@
             const duration = window.selectedDuration;
             
             // Формируем URL с параметрами
-            const checkoutURL = `checkout?product=${encodeURIComponent(productName)}&price=${finalPrice}&duration=${encodeURIComponent(duration)}`;
+            const checkoutURL = `/checkout?product=${encodeURIComponent(productName)}&price=${finalPrice}&duration=${encodeURIComponent(duration)}`;
             
             // Переходим на страницу оформления
             window.location.href = checkoutURL;
