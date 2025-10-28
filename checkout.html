@@ -1000,9 +1000,9 @@
                     }
                     
                     priceHTML = `
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div style="text-decoration: line-through; color: #999; font-size: 14px;">${originalPrice.toLocaleString('ru-RU')} ₽</div>
+                        <div style="display: flex; align-items: baseline; gap: 6px; flex-shrink: 0;">
                             <div class="order-item-price">${discountedPrice.toLocaleString('ru-RU')} ₽</div>
+                            <div style="text-decoration: line-through; color: #999; font-size: 12px; opacity: 0.7;">${originalPrice.toLocaleString('ru-RU')} ₽</div>
                         </div>
                     `;
                 } else {
