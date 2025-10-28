@@ -273,11 +273,14 @@ body {
 /* Catalog Hero - Psychedelic Effect */
 .catalog-hero {
     background: #1a0033;
-    padding: 70px 0 40px;
+    padding: 20px 0 40px;
     text-align: center;
     color: white;
     position: relative;
     overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    min-height: 200px;
 }
 
 .catalog-hero::before {
