@@ -231,5 +231,9 @@ document.addEventListener('DOMContentLoaded', () => {
     cartButtons.forEach(btn => {
         btn.style.cursor = 'pointer';
     });
+    
+    // Обновляем счетчик корзины при загрузке страницы
+    updateCartCount();
+    console.log('🛒 Корзина инициализирована! Товаров:', getCart().length);
 });
 

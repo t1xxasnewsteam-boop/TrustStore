@@ -42,32 +42,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Shopping cart functionality
-let cartCount = 0;
-
-document.querySelectorAll('.btn-buy').forEach(button => {
-    button.addEventListener('click', function(e) {
-        e.stopPropagation();
-        
-        // Add to cart animation
-        cartCount++;
-        updateCartBadge();
-        
-        // Show notification
-        showNotification('Товар добавлен в корзину!');
-    });
-});
-
-function updateCartBadge() {
-    const badge = document.querySelector('.badge');
-    if (badge) {
-        badge.textContent = cartCount;
-        badge.style.animation = 'none';
-        setTimeout(() => {
-            badge.style.animation = 'pulse 0.3s ease';
-        }, 10);
-    }
-}
+// Shopping cart functionality removed - moved to cart.js
 
 function showNotification(message) {
     // Remove existing notification if any
