@@ -612,9 +612,29 @@
                         // Берем первые 10 отзывов
                         const reviewsToShow = data.reviews.slice(0, 10);
                         
+                        // Функция форматирования даты в МСК
+                        function formatMoscowDateTime(unixTimestamp) {
+                            if (!unixTimestamp) return 'Отзыв из Telegram';
+                            
+                            const date = new Date(unixTimestamp * 1000); // Unix timestamp в миллисекунды
+                            
+                            // Форматируем дату и время для МСК (UTC+3)
+                            const moscowDate = new Date(date.getTime() + (3 * 60 * 60 * 1000)); // +3 часа к UTC
+                            
+                            const day = moscowDate.getUTCDate().toString().padStart(2, '0');
+                            const month = (moscowDate.getUTCMonth() + 1).toString().padStart(2, '0');
+                            const year = moscowDate.getUTCFullYear();
+                            const hours = moscowDate.getUTCHours().toString().padStart(2, '0');
+                            const minutes = moscowDate.getUTCMinutes().toString().padStart(2, '0');
+                            
+                            return `Отзыв из Telegram • ${day}.${month}.${year} ${hours}:${minutes} МСК`;
+                        }
+                        
                         // Создаем карточки
                         const reviewCards = reviewsToShow.map((review, index) => {
                             const gradient = gradients[index % gradients.length];
+                            const dateTime = formatMoscowDateTime(review.telegram_date);
+                            
                             return `
                                 <div class="review-card">
                                     <div class="review-header">
@@ -625,7 +645,7 @@
                                         </div>
                                         <div class="review-info">
                                             <div class="review-name">${review.author_name}</div>
-                                            <div class="review-telegram">📱 Telegram</div>
+                                            <div class="review-telegram">${dateTime}</div>
                                         </div>
                                     </div>
                                     <div class="review-stars">⭐⭐⭐⭐⭐</div>

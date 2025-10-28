@@ -399,6 +399,7 @@ db.exec(`
         review_text TEXT NOT NULL,
         rating INTEGER DEFAULT 5,
         telegram_comment_id INTEGER UNIQUE,
+        telegram_date INTEGER,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -427,6 +428,20 @@ try {
     }
 } catch (error) {
     console.error('❌ Ошибка миграции:', error.message);
+}
+
+// Миграция: добавление колонки telegram_date если её нет
+try {
+    const reviewsTableInfo = db.prepare("PRAGMA table_info(telegram_reviews)").all();
+    const hasTelegramDate = reviewsTableInfo.some(col => col.name === 'telegram_date');
+    
+    if (!hasTelegramDate) {
+        console.log('⚙️ Добавление колонки telegram_date в telegram_reviews...');
+        db.exec('ALTER TABLE telegram_reviews ADD COLUMN telegram_date INTEGER');
+        console.log('✅ Колонка telegram_date успешно добавлена!');
+    }
+} catch (error) {
+    console.error('❌ Ошибка миграции telegram_date:', error.message);
 }
 
 // Создаем дефолтного админа (username: t1xxas, password: Gaga00723)
@@ -1579,10 +1594,13 @@ async function syncTelegramReviews() {
                 
                 if (!existing) {
                     try {
+                        // Получаем timestamp из Telegram (Unix timestamp в секундах)
+                        const telegramDate = message.date || Math.floor(Date.now() / 1000);
+                        
                         db.prepare(`
-                            INSERT INTO telegram_reviews (telegram_user_id, author_name, review_text, rating, telegram_comment_id)
-                            VALUES (?, ?, ?, 5, ?)
-                        `).run(message.from.id, author, text, message.message_id);
+                            INSERT INTO telegram_reviews (telegram_user_id, author_name, review_text, rating, telegram_comment_id, telegram_date)
+                            VALUES (?, ?, ?, 5, ?, ?)
+                        `).run(message.from.id, author, text, message.message_id, telegramDate);
                         
                         added++;
                         console.log(`✅ Добавлен отзыв от ${author}: "${text.substring(0, 50)}..."`);
