@@ -4,6 +4,24 @@ function showCartNotification(product) {
     const existing = document.querySelector('.beautiful-notification');
     if (existing) existing.remove();
     
+    // Рассчитываем финальную цену с учетом промокода
+    let finalPrice = product.price;
+    let priceHTML = '';
+    
+    if (product.appliedPromo) {
+        // Есть промокод - показываем старую и новую цену
+        const discountedPrice = Math.round(product.price * (1 - product.appliedPromo.discount / 100));
+        priceHTML = `
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                <div style="text-decoration: line-through; color: #999; font-size: 14px;">${product.price.toLocaleString('ru-RU')} ₽</div>
+                <div class="notification-price">${discountedPrice.toLocaleString('ru-RU')} ₽</div>
+            </div>
+        `;
+    } else {
+        // Нет промокода - просто цена
+        priceHTML = `<div class="notification-price">${product.price.toLocaleString('ru-RU')} ₽</div>`;
+    }
+    
     // Создаем уведомление
     const notification = document.createElement('div');
     notification.className = 'beautiful-notification';
@@ -19,7 +37,7 @@ function showCartNotification(product) {
                 <h4>✓ Добавлено в корзину</h4>
                 <p class="product-name">${product.name}</p>
             </div>
-            <div class="notification-price">${product.price.toLocaleString('ru-RU')} ₽</div>
+            ${priceHTML}
         </div>
         <div class="notification-actions">
             <button onclick="this.parentElement.parentElement.remove()" class="btn-close-notif">
