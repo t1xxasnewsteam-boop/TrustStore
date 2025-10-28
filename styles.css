@@ -958,74 +958,22 @@ body {
 }
 
 .review-card {
-    /* Liquid Glass эффект */
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    
+    background: white;
     padding: 30px;
-    border-radius: 24px;
-    
-    /* Неоновая рамка */
-    border: 1px solid transparent;
-    background-image: 
-        linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)),
-        linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #667eea 75%, #764ba2 100%);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-    
-    /* Объем и тени */
-    box-shadow: 
-        0 8px 32px rgba(102, 126, 234, 0.1),
-        0 2px 8px rgba(0, 0, 0, 0.05),
-        inset 0 1px 0 rgba(255, 255, 255, 0.8);
-    
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border: 1px solid #e8e8e8;
     min-width: 500px;
     max-width: 500px;
     flex-shrink: 0;
-    margin-right: 30px; /* Чтобы не сливались */
-    
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    z-index: 1;
-}
-
-.review-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 24px;
-    padding: 1px;
-    background: linear-gradient(135deg, 
-        rgba(102, 126, 234, 0.3) 0%, 
-        rgba(118, 75, 162, 0.3) 25%, 
-        rgba(240, 147, 251, 0.3) 50%, 
-        rgba(102, 126, 234, 0.3) 75%, 
-        rgba(118, 75, 162, 0.3) 100%);
-    -webkit-mask: 
-        linear-gradient(#fff 0 0) content-box, 
-        linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    pointer-events: none;
+    margin-right: 30px;
 }
 
 .review-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 
-        0 20px 60px rgba(102, 126, 234, 0.25),
-        0 8px 16px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.9);
-    z-index: 2;
-}
-
-.review-card:hover::before {
-    opacity: 1;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.15);
+    border-color: #667eea;
 }
 
 .review-header {
@@ -1043,11 +991,7 @@ body {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    box-shadow: 
-        0 4px 20px rgba(0, 0, 0, 0.15),
-        0 0 0 3px rgba(255, 255, 255, 0.5),
-        inset 0 2px 4px rgba(255, 255, 255, 0.3);
-    position: relative;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .review-info {
@@ -1080,15 +1024,12 @@ body {
     font-size: 18px;
     margin-bottom: 15px;
     letter-spacing: 2px;
-    filter: drop-shadow(0 2px 4px rgba(255, 215, 0, 0.3));
 }
 
 .review-text {
     font-size: 15px;
     line-height: 1.7;
-    color: #2a2a2a;
-    font-weight: 400;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    color: #4a4a4a;
 }
 
 /* Footer */
