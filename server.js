@@ -1600,11 +1600,6 @@ async function syncTelegramReviews() {
                     continue;
                 }
                 
-                // Пропускаем сообщения от Maria (telegram_user_id: 7938444184)
-                if (message.from.id === 7938444184) {
-                    continue;
-                }
-                
                 // Получаем автора
                 const firstName = message.from.first_name || '';
                 const lastName = message.from.last_name || '';
