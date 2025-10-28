@@ -267,7 +267,7 @@ body {
 }
 
 .btn-primary:hover {
-    transform: translateY(-1px);
+    transform: translateY(-3px);
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
 }
 
@@ -289,6 +289,7 @@ body {
 .reviews-link:hover {
     color: #e0e0e0;
     text-decoration-thickness: 2px;
+    transform: translateY(-2px);
 }
 
 /* Catalog Hero - Psychedelic Effect */
