@@ -1632,6 +1632,22 @@ async function syncTelegramReviews() {
                         
                         added++;
                         console.log(`✅ Добавлен отзыв от ${author}: "${text.substring(0, 50)}..."`);
+                        
+                        // 🔄 СИСТЕМА "ДОМИНО": Оставляем только 10 последних отзывов
+                        const totalReviews = db.prepare('SELECT COUNT(*) as count FROM telegram_reviews').get();
+                        if (totalReviews.count > 10) {
+                            // Удаляем самый старый отзыв (по telegram_date)
+                            const oldestReview = db.prepare(`
+                                SELECT id, author_name FROM telegram_reviews 
+                                ORDER BY telegram_date ASC 
+                                LIMIT 1
+                            `).get();
+                            
+                            if (oldestReview) {
+                                db.prepare('DELETE FROM telegram_reviews WHERE id = ?').run(oldestReview.id);
+                                console.log(`🗑️ Удален старый отзыв от ${oldestReview.author_name} (система домино)`);
+                            }
+                        }
                     } catch (err) {
                         // Игнорируем дубли (UNIQUE constraint)
                         if (!err.message.includes('UNIQUE')) {
