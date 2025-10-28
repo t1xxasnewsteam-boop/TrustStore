@@ -446,21 +446,17 @@
             }, 10);
         }
         
-        // Промокоды (10% скидка) - синхронизированы со страницей оформления заказа
-        const validCodes = {
-            'GPT5': 10,
-            'TRUST10': 10,
-            'SALE10': 10,
-            'DISCOUNT10': 10
-        };
+        let appliedPromoDiscount = 0;
+        let appliedPromoCode = '';
         
-        function applyPromoCode() {
+        async function applyPromoCode() {
             const input = document.getElementById('promo-code');
             const code = input.value.trim().toUpperCase();
             const message = document.getElementById('promo-message');
             const oldPriceEl = document.getElementById('old-price');
             const discountBadge = document.getElementById('discount-badge');
             const priceElement = document.getElementById('selected-price');
+            const applyButton = input.nextElementSibling;
             
             if (!code) {
                 message.textContent = '❌ Введите промокод';
@@ -476,32 +472,69 @@
                 return;
             }
             
-            if (validCodes[code]) {
-                const discount = validCodes[code];
-                const newPrice = Math.round(currentPrice * (1 - discount / 100));
+            // Показываем загрузку
+            applyButton.disabled = true;
+            applyButton.textContent = 'Проверка...';
+            
+            try {
+                // Проверяем промокод через API
+                const response = await fetch('/api/validate-promo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: code })
+                });
                 
-                oldPriceEl.textContent = currentPrice.toLocaleString('ru-RU') + ' ₽';
-                oldPriceEl.style.display = 'block';
+                const data = await response.json();
                 
-                priceElement.textContent = newPrice.toLocaleString('ru-RU') + ' ₽';
-                priceElement.style.animation = 'none';
-                setTimeout(() => {
-                    priceElement.style.animation = 'priceUpdate 0.5s ease';
-                }, 10);
-                
-                discountBadge.textContent = `-${discount}%`;
-                discountBadge.style.display = 'block';
-                
-                message.textContent = `✅ Промокод применен! Скидка ${discount}%`;
-                message.style.color = '#26de81';
-                message.style.display = 'block';
-                
-                discountApplied = true;
-                currentPrice = newPrice;
-            } else {
-                message.textContent = '❌ Неверный промокод';
+                if (data.valid) {
+                    // Промокод валиден
+                    appliedPromoDiscount = data.discount;
+                    appliedPromoCode = data.code;
+                    const newPrice = Math.round(currentPrice * (1 - data.discount / 100));
+                    
+                    oldPriceEl.textContent = currentPrice.toLocaleString('ru-RU') + ' ₽';
+                    oldPriceEl.style.display = 'block';
+                    
+                    priceElement.textContent = newPrice.toLocaleString('ru-RU') + ' ₽';
+                    priceElement.style.animation = 'none';
+                    setTimeout(() => {
+                        priceElement.style.animation = 'priceUpdate 0.5s ease';
+                    }, 10);
+                    
+                    discountBadge.textContent = `-${data.discount}%`;
+                    discountBadge.style.display = 'block';
+                    
+                    message.textContent = `✅ Промокод применен! Скидка ${data.discount}%`;
+                    message.style.color = '#26de81';
+                    message.style.display = 'block';
+                    
+                    discountApplied = true;
+                    currentPrice = newPrice;
+                    
+                    input.disabled = true;
+                    input.style.backgroundColor = '#f0f0f0';
+                    applyButton.disabled = true;
+                    applyButton.textContent = 'Применен';
+                    
+                    // Сохраняем промокод для передачи в checkout
+                    localStorage.setItem('tempPromoCode', JSON.stringify({ code: data.code, discount: data.discount }));
+                } else {
+                    // Промокод невалиден
+                    message.textContent = `❌ ${data.message || 'Неверный промокод'}`;
+                    message.style.color = '#e74c3c';
+                    message.style.display = 'block';
+                    
+                    applyButton.disabled = false;
+                    applyButton.textContent = 'Применить';
+                }
+            } catch (error) {
+                console.error('Error validating promo code:', error);
+                message.textContent = '❌ Ошибка проверки промокода';
                 message.style.color = '#e74c3c';
                 message.style.display = 'block';
+                
+                applyButton.disabled = false;
+                applyButton.textContent = 'Применить';
             }
         }
         
@@ -528,6 +561,15 @@
             const productName = 'Claude AI │ Pro';
             const finalPrice = document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '');
             const duration = window.selectedDuration;
+            
+            // Если применен промокод, сохраняем его для checkout
+            if (discountApplied && appliedPromoCode) {
+                localStorage.setItem('tempPromoCode', JSON.stringify({ 
+                    code: appliedPromoCode, 
+                    discount: appliedPromoDiscount 
+                }));
+            }
+            
             window.location.href = `/checkout?product=${encodeURIComponent(productName)}&price=${finalPrice}&duration=${encodeURIComponent(duration)}`;
         }
     </script>

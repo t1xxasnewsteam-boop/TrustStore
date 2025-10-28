@@ -435,20 +435,25 @@
             updatePrice();
         }
         
+        let appliedPromoDiscount = 0;
+        let appliedPromoCode = '';
+        
         function updatePrice() {
             const priceElement = document.getElementById('selected-price');
             const oldPriceElement = document.getElementById('old-price');
             const discountBadge = document.getElementById('discount-badge');
             let finalPrice = currentPrice;
             
-            if (discountApplied) {
-                finalPrice = Math.round(currentPrice * 0.9); // 10% скидка
+            if (discountApplied && appliedPromoDiscount > 0) {
+                const discountMultiplier = (100 - appliedPromoDiscount) / 100;
+                finalPrice = Math.round(currentPrice * discountMultiplier);
                 
                 // Показываем старую цену зачеркнутой
                 oldPriceElement.textContent = currentPrice.toLocaleString('ru-RU') + ' ₽';
                 oldPriceElement.style.display = 'block';
                 
                 // Показываем бейдж со скидкой
+                discountBadge.textContent = `-${appliedPromoDiscount}%`;
                 discountBadge.style.display = 'block';
                 
                 // Анимация новой цены
@@ -468,19 +473,11 @@
             }, 10);
         }
         
-        function applyPromoCode() {
+        async function applyPromoCode() {
             const promoInput = document.getElementById('promo-code');
             const promoCode = promoInput.value.trim().toUpperCase();
             const messageElement = document.getElementById('promo-message');
-            
-            // Список валидных промокодов
-        // Промокоды (10% скидка) - синхронизированы со страницей оформления заказа
-        const validCodes = {
-            'GPT5': 10,
-            'TRUST10': 10,
-            'SALE10': 10,
-            'DISCOUNT10': 10
-        };
+            const applyButton = promoInput.nextElementSibling;
             
             if (promoCode === '') {
                 messageElement.style.display = 'block';
@@ -489,24 +486,62 @@
                 return;
             }
             
-            if (validCodes[promoCode]) {
-                const discount = validCodes[promoCode];
-                discountApplied = true;
-                updatePrice();
-                
-                // Сохраняем промокод в localStorage
-                localStorage.setItem('appliedPromoCode', JSON.stringify(promoCode));
-                
-                messageElement.style.display = 'block';
-                messageElement.style.color = '#26de81';
-                messageElement.textContent = `✓ Промокод применен! Скидка ${discount}%`;
-                
-                promoInput.disabled = true;
-                promoInput.style.backgroundColor = '#f0f0f0';
-            } else {
+            if (discountApplied) {
                 messageElement.style.display = 'block';
                 messageElement.style.color = '#ff6b6b';
-                messageElement.textContent = '❌ Неверный промокод';
+                messageElement.textContent = '⚠️ Промокод уже применён';
+                return;
+            }
+            
+            // Показываем загрузку
+            applyButton.disabled = true;
+            applyButton.textContent = 'Проверка...';
+            
+            try {
+                // Проверяем промокод через API
+                const response = await fetch('/api/validate-promo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: promoCode })
+                });
+                
+                const data = await response.json();
+                
+                if (data.valid) {
+                    // Промокод валиден
+                    appliedPromoDiscount = data.discount;
+                    appliedPromoCode = data.code;
+                    discountApplied = true;
+                    updatePrice();
+                    
+                    messageElement.style.display = 'block';
+                    messageElement.style.color = '#26de81';
+                    messageElement.textContent = `✓ Промокод применен! Скидка ${data.discount}%`;
+                    
+                    promoInput.disabled = true;
+                    promoInput.style.backgroundColor = '#f0f0f0';
+                    applyButton.disabled = true;
+                    applyButton.textContent = 'Применен';
+                    
+                    // Сохраняем промокод для передачи в checkout
+                    localStorage.setItem('tempPromoCode', JSON.stringify({ code: data.code, discount: data.discount }));
+                } else {
+                    // Промокод невалиден
+                    messageElement.style.display = 'block';
+                    messageElement.style.color = '#ff6b6b';
+                    messageElement.textContent = `❌ ${data.message || 'Неверный промокод'}`;
+                    
+                    applyButton.disabled = false;
+                    applyButton.textContent = 'Применить';
+                }
+            } catch (error) {
+                console.error('Error validating promo code:', error);
+                messageElement.style.display = 'block';
+                messageElement.style.color = '#ff6b6b';
+                messageElement.textContent = '❌ Ошибка проверки промокода';
+                
+                applyButton.disabled = false;
+                applyButton.textContent = 'Применить';
             }
         }
         
@@ -518,6 +553,14 @@
             const productName = 'ChatGPT Plus';
             const finalPrice = document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '');
             const duration = window.selectedDuration;
+            
+            // Если применен промокод, сохраняем его для checkout
+            if (discountApplied && appliedPromoCode) {
+                localStorage.setItem('tempPromoCode', JSON.stringify({ 
+                    code: appliedPromoCode, 
+                    discount: appliedPromoDiscount 
+                }));
+            }
             
             // Формируем URL с параметрами
             const checkoutURL = `/checkout?product=${encodeURIComponent(productName)}&price=${finalPrice}&duration=${encodeURIComponent(duration)}`;
