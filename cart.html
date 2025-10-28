@@ -6,6 +6,7 @@
     <title>Корзина - Trust Store</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="search.css">
+    <link rel="stylesheet" href="cart-widget.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -479,12 +480,12 @@
                 </div>
                 <nav class="nav">
                     <a href="/" class="nav-link">Главная</a>
-                    <a href="catalog" class="nav-link">Каталог</a>
-                    <a href="socials" class="nav-link">Мы в соцсетях</a>
+                    <a href="/catalog" class="nav-link">Каталог</a>
+                    <a href="/socials" class="nav-link">Мы в соцсетях</a>
                 </nav>
                 <div class="header-actions">
                     <button class="btn-icon">🔍</button>
-                    <button class="btn-icon cart-button" onclick="window.location.href='cart'">🛒 <span class="badge cart-count">0</span></button>
+                    <button class="btn-icon cart-button" onclick="toggleCartWidget()">🛒 <span class="badge cart-count">0</span></button>
                 </div>
             </div>
         </div>
@@ -561,6 +562,7 @@
     <script src="chat-widget.js"></script>
     <script src="search.js"></script>
     <script src="cart.js"></script>
+    <script src="cart-widget.js"></script>
     
     <script>
         // Display cart items
