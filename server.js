@@ -391,6 +391,16 @@ db.exec(`
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS telegram_reviews (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        telegram_user_id INTEGER,
+        author_name TEXT NOT NULL,
+        review_text TEXT NOT NULL,
+        rating INTEGER DEFAULT 5,
+        telegram_comment_id INTEGER UNIQUE,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_session_id ON visits(session_id);
     CREATE INDEX IF NOT EXISTS idx_timestamp ON visits(timestamp);
     CREATE INDEX IF NOT EXISTS idx_country ON visits(country_code);
@@ -398,6 +408,7 @@ db.exec(`
     CREATE INDEX IF NOT EXISTS idx_customer_email ON customers(email);
     CREATE INDEX IF NOT EXISTS idx_ticket_status ON support_tickets(status);
     CREATE INDEX IF NOT EXISTS idx_ticket_id ON support_messages(ticket_id);
+    CREATE INDEX IF NOT EXISTS idx_telegram_comment_id ON telegram_reviews(telegram_comment_id);
 `);
 
 // Миграция: добавление колонки image_url если её нет
@@ -1494,6 +1505,83 @@ app.get('/success', (req, res) => {
 app.get('/socials', (req, res) => {
     res.sendFile(path.join(__dirname, 'socials.html'));
 });
+
+// API для получения отзывов из Telegram
+app.get('/api/telegram-reviews', (req, res) => {
+    try {
+        const reviews = db.prepare(`
+            SELECT * FROM telegram_reviews 
+            ORDER BY created_at DESC 
+            LIMIT 20
+        `).all();
+        
+        res.json({ success: true, reviews, count: reviews.length });
+    } catch (error) {
+        console.error('Ошибка получения отзывов:', error);
+        res.status(500).json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
+// Функция синхронизации отзывов из Telegram
+async function syncTelegramReviews() {
+    try {
+        console.log('🔄 Синхронизация отзывов из Telegram...');
+        
+        // URL поста: https://t.me/truststoreru/19
+        const channelUsername = 'truststoreru';
+        const messageId = 19;
+        
+        // Получаем комментарии через Telegram Bot API
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates`;
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            console.error('❌ Ошибка запроса к Telegram API');
+            return;
+        }
+        
+        const data = await response.json();
+        
+        // Фильтруем только комментарии к нашему посту
+        const comments = data.result.filter(update => {
+            return update.message && 
+                   update.message.reply_to_message &&
+                   update.message.reply_to_message.message_id === messageId;
+        });
+        
+        console.log(`📝 Найдено комментариев: ${comments.length}`);
+        
+        // Сохраняем каждый комментарий в БД
+        for (const comment of comments) {
+            const message = comment.message;
+            const author = message.from.first_name + (message.from.last_name ? ' ' + message.from.last_name : '');
+            const text = message.text || '';
+            
+            // Проверяем, не добавлен ли уже этот комментарий
+            const existing = db.prepare('SELECT id FROM telegram_reviews WHERE telegram_comment_id = ?').get(message.message_id);
+            
+            if (!existing && text.trim().length > 0) {
+                db.prepare(`
+                    INSERT INTO telegram_reviews (telegram_user_id, author_name, review_text, rating, telegram_comment_id)
+                    VALUES (?, ?, ?, 5, ?)
+                `).run(message.from.id, author, text, message.message_id);
+                
+                console.log(`✅ Добавлен отзыв от ${author}`);
+            }
+        }
+        
+        console.log('✅ Синхронизация завершена');
+        
+    } catch (error) {
+        console.error('❌ Ошибка синхронизации отзывов:', error);
+    }
+}
+
+// Запускаем синхронизацию при старте сервера
+syncTelegramReviews();
+
+// Автоматическая синхронизация каждые 10 минут
+setInterval(syncTelegramReviews, 10 * 60 * 1000);
 
 // Секретный роут для админ панели (БЕЗ authMiddleware - страница сама проверяет)
 app.get('/t1xxas', (req, res) => {

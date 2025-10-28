@@ -572,7 +572,80 @@
             });
             
             console.log('✅ Карточки кликабельны, кнопки перекидывают на страницы!');
+            
+            // Загружаем отзывы из Telegram
+            loadTelegramReviews();
         });
+        
+        // Функция загрузки отзывов из API
+        async function loadTelegramReviews() {
+            try {
+                const response = await fetch('/api/telegram-reviews');
+                const data = await response.json();
+                
+                if (data.success && data.reviews && data.reviews.length > 0) {
+                    console.log(`📝 Загружено отзывов из Telegram: ${data.reviews.length}`);
+                    
+                    // Обновляем счетчик отзывов
+                    const ratingCount = document.querySelector('.rating-count');
+                    if (ratingCount) {
+                        ratingCount.textContent = `на основе ${data.count} отзывов`;
+                    }
+                    
+                    // Генерируем градиенты для аватарок
+                    const gradients = [
+                        'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                        'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                        'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                        'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+                        'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
+                        'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+                        'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+                        'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+                        'linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)'
+                    ];
+                    
+                    // Генерируем HTML для отзывов
+                    const reviewsTrack = document.querySelector('.reviews-track');
+                    if (reviewsTrack) {
+                        // Берем первые 10 отзывов
+                        const reviewsToShow = data.reviews.slice(0, 10);
+                        
+                        // Создаем карточки
+                        const reviewCards = reviewsToShow.map((review, index) => {
+                            const gradient = gradients[index % gradients.length];
+                            return `
+                                <div class="review-card">
+                                    <div class="review-header">
+                                        <div class="review-avatar" style="background: ${gradient};">
+                                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="white"/>
+                                            </svg>
+                                        </div>
+                                        <div class="review-info">
+                                            <div class="review-name">${review.author_name}</div>
+                                            <div class="review-telegram">📱 Telegram</div>
+                                        </div>
+                                    </div>
+                                    <div class="review-stars">⭐⭐⭐⭐⭐</div>
+                                    <p class="review-text">${review.review_text}</p>
+                                </div>
+                            `;
+                        }).join('');
+                        
+                        // Дублируем карточки для бесконечного loop
+                        reviewsTrack.innerHTML = reviewCards + reviewCards.slice(0, reviewsToShow.length / 2);
+                        
+                        console.log('✅ Отзывы из Telegram загружены и отображены!');
+                    }
+                } else {
+                    console.log('ℹ️ Отзывы из Telegram пока не загружены, используем статичные');
+                }
+            } catch (error) {
+                console.error('❌ Ошибка загрузки отзывов из Telegram:', error);
+            }
+        }
     </script>
 </body>
 </html>
