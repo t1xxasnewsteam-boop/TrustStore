@@ -586,10 +586,12 @@
                 if (data.success && data.reviews && data.reviews.length > 0) {
                     console.log(`📝 Загружено отзывов из Telegram: ${data.reviews.length}`);
                     
-                    // Обновляем счетчик отзывов
+                    // Обновляем счетчик отзывов (используем totalComments из Telegram)
                     const ratingCount = document.querySelector('.rating-count');
                     if (ratingCount) {
-                        ratingCount.textContent = `на основе ${data.count} отзывов`;
+                        const totalCount = data.totalComments || data.count;
+                        ratingCount.textContent = `на основе ${totalCount} отзывов`;
+                        console.log(`📊 Всего комментариев под постом в Telegram: ${totalCount}`);
                     }
                     
                     // Генерируем градиенты для аватарок

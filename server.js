@@ -402,6 +402,12 @@ db.exec(`
         telegram_date INTEGER,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
+    
+    CREATE TABLE IF NOT EXISTS telegram_stats (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        total_comments INTEGER DEFAULT 0,
+        last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
 
     CREATE INDEX IF NOT EXISTS idx_session_id ON visits(session_id);
     CREATE INDEX IF NOT EXISTS idx_timestamp ON visits(timestamp);
@@ -1532,7 +1538,16 @@ app.get('/api/telegram-reviews', (req, res) => {
             LIMIT 10
         `).all();
         
-        res.json({ success: true, reviews, count: reviews.length });
+        // Получаем общее количество комментариев
+        const stats = db.prepare('SELECT total_comments FROM telegram_stats WHERE id = 1').get();
+        const totalComments = stats ? stats.total_comments : reviews.length;
+        
+        res.json({ 
+            success: true, 
+            reviews, 
+            count: reviews.length,
+            totalComments: totalComments 
+        });
     } catch (error) {
         console.error('Ошибка получения отзывов:', error);
         res.status(500).json({ success: false, error: 'Ошибка сервера' });
@@ -1563,6 +1578,7 @@ async function syncTelegramReviews() {
         console.log(`📨 Получено обновлений: ${data.result.length}`);
         
         let added = 0;
+        let totalValidComments = 0; // Счетчик ВСЕХ валидных комментариев
         const TARGET_POST_ID = 15; // ID сообщения в группе обсуждений (пост #19 в канале = сообщение #15 в группе)
         
         // Обрабатываем каждое сообщение
@@ -1596,6 +1612,9 @@ async function syncTelegramReviews() {
                 // Пропускаем пустые сообщения и технические (с паролями)
                 if (!text.trim() || text.length < 5 || text.includes('o-4zWa6SFWUGo')) continue;
                 
+                // ✅ Этот комментарий валидный - считаем его!
+                totalValidComments++;
+                
                 // Проверяем, не добавлен ли уже этот комментарий
                 const existing = db.prepare('SELECT id FROM telegram_reviews WHERE telegram_comment_id = ?').get(message.message_id);
                 
@@ -1619,6 +1638,21 @@ async function syncTelegramReviews() {
                     }
                 }
             }
+        }
+        
+        // 📊 Сохраняем общее количество комментариев
+        try {
+            db.prepare(`
+                INSERT INTO telegram_stats (id, total_comments, last_updated) 
+                VALUES (1, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(id) DO UPDATE SET 
+                    total_comments = excluded.total_comments,
+                    last_updated = CURRENT_TIMESTAMP
+            `).run(totalValidComments);
+            
+            console.log(`📊 Всего валидных комментариев под постом: ${totalValidComments}`);
+        } catch (err) {
+            console.error('❌ Ошибка сохранения статистики:', err.message);
         }
         
         if (added > 0) {
