@@ -279,7 +279,7 @@ body {
     position: relative;
     overflow: hidden;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     min-height: 350px;
 }
 
