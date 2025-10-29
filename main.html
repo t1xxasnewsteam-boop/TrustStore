@@ -644,6 +644,22 @@
                     <a href="#">WhatsApp</a>
                 </div>
             </div>
+            
+            <!-- Newsletter Subscription -->
+            <div class="newsletter-section">
+                <div class="newsletter-content">
+                    <div class="newsletter-icon">📧</div>
+                    <div class="newsletter-text">
+                        <h3>Подписаться на новости</h3>
+                        <p>Узнавайте первыми о новых товарах и специальных предложениях</p>
+                    </div>
+                    <div class="newsletter-form">
+                        <input type="email" id="newsletterEmail" placeholder="Введите ваш email" required>
+                        <button type="button" class="btn-newsletter" onclick="subscribeNewsletter()">Подписаться</button>
+                    </div>
+                </div>
+            </div>
+            
             <div class="footer-bottom">
                 <p>&copy; 2025 Trust Store. Все права защищены.</p>
             </div>
@@ -877,6 +893,44 @@
                 console.error('❌ Ошибка загрузки отзывов из Telegram:', error);
             }
         }
+        
+        // Newsletter subscription function
+        async function subscribeNewsletter() {
+            const emailInput = document.getElementById('newsletterEmail');
+            const email = emailInput.value.trim();
+            
+            if (!email || !email.includes('@')) {
+                showNotification('❌ Введите корректный email');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/newsletter/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('✅ ' + data.message);
+                    emailInput.value = '';
+                } else {
+                    showNotification('❌ ' + (data.error || 'Ошибка подписки'));
+                }
+            } catch (error) {
+                console.error('Error subscribing:', error);
+                showNotification('❌ Ошибка соединения');
+            }
+        }
+        
+        // Enter key support for newsletter
+        document.getElementById('newsletterEmail')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                subscribeNewsletter();
+            }
+        });
     </script>
 </body>
 </html>

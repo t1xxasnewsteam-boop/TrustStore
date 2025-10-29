@@ -408,6 +408,13 @@ db.exec(`
         total_comments INTEGER DEFAULT 0,
         last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
     );
+    
+    CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE NOT NULL,
+        subscribed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        status TEXT DEFAULT 'active'
+    );
 
     CREATE INDEX IF NOT EXISTS idx_session_id ON visits(session_id);
     CREATE INDEX IF NOT EXISTS idx_timestamp ON visits(timestamp);
@@ -1741,6 +1748,75 @@ app.get('/t1xxas', (req, res) => {
 // Перенаправляем /admin на главную страницу
 app.get('/admin', (req, res) => {
     res.redirect('/');
+});
+
+// API для подписки на новости
+app.post('/api/newsletter/subscribe', (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email || !email.includes('@')) {
+            return res.status(400).json({ error: 'Некорректный email' });
+        }
+        
+        // Проверяем, не подписан ли уже
+        const existing = db.prepare('SELECT * FROM newsletter_subscribers WHERE email = ?').get(email);
+        
+        if (existing) {
+            if (existing.status === 'active') {
+                return res.json({ success: true, message: 'Вы уже подписаны!' });
+            } else {
+                // Реактивируем подписку
+                db.prepare('UPDATE newsletter_subscribers SET status = ? WHERE email = ?').run('active', email);
+                return res.json({ success: true, message: 'Подписка активирована!' });
+            }
+        }
+        
+        // Добавляем нового подписчика
+        db.prepare('INSERT INTO newsletter_subscribers (email) VALUES (?)').run(email);
+        
+        console.log('📧 Новый подписчик:', email);
+        
+        // Отправляем уведомление в Telegram
+        const notificationText = `📧 <b>Новая подписка на новости!</b>\n\n` +
+            `📬 Email: ${email}\n` +
+            `📅 Дата: ${new Date().toLocaleString('ru-RU')}\n\n` +
+            `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
+        
+        sendTelegramNotification(notificationText);
+        
+        res.json({ success: true, message: 'Спасибо за подписку!' });
+    } catch (error) {
+        console.error('Ошибка подписки:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// API для админа: получение списка подписчиков
+app.get('/api/admin/newsletter/subscribers', authMiddleware, (req, res) => {
+    try {
+        const subscribers = db.prepare(`
+            SELECT * FROM newsletter_subscribers 
+            ORDER BY subscribed_at DESC
+        `).all();
+        
+        res.json({ subscribers });
+    } catch (error) {
+        console.error('Ошибка получения подписчиков:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// API для админа: удаление подписчика
+app.delete('/api/admin/newsletter/subscribers/:id', authMiddleware, (req, res) => {
+    try {
+        const { id } = req.params;
+        db.prepare('DELETE FROM newsletter_subscribers WHERE id = ?').run(id);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Ошибка удаления подписчика:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
 });
 
 // 🔥 Роутинг для /product/:name (в самом конце, чтобы не перехватывать другие страницы)

@@ -193,6 +193,43 @@
             min-width: 18px;
             text-align: center;
         }
+        
+        /* Status Badges */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .status-active {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        
+        .status-inactive {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.5);
+        }
 
         /* Main Content */
         .main-content {
@@ -807,6 +844,15 @@
             </div>
 
             <div class="nav-section">
+                <div class="nav-section-title">Маркетинг</div>
+                <a class="nav-item" data-section="newsletter">
+                    <span class="nav-icon">📧</span>
+                    <span class="nav-label">Подписки</span>
+                    <span class="nav-badge" id="newsletterBadge">0</span>
+                </a>
+            </div>
+            
+            <div class="nav-section">
                 <div class="nav-section-title">Система</div>
                 <a class="nav-item" data-section="support">
                     <span class="nav-icon">💬</span>
@@ -1315,6 +1361,67 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Newsletter Subscribers Section -->
+        <div class="content-section" id="newsletter">
+            <div class="top-bar">
+                <h1 class="page-title">Подписчики рассылки</h1>
+                <div class="top-bar-actions">
+                    <button class="btn btn-secondary" onclick="loadNewsletterSubscribers()">
+                        <span>🔄</span> Обновить
+                    </button>
+                    <button class="btn btn-primary" onclick="exportSubscribers()">
+                        <span>📥</span> Экспорт CSV
+                    </button>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div class="stats-grid" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon">📧</div>
+                        </div>
+                        <div class="stat-value" id="totalSubscribers">0</div>
+                        <div class="stat-label">Всего подписчиков</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon">✅</div>
+                        </div>
+                        <div class="stat-value" id="activeSubscribers">0</div>
+                        <div class="stat-label">Активных</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon">📅</div>
+                        </div>
+                        <div class="stat-value" id="newSubscribersToday">0</div>
+                        <div class="stat-label">Сегодня</div>
+                    </div>
+                </div>
+
+                <div class="table-container" id="subscribersTableContainer">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Дата подписки</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="subscribersTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 48px; color: var(--text-secondary);">
+                                    Загрузка...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1399,6 +1506,7 @@
                 
                 // Load section data
                 if (section === 'support') loadSupportTickets();
+                if (section === 'newsletter') loadNewsletterSubscribers();
             });
         });
 
@@ -2611,6 +2719,110 @@
             } catch (error) {
                 console.error('Error deleting promo code:', error);
             }
+        }
+        
+        // Newsletter Functions
+        async function loadNewsletterSubscribers() {
+            try {
+                const response = await fetch('/api/admin/newsletter/subscribers', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayNewsletterSubscribers(data.subscribers);
+                    updateNewsletterStats(data.subscribers);
+                }
+            } catch (error) {
+                console.error('Error loading subscribers:', error);
+            }
+        }
+        
+        function displayNewsletterSubscribers(subscribers) {
+            const tbody = document.getElementById('subscribersTableBody');
+            
+            if (!subscribers || subscribers.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 48px; color: var(--text-secondary);">
+                            📭 Пока нет подписчиков
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = subscribers.map(sub => {
+                const date = new Date(sub.subscribed_at).toLocaleString('ru-RU');
+                const statusClass = sub.status === 'active' ? 'status-active' : 'status-inactive';
+                const statusText = sub.status === 'active' ? 'Активен' : 'Неактивен';
+                
+                return `
+                    <tr>
+                        <td><strong>${sub.email}</strong></td>
+                        <td>${date}</td>
+                        <td><span class="badge ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-danger" onclick="deleteSubscriber(${sub.id})">
+                                <span>🗑️</span> Удалить
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function updateNewsletterStats(subscribers) {
+            const total = subscribers.length;
+            const active = subscribers.filter(s => s.status === 'active').length;
+            
+            const today = new Date().toISOString().split('T')[0];
+            const newToday = subscribers.filter(s => {
+                const subDate = new Date(s.subscribed_at).toISOString().split('T')[0];
+                return subDate === today;
+            }).length;
+            
+            document.getElementById('totalSubscribers').textContent = total;
+            document.getElementById('activeSubscribers').textContent = active;
+            document.getElementById('newSubscribersToday').textContent = newToday;
+            document.getElementById('newsletterBadge').textContent = total;
+        }
+        
+        async function deleteSubscriber(id) {
+            if (!confirm('Удалить этого подписчика?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/admin/newsletter/subscribers/${id}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    await loadNewsletterSubscribers();
+                }
+            } catch (error) {
+                console.error('Error deleting subscriber:', error);
+            }
+        }
+        
+        function exportSubscribers() {
+            fetch('/api/admin/newsletter/subscribers', { credentials: 'include' })
+                .then(res => res.json())
+                .then(data => {
+                    const csv = 'Email,Дата подписки,Статус\n' + 
+                        data.subscribers.map(s => 
+                            `${s.email},${new Date(s.subscribed_at).toLocaleString('ru-RU')},${s.status}`
+                        ).join('\n');
+                    
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `subscribers_${new Date().toISOString().split('T')[0]}.csv`;
+                    a.click();
+                });
         }
 
         // Auto-refresh every 30 seconds

@@ -1513,5 +1513,99 @@ body {
     .reviews-subtitle {
         font-size: 16px;
     }
+    
+    .newsletter-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .newsletter-form {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .newsletter-form input {
+        width: 100%;
+    }
+}
+
+/* Newsletter Section */
+.newsletter-section {
+    margin: 48px 0 32px;
+    padding: 32px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.newsletter-content {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    justify-content: space-between;
+}
+
+.newsletter-icon {
+    font-size: 48px;
+    flex-shrink: 0;
+}
+
+.newsletter-text h3 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.newsletter-text p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+}
+
+.newsletter-form {
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.newsletter-form input {
+    padding: 14px 20px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.3s ease;
+    min-width: 280px;
+}
+
+.newsletter-form input:focus {
+    border-color: #667eea;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.newsletter-form input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-newsletter {
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.btn-newsletter:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
 }
 
