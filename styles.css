@@ -1558,15 +1558,24 @@ body {
     font-size: 38px;
     flex-shrink: 0;
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
-    animation: levitate 3s ease-in-out infinite;
+    animation: levitate-float 4s ease-in-out infinite;
 }
 
-@keyframes levitate {
-    0%, 100% {
-        transform: translateY(0px);
+@keyframes levitate-float {
+    0% {
+        transform: translate(0px, 0px);
+    }
+    25% {
+        transform: translate(6px, -8px);
     }
     50% {
-        transform: translateY(-8px);
+        transform: translate(-4px, -6px);
+    }
+    75% {
+        transform: translate(-6px, 4px);
+    }
+    100% {
+        transform: translate(0px, 0px);
     }
 }
 
