@@ -337,6 +337,17 @@
             text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             position: relative;
             z-index: 11;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .social-card-title-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            object-fit: cover;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
         
         .social-card {
@@ -703,7 +714,10 @@
             <div class="socials-grid">
                 <!-- Telegram -->
                 <div class="social-card-wrapper">
-                    <h3 class="social-card-title">✈️ Мы в Telegram</h3>
+                    <h3 class="social-card-title">
+                        <img src="telegram-avatar.png" alt="Telegram" class="social-card-title-icon">
+                        Мы в Telegram
+                    </h3>
                     <a href="https://t.me/truststoreru" target="_blank" class="social-card">
                         <div class="social-icon telegram-icon">
                             <img src="telegram-avatar.png" alt="Telegram">
@@ -717,7 +731,10 @@
                 
                 <!-- YouTube -->
                 <div class="social-card-wrapper">
-                    <h3 class="social-card-title">📺 Мы в YouTube</h3>
+                    <h3 class="social-card-title">
+                        <img src="youtube-avatar.png" alt="YouTube" class="social-card-title-icon">
+                        Мы в YouTube
+                    </h3>
                     <a href="https://www.youtube.com/@TrustStoreRU" target="_blank" class="social-card">
                         <div class="social-icon youtube-icon">
                             <img src="youtube-avatar.png" alt="YouTube">
