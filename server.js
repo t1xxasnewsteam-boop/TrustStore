@@ -788,10 +788,22 @@ app.post('/api/support/send-message', (req, res) => {
         }
         
         let finalTicketId = ticketId;
+        let isNewTicket = false;
         
-        // Если нет ticketId, создаем новый тикет
-        if (!ticketId) {
+        // Если есть ticketId, проверяем существует ли он в базе
+        if (ticketId) {
+            const existingTicket = db.prepare('SELECT * FROM support_tickets WHERE ticket_id = ?').get(ticketId);
+            
+            if (!existingTicket) {
+                console.log('⚠️ Тикет не найден в базе:', ticketId, '→ Создаем новый');
+                finalTicketId = null; // Сбрасываем чтобы создать новый
+            }
+        }
+        
+        // Если нет ticketId или тикет не существует, создаем новый
+        if (!finalTicketId) {
             finalTicketId = 'TKT-' + Date.now();
+            isNewTicket = true;
             
             db.prepare(`
                 INSERT INTO support_tickets (ticket_id, customer_name, customer_email, unread_admin)
@@ -827,7 +839,10 @@ app.post('/api/support/send-message', (req, res) => {
                     sendTelegramNotification(notificationText);
                 }
             }
-        } else {
+        }
+        
+        // Если это существующий тикет, обновляем его
+        if (!isNewTicket) {
             // Обновляем время последнего сообщения и помечаем как непрочитанное
             db.prepare(`
                 UPDATE support_tickets 
