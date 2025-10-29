@@ -269,13 +269,23 @@
                     })
                 });
                 
-                const data = await response.json();
-                console.log('📬 Ответ на сообщение:', data);
+                console.log('📡 Статус ответа:', response.status, response.statusText);
                 
-                if (data.success && data.ticketId) {
-                    ticketId = data.ticketId;
-                    localStorage.setItem('supportTicketId', ticketId);
-                    console.log('✅ Изображение отправлено, тикет:', ticketId);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ Ошибка сервера при отправке сообщения:', errorText);
+                    throw new Error('Ошибка сервера: ' + response.status);
+                }
+                
+                const data = await response.json();
+                console.log('📬 Полученные данные:', JSON.stringify(data, null, 2));
+                
+                if (data.success) {
+                    if (data.ticketId) {
+                        ticketId = data.ticketId;
+                        localStorage.setItem('supportTicketId', ticketId);
+                        console.log('✅ Файл успешно отправлен! Тикет:', ticketId);
+                    }
                     
                     // Показываем кнопку "Новый диалог"
                     if (chatNewDialogBtn) chatNewDialogBtn.style.display = 'block';
@@ -285,13 +295,14 @@
                         startPolling();
                     }
                 } else {
-                    console.error('❌ Не удалось сохранить сообщение:', data);
-                    alert('Ошибка сохранения сообщения');
+                    console.error('❌ Сервер вернул success: false:', data);
+                    throw new Error(data.error || 'Ошибка сохранения');
                 }
             } catch (error) {
-                console.error('❌ КРИТИЧЕСКАЯ ОШИБКА отправки изображения:', error);
+                console.error('❌ Ошибка отправки файла:', error);
                 console.error('Stack:', error.stack);
-                alert('Критическая ошибка: ' + error.message);
+                // Показываем уведомление только для реальных ошибок
+                showSiteNotification('❌ Ошибка отправки файла');
             }
         }
         
