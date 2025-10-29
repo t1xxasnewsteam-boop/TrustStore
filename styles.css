@@ -1524,18 +1524,21 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(102, 126, 234, 0.3);
     border-radius: 16px;
-    padding: 20px 30px;
+    padding: 24px 32px;
     gap: 24px;
     transition: all 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset;
 }
 
 .newsletter-bar:hover {
-    border-color: rgba(102, 126, 234, 0.3);
-    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(102, 126, 234, 0.5);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+    box-shadow: 0 12px 48px rgba(102, 126, 234, 0.25);
 }
 
 .newsletter-left {
@@ -1545,8 +1548,9 @@ body {
 }
 
 .newsletter-emoji {
-    font-size: 32px;
+    font-size: 38px;
     flex-shrink: 0;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
 
 .newsletter-text-compact {
@@ -1556,14 +1560,16 @@ body {
 }
 
 .newsletter-text-compact strong {
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 700;
-    color: white;
+    color: #ffffff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .newsletter-text-compact span {
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.85);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 .newsletter-form-compact {
@@ -1573,44 +1579,51 @@ body {
 }
 
 .newsletter-input-compact {
-    width: 240px;
-    padding: 12px 18px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 10px;
-    color: white;
-    font-size: 14px;
+    width: 260px;
+    padding: 14px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-radius: 12px;
+    color: #ffffff;
+    font-size: 15px;
     outline: none;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) inset;
 }
 
 .newsletter-input-compact:focus {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.15);
     border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2),
+                0 4px 12px rgba(0, 0, 0, 0.2) inset;
 }
 
 .newsletter-input-compact::placeholder {
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
 }
 
 .newsletter-btn-compact {
-    padding: 12px 24px;
+    padding: 14px 28px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    border-radius: 10px;
-    color: white;
-    font-size: 14px;
-    font-weight: 600;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
     white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .newsletter-btn-compact:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    box-shadow: 0 8px 28px rgba(102, 126, 234, 0.7),
+                0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+    background: linear-gradient(135deg, #7c8ef5 0%, #8b60b8 100%);
 }
 
 .newsletter-btn-compact:active {
