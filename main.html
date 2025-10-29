@@ -257,22 +257,19 @@
     <!-- Newsletter Subscription Section -->
     <section class="newsletter-subscribe-section">
         <div class="container">
-            <div class="newsletter-subscribe-box">
-                <div class="newsletter-icon-large">📧</div>
-                <h2 class="newsletter-title">Подпишитесь на новости</h2>
-                <p class="newsletter-description">Будьте в курсе новых товаров, акций и специальных предложений</p>
-                <div class="newsletter-input-group">
-                    <input type="email" id="newsletterEmailMain" placeholder="Введите ваш email" class="newsletter-input">
-                    <button type="button" class="newsletter-btn" onclick="subscribeNewsletterMain()">
-                        <span class="newsletter-btn-text">Подписаться</span>
-                        <span class="newsletter-btn-icon">→</span>
-                    </button>
+            <div class="newsletter-bar">
+                <div class="newsletter-left">
+                    <span class="newsletter-emoji">📧</span>
+                    <div class="newsletter-text-compact">
+                        <strong>Подписаться на новости</strong>
+                        <span>Акции и новинки первыми</span>
+                    </div>
                 </div>
-                <div class="newsletter-privacy">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,255,255,0.5)">
-                        <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
-                    </svg>
-                    <span>Мы не передаем ваши данные третьим лицам</span>
+                <div class="newsletter-form-compact">
+                    <input type="email" id="newsletterEmailMain" placeholder="Ваш email" class="newsletter-input-compact">
+                    <button type="button" class="newsletter-btn-compact" onclick="subscribeNewsletterMain()">
+                        Подписаться →
+                    </button>
                 </div>
             </div>
         </div>
