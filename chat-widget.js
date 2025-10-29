@@ -237,7 +237,7 @@
                 if (!uploadResponse.ok) {
                     const errorText = await uploadResponse.text();
                     console.error('❌ Ошибка сервера:', errorText);
-                    alert('Ошибка загрузки изображения на сервер');
+                    showSiteNotification('❌ Ошибка загрузки файла на сервер');
                     return;
                 }
                 
@@ -246,7 +246,7 @@
                 
                 if (!uploadData.success) {
                     console.error('❌ Загрузка не удалась:', uploadData.error || 'Неизвестная ошибка');
-                    alert('Ошибка загрузки изображения');
+                    showSiteNotification('❌ ' + (uploadData.error || 'Ошибка загрузки файла'));
                     return;
                 }
                 
@@ -274,7 +274,8 @@
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error('❌ Ошибка сервера при отправке сообщения:', errorText);
-                    throw new Error('Ошибка сервера: ' + response.status);
+                    showSiteNotification('❌ Ошибка сервера при отправке');
+                    return;
                 }
                 
                 const data = await response.json();
@@ -296,13 +297,13 @@
                     }
                 } else {
                     console.error('❌ Сервер вернул success: false:', data);
-                    throw new Error(data.error || 'Ошибка сохранения');
+                    showSiteNotification('❌ ' + (data.error || 'Ошибка сохранения'));
                 }
             } catch (error) {
-                console.error('❌ Ошибка отправки файла:', error);
+                console.error('❌ Критическая ошибка отправки файла:', error);
                 console.error('Stack:', error.stack);
-                // Показываем уведомление только для реальных ошибок
-                showSiteNotification('❌ Ошибка отправки файла');
+                // Показываем уведомление только для критических ошибок
+                showSiteNotification('❌ Ошибка соединения с сервером');
             }
         }
         
