@@ -14,53 +14,71 @@
     <style>
         .socials-page {
             padding: 40px 0 50px;
-            background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
+            background: white;
             position: relative;
             overflow: hidden;
         }
         
-        /* Анимация градиента */
-        @keyframes gradientShift {
-            0% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
-            }
-            100% {
-                background-position: 0% 50%;
-            }
+        /* Интерактивные круги, которые следуют за мышкой */
+        .mouse-follower-1,
+        .mouse-follower-2,
+        .mouse-follower-3 {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 0;
         }
         
-        /* Floating circles */
+        .mouse-follower-1 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.15) 0%, transparent 70%);
+            filter: blur(40px);
+        }
+        
+        .mouse-follower-2 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(118, 75, 162, 0.12) 0%, transparent 70%);
+            filter: blur(35px);
+        }
+        
+        .mouse-follower-3 {
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(240, 147, 251, 0.1) 0%, transparent 70%);
+            filter: blur(30px);
+        }
+        
+        /* Анимированные декоративные элементы */
         .socials-page::before,
         .socials-page::after {
             content: '';
             position: absolute;
             border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.3;
+            opacity: 0.08;
             animation: float 20s ease-in-out infinite;
+            z-index: 0;
         }
         
         .socials-page::before {
-            width: 400px;
-            height: 400px;
-            background: rgba(255, 255, 255, 0.5);
-            top: -100px;
-            left: -100px;
-            animation-delay: 0s;
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            top: 10%;
+            right: -100px;
+            filter: blur(60px);
         }
         
         .socials-page::after {
-            width: 300px;
-            height: 300px;
-            background: rgba(255, 255, 255, 0.4);
-            bottom: -80px;
-            right: -80px;
-            animation-delay: 7s;
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(135deg, #f093fb, #4facfe);
+            bottom: 10%;
+            left: -80px;
+            filter: blur(50px);
+            animation-delay: 10s;
         }
         
         @keyframes float {
@@ -68,10 +86,10 @@
                 transform: translate(0, 0) scale(1);
             }
             33% {
-                transform: translate(50px, -50px) scale(1.1);
+                transform: translate(30px, -30px) scale(1.05);
             }
             66% {
-                transform: translate(-30px, 30px) scale(0.9);
+                transform: translate(-20px, 20px) scale(0.95);
             }
         }
         
@@ -86,15 +104,13 @@
         .socials-header h1 {
             font-size: 48px;
             font-weight: 700;
-            color: white;
+            color: #1a1a1a;
             margin-bottom: 15px;
-            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
         
         .socials-header p {
             font-size: 18px;
-            color: rgba(255, 255, 255, 0.95);
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            color: #666;
         }
         
         @keyframes fadeInDown {
@@ -149,10 +165,9 @@
         .social-card-title {
             font-size: 16px;
             font-weight: 600;
-            color: white;
+            color: #1a1a1a;
             margin: 0;
             padding-left: 5px;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
         
         .social-card {
@@ -224,34 +239,9 @@
         .partners-section {
             margin-top: 0;
             padding: 50px 0 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f8f9fa;
             position: relative;
             overflow: hidden;
-        }
-        
-        .partners-section::before {
-            content: '';
-            position: absolute;
-            width: 500px;
-            height: 500px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            filter: blur(100px);
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            animation: pulse 8s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% {
-                transform: translate(-50%, -50%) scale(1);
-                opacity: 0.5;
-            }
-            50% {
-                transform: translate(-50%, -50%) scale(1.2);
-                opacity: 0.3;
-            }
         }
         
         .partners-header {
@@ -264,15 +254,13 @@
         .partners-header h2 {
             font-size: 38px;
             font-weight: 700;
-            color: white;
+            color: #1a1a1a;
             margin-bottom: 10px;
-            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
         
         .partners-header p {
             font-size: 16px;
-            color: rgba(255, 255, 255, 0.95);
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            color: #666;
         }
         
         .partners-grid {
@@ -304,10 +292,9 @@
         .partner-card-title {
             font-size: 20px;
             font-weight: 600;
-            color: white;
+            color: #1a1a1a;
             margin: 0;
             padding-left: 5px;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
         
         .partner-card {
@@ -410,7 +397,12 @@
     </header>
 
     <!-- Socials Page -->
-    <section class="socials-page">
+    <section class="socials-page" id="socialsPage">
+        <!-- Интерактивные круги, которые следуют за мышкой -->
+        <div class="mouse-follower-1" id="follower1"></div>
+        <div class="mouse-follower-2" id="follower2"></div>
+        <div class="mouse-follower-3" id="follower3"></div>
+        
         <div class="container">
             <div class="socials-header">
                 <h1>🌐 Мы в соцсетях</h1>
@@ -565,6 +557,40 @@
     <script src="cart.js"></script>
     <script src="cart-widget.js"></script>
     <script src="notification.js"></script>
+    
+    <script>
+        // Интерактивные круги, которые следуют за мышкой
+        const socialsPage = document.getElementById('socialsPage');
+        const follower1 = document.getElementById('follower1');
+        const follower2 = document.getElementById('follower2');
+        const follower3 = document.getElementById('follower3');
+        
+        if (socialsPage && follower1 && follower2 && follower3) {
+            socialsPage.addEventListener('mousemove', (e) => {
+                const rect = socialsPage.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // Первый круг (самый большой, медленный)
+                const x1 = x - 200; // Центрируем круг
+                const y1 = y - 200;
+                follower1.style.left = x1 + 'px';
+                follower1.style.top = y1 + 'px';
+                
+                // Второй круг (средний, средняя скорость)
+                const x2 = x - 150 + (e.movementX * 0.5);
+                const y2 = y - 150 + (e.movementY * 0.5);
+                follower2.style.left = x2 + 'px';
+                follower2.style.top = y2 + 'px';
+                
+                // Третий круг (маленький, быстрый)
+                const x3 = x - 125 + (e.movementX * 0.8);
+                const y3 = y - 125 + (e.movementY * 0.8);
+                follower3.style.left = x3 + 'px';
+                follower3.style.top = y3 + 'px';
+            });
+        }
+    </script>
 </body>
 </html>
 
