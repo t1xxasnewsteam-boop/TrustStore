@@ -933,6 +933,19 @@ body {
     align-items: center;
     justify-content: center;
     position: relative;
+    background-size: cover;
+    background-position: center;
+}
+
+.news-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 0;
 }
 
 .news-image-1 {
@@ -950,6 +963,8 @@ body {
 .news-icon {
     font-size: 64px;
     filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+    position: relative;
+    z-index: 1;
 }
 
 .news-content {
