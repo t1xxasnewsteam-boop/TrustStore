@@ -928,13 +928,13 @@ body {
 }
 
 .news-image {
-    height: 200px;
+    height: 220px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    background-size: contain;
-    background-position: center;
+    background-size: cover;
+    background-position: center center;
     background-repeat: no-repeat;
 }
 
@@ -959,6 +959,13 @@ body {
 
 .news-image-3 {
     background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+/* Специальная настройка для фото Sora 2 (1280x512) */
+.news-image-3[style*="sora2-image"] {
+    background-size: 100% auto;
+    background-position: center center;
+    height: 220px;
 }
 
 .news-icon {
