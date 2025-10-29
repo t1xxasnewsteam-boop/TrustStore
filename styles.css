@@ -961,6 +961,13 @@ body {
     background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 }
 
+/* Специальная настройка для фото Atlas (1280x512) */
+.news-image-2[style*="atlas-image"] {
+    background-size: 100% auto;
+    background-position: center center;
+    height: 220px;
+}
+
 /* Специальная настройка для фото Sora 2 (1280x512) */
 .news-image-3[style*="sora2-image"] {
     background-size: 100% auto;
