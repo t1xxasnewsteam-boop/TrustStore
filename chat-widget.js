@@ -102,6 +102,9 @@
         chatButton.addEventListener('click', function() {
             isOpen = !isOpen;
             
+            // Разблокируем звук при взаимодействии
+            unlockAudio();
+            
             if (isOpen) {
                 chatWindow.classList.add('active');
                 chatButton.classList.add('chat-open');
@@ -557,33 +560,78 @@
             }, 8000);
         }
         
-        // Функция воспроизведения звука уведомления
-        function playNotificationSound() {
-            console.log('🔊 Попытка воспроизвести звук уведомления...');
-            try {
-                const audio = new Audio('/notification.mp3');
-                audio.volume = 0.7; // Громкость 70%
-                audio.play()
-                    .then(() => console.log('✅ Звук воспроизведен успешно!'))
-                    .catch(err => {
-                        console.warn('⚠️ Звук не воспроизведен:', err.message);
-                        console.log('💡 Подсказка: Браузер может блокировать автовоспроизведение. Нажмите на страницу.');
-                    });
-            } catch (error) {
-                console.log('Звук не воспроизведен:', error);
+        // Создаем audio элемент заранее для разблокировки автовоспроизведения
+        let notificationAudio = null;
+        let audioUnlocked = false;
+        
+        // Инициализируем аудио
+        function initAudio() {
+            if (!notificationAudio) {
+                notificationAudio = new Audio('/notification.mp3');
+                notificationAudio.volume = 0.7;
+                notificationAudio.preload = 'auto';
+                console.log('🔊 Аудио элемент создан');
             }
         }
         
-        chatSendBtn.addEventListener('click', sendMessage);
+        // Разблокировка звука при взаимодействии пользователя
+        function unlockAudio() {
+            if (!audioUnlocked && notificationAudio) {
+                notificationAudio.play().then(() => {
+                    notificationAudio.pause();
+                    notificationAudio.currentTime = 0;
+                    audioUnlocked = true;
+                    console.log('✅ Звук разблокирован!');
+                }).catch(() => {
+                    console.log('⏳ Звук пока заблокирован браузером');
+                });
+            }
+        }
+        
+        // Функция воспроизведения звука уведомления
+        function playNotificationSound() {
+            console.log('🔊 Попытка воспроизвести звук уведомления...');
+            
+            if (!notificationAudio) {
+                initAudio();
+            }
+            
+            if (notificationAudio) {
+                notificationAudio.currentTime = 0;
+                notificationAudio.play()
+                    .then(() => {
+                        console.log('✅ Звук воспроизведен успешно!');
+                        audioUnlocked = true;
+                    })
+                    .catch(err => {
+                        console.warn('⚠️ Звук не воспроизведен:', err.message);
+                        console.log('💡 Подсказка: Кликните по странице, чтобы разблокировать звук');
+                    });
+            }
+        }
+        
+        // Инициализируем аудио при загрузке
+        initAudio();
+        
+        // Разблокируем звук при первом клике на странице
+        document.addEventListener('click', unlockAudio, { once: false });
+        document.addEventListener('touchstart', unlockAudio, { once: false });
+        
+        chatSendBtn.addEventListener('click', function() {
+            unlockAudio();
+            sendMessage();
+        });
         
         chatInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
+                unlockAudio();
                 sendMessage();
             }
         });
         
         // Обработчик кнопки прикрепления изображения
         chatImageBtn.addEventListener('click', function() {
+            unlockAudio();
             chatImageInput.click();
         });
         
