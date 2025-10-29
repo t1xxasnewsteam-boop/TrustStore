@@ -561,7 +561,7 @@
         function playNotificationSound() {
             console.log('🔊 Попытка воспроизвести звук уведомления...');
             try {
-                const audio = new Audio('notification.mp3');
+                const audio = new Audio('/notification.mp3');
                 audio.volume = 0.7; // Громкость 70%
                 audio.play()
                     .then(() => console.log('✅ Звук воспроизведен успешно!'))
