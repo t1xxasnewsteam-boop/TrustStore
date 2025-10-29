@@ -4,8 +4,8 @@
     const chatHTML = `
         <!-- Кнопка чата -->
         <button class="chat-widget-button" id="chatButton">
-            <svg viewBox="0 0 24 24">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            <svg viewBox="0 0 24 24" fill="white">
+                <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
             </svg>
             <div class="chat-notification" id="chatNotification" style="display: none;"></div>
         </button>
@@ -38,7 +38,9 @@
                     style="display: none;"
                 >
                 <button class="chat-image-btn" id="chatImageBtn" title="Прикрепить изображение">
-                    +
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                        <path d="M21.44 11.05l-9.19 9.19c-1.28 1.28-3.36 1.28-4.64 0-1.28-1.28-1.28-3.36 0-4.64l8.49-8.49c.76-.76 2-.76 2.76 0 .76.76.76 2 0 2.76l-7.07 7.07c-.25.25-.65.25-.9 0-.25-.25-.25-.65 0-.9l6.36-6.36c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0L9.48 14.63c-1.03 1.03-1.03 2.7 0 3.73 1.03 1.03 2.7 1.03 3.73 0l8.49-8.49c1.53-1.53 1.53-4.01 0-5.54-1.53-1.53-4.01-1.53-5.54 0l-9.19 9.19c-2.07 2.07-2.07 5.42 0 7.49 2.07 2.07 5.42 2.07 7.49 0l9.19-9.19c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0z"/>
+                    </svg>
                 </button>
                 <input 
                     type="text" 
@@ -48,7 +50,9 @@
                     autocomplete="off"
                 >
                 <button class="chat-send-btn" id="chatSendBtn">
-                    ➤
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
                 </button>
                 <button class="chat-new-dialog-btn" id="chatNewDialogBtn" title="Начать новый диалог" style="display: none; position: absolute; top: -45px; right: 10px; background: #f0f0f0; border: none; padding: 8px 16px; border-radius: 8px; font-size: 12px; cursor: pointer; color: #666; font-weight: 600;">
                     🔄 Новый диалог
