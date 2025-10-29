@@ -19,14 +19,13 @@
             overflow: hidden;
         }
         
-        /* Интерактивные круги, которые следуют за мышкой */
+        /* Автоматические анимированные круги */
         .mouse-follower-1,
         .mouse-follower-2,
         .mouse-follower-3 {
             position: absolute;
             border-radius: 50%;
             pointer-events: none;
-            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             z-index: 0;
         }
         
@@ -35,6 +34,9 @@
             height: 400px;
             background: radial-gradient(circle, rgba(102, 126, 234, 0.15) 0%, transparent 70%);
             filter: blur(40px);
+            animation: floatCircle1 20s ease-in-out infinite;
+            top: 20%;
+            left: 10%;
         }
         
         .mouse-follower-2 {
@@ -42,6 +44,9 @@
             height: 300px;
             background: radial-gradient(circle, rgba(118, 75, 162, 0.12) 0%, transparent 70%);
             filter: blur(35px);
+            animation: floatCircle2 18s ease-in-out infinite;
+            top: 50%;
+            right: 15%;
         }
         
         .mouse-follower-3 {
@@ -49,6 +54,54 @@
             height: 250px;
             background: radial-gradient(circle, rgba(240, 147, 251, 0.1) 0%, transparent 70%);
             filter: blur(30px);
+            animation: floatCircle3 16s ease-in-out infinite;
+            bottom: 20%;
+            left: 30%;
+        }
+        
+        @keyframes floatCircle1 {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(100px, -80px) scale(1.1);
+            }
+            50% {
+                transform: translate(200px, 50px) scale(0.9);
+            }
+            75% {
+                transform: translate(50px, 100px) scale(1.05);
+            }
+        }
+        
+        @keyframes floatCircle2 {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(-120px, 60px) scale(0.95);
+            }
+            50% {
+                transform: translate(-80px, -100px) scale(1.08);
+            }
+            75% {
+                transform: translate(-150px, 40px) scale(1.02);
+            }
+        }
+        
+        @keyframes floatCircle3 {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(80px, 90px) scale(1.06);
+            }
+            50% {
+                transform: translate(-60px, -70px) scale(0.92);
+            }
+            75% {
+                transform: translate(120px, -50px) scale(1.1);
+            }
         }
         
         /* Анимированные декоративные элементы */
@@ -397,11 +450,11 @@
     </header>
 
     <!-- Socials Page -->
-    <section class="socials-page" id="socialsPage">
-        <!-- Интерактивные круги, которые следуют за мышкой -->
-        <div class="mouse-follower-1" id="follower1"></div>
-        <div class="mouse-follower-2" id="follower2"></div>
-        <div class="mouse-follower-3" id="follower3"></div>
+    <section class="socials-page">
+        <!-- Автоматические анимированные круги -->
+        <div class="mouse-follower-1"></div>
+        <div class="mouse-follower-2"></div>
+        <div class="mouse-follower-3"></div>
         
         <div class="container">
             <div class="socials-header">
@@ -557,40 +610,6 @@
     <script src="cart.js"></script>
     <script src="cart-widget.js"></script>
     <script src="notification.js"></script>
-    
-    <script>
-        // Интерактивные круги, которые следуют за мышкой
-        const socialsPage = document.getElementById('socialsPage');
-        const follower1 = document.getElementById('follower1');
-        const follower2 = document.getElementById('follower2');
-        const follower3 = document.getElementById('follower3');
-        
-        if (socialsPage && follower1 && follower2 && follower3) {
-            socialsPage.addEventListener('mousemove', (e) => {
-                const rect = socialsPage.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                // Первый круг (самый большой, медленный)
-                const x1 = x - 200; // Центрируем круг
-                const y1 = y - 200;
-                follower1.style.left = x1 + 'px';
-                follower1.style.top = y1 + 'px';
-                
-                // Второй круг (средний, средняя скорость)
-                const x2 = x - 150 + (e.movementX * 0.5);
-                const y2 = y - 150 + (e.movementY * 0.5);
-                follower2.style.left = x2 + 'px';
-                follower2.style.top = y2 + 'px';
-                
-                // Третий круг (маленький, быстрый)
-                const x3 = x - 125 + (e.movementX * 0.8);
-                const y3 = y - 125 + (e.movementY * 0.8);
-                follower3.style.left = x3 + 'px';
-                follower3.style.top = y3 + 'px';
-            });
-        }
-    </script>
 </body>
 </html>
 
