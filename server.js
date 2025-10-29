@@ -1777,13 +1777,13 @@ app.post('/api/newsletter/subscribe', (req, res) => {
         
         console.log('📧 Новый подписчик:', email);
         
-        // Отправляем уведомление в Telegram
+        // Отправляем беззвучное уведомление в Telegram
         const notificationText = `📧 <b>Новая подписка на новости!</b>\n\n` +
             `📬 Email: ${email}\n` +
             `📅 Дата: ${new Date().toLocaleString('ru-RU')}\n\n` +
             `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
         
-        sendTelegramNotification(notificationText);
+        sendTelegramNotification(notificationText, true);
         
         res.json({ success: true, message: 'Спасибо за подписку!' });
     } catch (error) {
