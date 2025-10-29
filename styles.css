@@ -1524,33 +1524,86 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #ffffff;
-    border: 2px solid #667eea;
-    border-radius: 16px;
-    padding: 24px 32px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+    border: 3px solid transparent;
+    background-image: 
+        linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%),
+        linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    border-radius: 18px;
+    padding: 28px 36px;
     gap: 24px;
-    transition: all 0.3s ease;
-    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3), 
-                0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s ease;
+    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.25), 
+                0 4px 16px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+    position: relative;
+    overflow: hidden;
+}
+
+.newsletter-bar::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+    animation: rotate-gradient 15s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes rotate-gradient {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 .newsletter-bar:hover {
-    border-color: #8b5cf6;
-    background: #ffffff;
-    box-shadow: 0 12px 48px rgba(102, 126, 234, 0.4);
-    transform: translateY(-2px);
+    box-shadow: 0 16px 56px rgba(102, 126, 234, 0.35),
+                0 8px 24px rgba(118, 75, 162, 0.2);
+    transform: translateY(-4px);
 }
 
 .newsletter-left {
     display: flex;
     align-items: center;
     gap: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.newsletter-icon-wrapper {
+    position: relative;
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .newsletter-emoji {
     font-size: 38px;
-    flex-shrink: 0;
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.newsletter-rocket {
+    position: absolute;
+    font-size: 22px;
+    top: -5px;
+    right: -5px;
+    animation: rocket-fly 2s ease-in-out infinite;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes rocket-fly {
+    0%, 100% {
+        transform: translate(0, 0) rotate(-45deg);
+    }
+    50% {
+        transform: translate(8px, -8px) rotate(-45deg);
+    }
 }
 
 .newsletter-text-compact {
@@ -1576,6 +1629,8 @@ body {
     display: flex;
     gap: 10px;
     flex-shrink: 0;
+    position: relative;
+    z-index: 1;
 }
 
 .newsletter-input-compact {
