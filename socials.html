@@ -19,44 +19,72 @@
             overflow: hidden;
         }
         
-        /* Автоматические анимированные круги */
-        .mouse-follower-1,
-        .mouse-follower-2,
-        .mouse-follower-3 {
+        /* Автоматические анимированные круги (яркие!) */
+        .animated-circle {
             position: absolute;
             border-radius: 50%;
             pointer-events: none;
             z-index: 0;
         }
         
-        .mouse-follower-1 {
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(102, 126, 234, 0.15) 0%, transparent 70%);
-            filter: blur(40px);
+        .circle-1 {
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.35) 0%, transparent 70%);
+            filter: blur(50px);
             animation: floatCircle1 20s ease-in-out infinite;
-            top: 20%;
-            left: 10%;
+            top: 10%;
+            left: 5%;
         }
         
-        .mouse-follower-2 {
+        .circle-2 {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(118, 75, 162, 0.3) 0%, transparent 70%);
+            filter: blur(45px);
+            animation: floatCircle2 18s ease-in-out infinite;
+            top: 40%;
+            right: 10%;
+        }
+        
+        .circle-3 {
             width: 300px;
             height: 300px;
-            background: radial-gradient(circle, rgba(118, 75, 162, 0.12) 0%, transparent 70%);
-            filter: blur(35px);
-            animation: floatCircle2 18s ease-in-out infinite;
-            top: 50%;
-            right: 15%;
+            background: radial-gradient(circle, rgba(240, 147, 251, 0.28) 0%, transparent 70%);
+            filter: blur(40px);
+            animation: floatCircle3 16s ease-in-out infinite;
+            bottom: 15%;
+            left: 25%;
         }
         
-        .mouse-follower-3 {
-            width: 250px;
-            height: 250px;
-            background: radial-gradient(circle, rgba(240, 147, 251, 0.1) 0%, transparent 70%);
-            filter: blur(30px);
-            animation: floatCircle3 16s ease-in-out infinite;
-            bottom: 20%;
-            left: 30%;
+        .circle-4 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(74, 172, 254, 0.32) 0%, transparent 70%);
+            filter: blur(48px);
+            animation: floatCircle4 22s ease-in-out infinite;
+            top: 60%;
+            left: 50%;
+        }
+        
+        .circle-5 {
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(229, 62, 165, 0.3) 0%, transparent 70%);
+            filter: blur(42px);
+            animation: floatCircle5 19s ease-in-out infinite;
+            top: 25%;
+            right: 30%;
+        }
+        
+        .circle-6 {
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, rgba(155, 81, 224, 0.28) 0%, transparent 70%);
+            filter: blur(38px);
+            animation: floatCircle6 17s ease-in-out infinite;
+            bottom: 35%;
+            right: 20%;
         }
         
         @keyframes floatCircle1 {
@@ -101,6 +129,51 @@
             }
             75% {
                 transform: translate(120px, -50px) scale(1.1);
+            }
+        }
+        
+        @keyframes floatCircle4 {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(-90px, -110px) scale(1.08);
+            }
+            50% {
+                transform: translate(70px, 80px) scale(0.94);
+            }
+            75% {
+                transform: translate(-60px, 60px) scale(1.04);
+            }
+        }
+        
+        @keyframes floatCircle5 {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(110px, -70px) scale(0.96);
+            }
+            50% {
+                transform: translate(-100px, 90px) scale(1.1);
+            }
+            75% {
+                transform: translate(80px, -80px) scale(1.02);
+            }
+        }
+        
+        @keyframes floatCircle6 {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(-70px, 100px) scale(1.07);
+            }
+            50% {
+                transform: translate(90px, -60px) scale(0.93);
+            }
+            75% {
+                transform: translate(-50px, -90px) scale(1.05);
             }
         }
         
@@ -292,9 +365,47 @@
         .partners-section {
             margin-top: 0;
             padding: 50px 0 60px;
-            background: #f8f9fa;
+            background: white;
             position: relative;
             overflow: hidden;
+        }
+        
+        /* Круги для секции партнеров */
+        .partners-section .animated-circle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .partners-section .circle-1 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.3) 0%, transparent 70%);
+            filter: blur(45px);
+            animation: floatCircle1 22s ease-in-out infinite reverse;
+            top: 20%;
+            left: 10%;
+        }
+        
+        .partners-section .circle-2 {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(240, 147, 251, 0.28) 0%, transparent 70%);
+            filter: blur(42px);
+            animation: floatCircle3 19s ease-in-out infinite;
+            bottom: 25%;
+            right: 15%;
+        }
+        
+        .partners-section .circle-3 {
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(74, 172, 254, 0.3) 0%, transparent 70%);
+            filter: blur(40px);
+            animation: floatCircle5 20s ease-in-out infinite reverse;
+            top: 50%;
+            right: 35%;
         }
         
         .partners-header {
@@ -452,9 +563,12 @@
     <!-- Socials Page -->
     <section class="socials-page">
         <!-- Автоматические анимированные круги -->
-        <div class="mouse-follower-1"></div>
-        <div class="mouse-follower-2"></div>
-        <div class="mouse-follower-3"></div>
+        <div class="animated-circle circle-1"></div>
+        <div class="animated-circle circle-2"></div>
+        <div class="animated-circle circle-3"></div>
+        <div class="animated-circle circle-4"></div>
+        <div class="animated-circle circle-5"></div>
+        <div class="animated-circle circle-6"></div>
         
         <div class="container">
             <div class="socials-header">
@@ -496,6 +610,11 @@
 
     <!-- Partners Section -->
     <section class="partners-section">
+        <!-- Анимированные круги для секции партнеров -->
+        <div class="animated-circle circle-1"></div>
+        <div class="animated-circle circle-2"></div>
+        <div class="animated-circle circle-3"></div>
+        
         <div class="container">
             <div class="partners-header">
                 <h2>🤝 Наши партнёры</h2>
