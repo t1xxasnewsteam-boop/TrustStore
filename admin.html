@@ -1469,12 +1469,22 @@
             }
         }
 
+        // Charts - глобальные переменные для хранения экземпляров
+        let sessionChartInstance = null;
+        let geographyChartInstance = null;
+        let devicesChartInstance = null;
+        
         // Charts
         function createSessionChart(dailyData) {
             const ctx = document.getElementById('sessionChart');
             if (!ctx) return;
             
-            new Chart(ctx, {
+            // Уничтожаем старый график если он существует
+            if (sessionChartInstance) {
+                sessionChartInstance.destroy();
+            }
+            
+            sessionChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: dailyData.map(d => d.date).slice(-7),
@@ -1513,9 +1523,14 @@
             const ctx = document.getElementById('geographyChart');
             if (!ctx) return;
             
+            // Уничтожаем старый график если он существует
+            if (geographyChartInstance) {
+                geographyChartInstance.destroy();
+            }
+            
             const top5 = countries.slice(0, 5);
             
-            new Chart(ctx, {
+            geographyChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: top5.map(c => c.country),
@@ -1550,7 +1565,12 @@
             const ctx = document.getElementById('devicesChart');
             if (!ctx) return;
             
-            new Chart(ctx, {
+            // Уничтожаем старый график если он существует
+            if (devicesChartInstance) {
+                devicesChartInstance.destroy();
+            }
+            
+            devicesChartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: ['Desktop', 'Mobile'],
