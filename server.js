@@ -415,6 +415,17 @@ db.exec(`
         subscribed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         status TEXT DEFAULT 'active'
     );
+    
+    CREATE TABLE IF NOT EXISTS news (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT NOT NULL,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        image_url TEXT,
+        emoji TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        sort_order INTEGER DEFAULT 0
+    );
 
     CREATE INDEX IF NOT EXISTS idx_session_id ON visits(session_id);
     CREATE INDEX IF NOT EXISTS idx_timestamp ON visits(timestamp);
@@ -1815,6 +1826,85 @@ app.delete('/api/admin/newsletter/subscribers/:id', authMiddleware, (req, res) =
         res.json({ success: true });
     } catch (error) {
         console.error('Ошибка удаления подписчика:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// ==================== NEWS API ====================
+
+// Получить все новости (публичный endpoint)
+app.get('/api/news', (req, res) => {
+    try {
+        const news = db.prepare(`
+            SELECT * FROM news 
+            ORDER BY sort_order DESC, created_at DESC
+            LIMIT 3
+        `).all();
+        
+        res.json({ news });
+    } catch (error) {
+        console.error('Ошибка получения новостей:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Добавить новость (админ) с системой ДОМИНО
+app.post('/api/admin/news', authMiddleware, (req, res) => {
+    try {
+        const { date, title, content, image_url, emoji } = req.body;
+        
+        if (!date || !title || !content) {
+            return res.status(400).json({ error: 'Заполните все обязательные поля' });
+        }
+        
+        // Получаем максимальный sort_order
+        const maxOrder = db.prepare('SELECT MAX(sort_order) as max FROM news').get();
+        const newSortOrder = (maxOrder.max || 0) + 1;
+        
+        // Добавляем новость
+        const result = db.prepare(`
+            INSERT INTO news (date, title, content, image_url, emoji, sort_order)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `).run(date, title, content, image_url || null, emoji || null, newSortOrder);
+        
+        console.log(`✅ Добавлена новость: "${title}"`);
+        
+        // 🔄 СИСТЕМА "ДОМИНО": Оставляем только 3 последние новости
+        const totalNews = db.prepare('SELECT COUNT(*) as count FROM news').get();
+        if (totalNews.count > 3) {
+            // Удаляем самую старую новость (по sort_order)
+            const oldestNews = db.prepare(`
+                SELECT id, title FROM news 
+                ORDER BY sort_order ASC 
+                LIMIT 1
+            `).get();
+            
+            if (oldestNews) {
+                db.prepare('DELETE FROM news WHERE id = ?').run(oldestNews.id);
+                console.log(`🗑️ Удалена старая новость: "${oldestNews.title}" (система домино)`);
+            }
+        }
+        
+        // Отправляем уведомление в Telegram
+        const notificationText = `🎉 Новая новость на сайте!\n\n📅 ${date}\n📰 ${title}\n\n${content.substring(0, 200)}${content.length > 200 ? '...' : ''}`;
+        sendTelegramNotification(notificationText, true);
+        
+        res.json({ success: true, id: result.lastInsertRowid });
+    } catch (error) {
+        console.error('Ошибка добавления новости:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Удалить новость (админ)
+app.delete('/api/admin/news/:id', authMiddleware, (req, res) => {
+    try {
+        const { id } = req.params;
+        db.prepare('DELETE FROM news WHERE id = ?').run(id);
+        console.log(`🗑️ Удалена новость ID: ${id}`);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Ошибка удаления новости:', error);
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 });

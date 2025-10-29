@@ -956,6 +956,56 @@
                 subscribeNewsletterMain();
             }
         });
+        
+        // ==================== DYNAMIC NEWS LOADING ====================
+        async function loadNews() {
+            try {
+                const response = await fetch('/api/news');
+                const data = await response.json();
+                
+                if (data.news && data.news.length > 0) {
+                    const newsGrid = document.querySelector('.news-grid');
+                    newsGrid.innerHTML = ''; // Очищаем текущие новости
+                    
+                    data.news.forEach((news, index) => {
+                        const newsCard = document.createElement('div');
+                        newsCard.className = 'news-card';
+                        
+                        // Определяем класс изображения (градиент)
+                        const imageClass = `news-image-${(index % 3) + 1}`;
+                        
+                        // Формируем HTML карточки
+                        let imageHtml = '';
+                        if (news.image_url) {
+                            imageHtml = `<div class="news-image ${imageClass}" style="background-image: url('${news.image_url}');"></div>`;
+                        } else if (news.emoji) {
+                            imageHtml = `<div class="news-image ${imageClass}"><div class="news-icon">${news.emoji}</div></div>`;
+                        } else {
+                            imageHtml = `<div class="news-image ${imageClass}"></div>`;
+                        }
+                        
+                        newsCard.innerHTML = `
+                            ${imageHtml}
+                            <div class="news-content">
+                                <div class="news-date">${news.date}</div>
+                                <h3 class="news-title">${news.title}</h3>
+                                <p class="news-text">${news.content}</p>
+                            </div>
+                        `;
+                        
+                        newsGrid.appendChild(newsCard);
+                    });
+                    
+                    console.log(`✅ Загружено ${data.news.length} новостей`);
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки новостей:', error);
+                // Если ошибка, оставляем захардкоженные новости
+            }
+        }
+        
+        // Загружаем новости при загрузке страницы
+        loadNews();
     </script>
 </body>
 </html>
