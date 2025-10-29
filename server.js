@@ -12,6 +12,7 @@ const fs = require('fs');
 const cheerio = require('cheerio');
 require('dotenv').config();
 const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,19 +29,38 @@ const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '6185074849';
 const emailTransporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST || 'smtp.yandex.ru',
     port: parseInt(process.env.EMAIL_PORT) || 465,
-    secure: process.env.EMAIL_SECURE === 'true' || true, // true for 465, false for other ports
+    secure: process.env.EMAIL_SECURE === 'true' || true,
     auth: {
         user: process.env.EMAIL_USER || 'orders@truststore.ru',
         pass: process.env.EMAIL_PASSWORD
-    }
+    },
+    tls: {
+        rejectUnauthorized: false,
+        ciphers: 'SSLv3'
+    },
+    connectionTimeout: 10000, // 10 секунд
+    greetingTimeout: 10000,
+    socketTimeout: 20000
 });
 
-// Проверка подключения к email серверу
+// Настройка SendGrid (запасной вариант)
+if (process.env.SENDGRID_API_KEY) {
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    console.log('✅ SendGrid API настроен');
+}
+
+// Проверка подключения к email серверу (async)
 emailTransporter.verify(function (error, success) {
     if (error) {
-        console.log('❌ Email сервер недоступен:', error.message);
+        console.log('❌ SMTP сервер недоступен:', error.message);
+        if (process.env.SENDGRID_API_KEY) {
+            console.log('✅ Будет использоваться SendGrid API');
+        } else {
+            console.log('⚠️ Для исправления: разблокируйте порты 465/587 у провайдера');
+            console.log('⚠️ Или добавьте SENDGRID_API_KEY в .env');
+        }
     } else {
-        console.log('✅ Email сервер готов к отправке писем');
+        console.log('✅ SMTP сервер готов к отправке писем');
     }
 });
 
@@ -2036,6 +2056,26 @@ function createOrderEmailHTML(data) {
 
 // Функция отправки письма с заказом
 async function sendOrderEmail(data) {
+    // Попытка отправить через SendGrid (если настроен)
+    if (process.env.SENDGRID_API_KEY) {
+        try {
+            const msg = {
+                to: data.to,
+                from: process.env.EMAIL_USER || 'orders@truststore.ru',
+                subject: `✅ Ваш заказ #${data.orderNumber} | Trust Store`,
+                html: createOrderEmailHTML(data)
+            };
+            
+            const response = await sgMail.send(msg);
+            console.log(`✅ Письмо отправлено через SendGrid: ${data.to}`);
+            return { success: true, messageId: response[0].headers['x-message-id'], method: 'SendGrid' };
+        } catch (error) {
+            console.error('❌ Ошибка SendGrid:', error.message);
+            // Продолжаем попытку через SMTP
+        }
+    }
+    
+    // Попытка отправить через SMTP
     try {
         const mailOptions = {
             from: process.env.EMAIL_FROM || '"Trust Store" <orders@truststore.ru>',
@@ -2052,11 +2092,11 @@ async function sendOrderEmail(data) {
         };
 
         const info = await emailTransporter.sendMail(mailOptions);
-        console.log(`✅ Письмо отправлено: ${data.to} (${info.messageId})`);
-        return { success: true, messageId: info.messageId };
+        console.log(`✅ Письмо отправлено через SMTP: ${data.to} (${info.messageId})`);
+        return { success: true, messageId: info.messageId, method: 'SMTP' };
     } catch (error) {
-        console.error('❌ Ошибка отправки письма:', error.message);
-        return { success: false, error: error.message };
+        console.error('❌ Ошибка отправки письма (SMTP):', error.message);
+        return { success: false, error: error.message, note: 'Проверьте настройки SMTP или добавьте SENDGRID_API_KEY' };
     }
 }
 
