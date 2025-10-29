@@ -893,6 +893,64 @@ body {
     color: #666;
 }
 
+/* News Section */
+.news-section {
+    padding: 80px 0;
+    background: white;
+}
+
+.news-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.news-card {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.news-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 50px rgba(102, 126, 234, 0.2);
+    border-color: rgba(102, 126, 234, 0.3);
+}
+
+.news-date {
+    font-size: 14px;
+    color: #667eea;
+    font-weight: 600;
+    margin-bottom: 15px;
+    display: inline-block;
+    padding: 5px 15px;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 20px;
+}
+
+.news-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 15px;
+    line-height: 1.4;
+}
+
+.news-text {
+    font-size: 16px;
+    color: #666;
+    line-height: 1.6;
+}
+
 /* Reviews Section */
 .reviews-section {
     padding: 80px 0;
