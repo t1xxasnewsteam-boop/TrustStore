@@ -1524,20 +1524,20 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    background: #ffffff;
     border: 2px solid #667eea;
     border-radius: 16px;
     padding: 24px 32px;
     gap: 24px;
     transition: all 0.3s ease;
-    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4), 
-                0 0 40px rgba(102, 126, 234, 0.2);
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3), 
+                0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .newsletter-bar:hover {
     border-color: #8b5cf6;
-    background: linear-gradient(135deg, #1f1f3a 0%, #1a2747 100%);
-    box-shadow: 0 12px 48px rgba(102, 126, 234, 0.6);
+    background: #ffffff;
+    box-shadow: 0 12px 48px rgba(102, 126, 234, 0.4);
     transform: translateY(-2px);
 }
 
@@ -1562,14 +1562,13 @@ body {
 .newsletter-text-compact strong {
     font-size: 18px;
     font-weight: 800;
-    color: #ffffff;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    color: #1a1a2e;
     letter-spacing: 0.3px;
 }
 
 .newsletter-text-compact span {
     font-size: 14px;
-    color: #c4c4ff;
+    color: #555;
     font-weight: 500;
 }
 
@@ -1582,8 +1581,8 @@ body {
 .newsletter-input-compact {
     width: 280px;
     padding: 15px 22px;
-    background: #ffffff;
-    border: 2px solid #e0e0e0;
+    background: #f8f9ff;
+    border: 2px solid #d0d5ff;
     border-radius: 12px;
     color: #1a1a2e;
     font-size: 15px;
@@ -1595,12 +1594,11 @@ body {
 .newsletter-input-compact:focus {
     background: #ffffff;
     border-color: #667eea;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15),
-                0 4px 20px rgba(102, 126, 234, 0.2);
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
 }
 
 .newsletter-input-compact::placeholder {
-    color: #888;
+    color: #999;
     font-weight: 400;
 }
 
