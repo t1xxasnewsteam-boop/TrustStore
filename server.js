@@ -10,6 +10,8 @@ const fetch = require('node-fetch');
 const multer = require('multer');
 const fs = require('fs');
 const cheerio = require('cheerio');
+require('dotenv').config();
+const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,8 +21,28 @@ const JWT_SECRET = 'your-secret-key-change-this-in-production'; // Измени 
 app.set('trust proxy', 1);
 
 // Telegram уведомления
-const TELEGRAM_BOT_TOKEN = '7268320384:AAGngFsmkg_x-2rryDtoJkmYD3ymxy5gM9o';
-const TELEGRAM_CHAT_ID = '6185074849';
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7268320384:AAGngFsmkg_x-2rryDtoJkmYD3ymxy5gM9o';
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '6185074849';
+
+// ==================== EMAIL CONFIGURATION ====================
+const emailTransporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST || 'smtp.yandex.ru',
+    port: parseInt(process.env.EMAIL_PORT) || 465,
+    secure: process.env.EMAIL_SECURE === 'true' || true, // true for 465, false for other ports
+    auth: {
+        user: process.env.EMAIL_USER || 'orders@truststore.ru',
+        pass: process.env.EMAIL_PASSWORD
+    }
+});
+
+// Проверка подключения к email серверу
+emailTransporter.verify(function (error, success) {
+    if (error) {
+        console.log('❌ Email сервер недоступен:', error.message);
+    } else {
+        console.log('✅ Email сервер готов к отправке писем');
+    }
+});
 
 // 🔥 Система защиты от дублей уведомлений
 const notificationCache = new Map(); // ticketId -> { lastNotificationTime, lastMessageCount }
@@ -1921,6 +1943,314 @@ app.get('/product/:productName', (req, res) => {
     }
     
     res.status(404).send('Product not found');
+});
+
+// ==================== EMAIL FUNCTIONS ====================
+
+// Функция создания HTML шаблона для письма с заказом
+function createOrderEmailHTML(data) {
+    const { orderNumber, productName, login, password, instructions } = data;
+    
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ваш заказ #${orderNumber}</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f5f5f5;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background: #f5f5f5; padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.1);">
+                    <!-- Header with Logo -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center;">
+                            <img src="cid:logo" alt="Trust Store" style="max-width: 180px; height: auto; margin-bottom: 16px;" />
+                            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">Trust Store</h1>
+                            <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 16px;">Ваш магазин цифровых товаров</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Order Info -->
+                    <tr>
+                        <td style="padding: 40px;">
+                            <h2 style="color: #1a1a1a; margin: 0 0 24px 0; font-size: 24px;">Спасибо за покупку! 🎉</h2>
+                            
+                            <div style="background: #f8f9ff; border-left: 4px solid #667eea; padding: 20px; margin-bottom: 24px; border-radius: 8px;">
+                                <p style="margin: 0 0 8px 0; color: #666; font-size: 14px;">Номер заказа</p>
+                                <p style="margin: 0; color: #1a1a1a; font-size: 20px; font-weight: 600;">#${orderNumber}</p>
+                            </div>
+                            
+                            <div style="background: #f8f9ff; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
+                                <p style="margin: 0 0 16px 0; color: #1a1a1a; font-size: 18px; font-weight: 600;">📦 Ваш товар:</p>
+                                <p style="margin: 0 0 24px 0; color: #667eea; font-size: 20px; font-weight: 700;">${productName}</p>
+                                
+                                <div style="border-top: 2px dashed #e0e0e0; padding-top: 20px;">
+                                    <p style="margin: 0 0 12px 0; color: #666; font-size: 14px;">🔑 Данные для входа:</p>
+                                    
+                                    <div style="background: white; border: 2px solid #667eea; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                                        <p style="margin: 0 0 8px 0; color: #666; font-size: 12px;">ЛОГИН</p>
+                                        <p style="margin: 0; color: #1a1a1a; font-size: 16px; font-weight: 600; word-break: break-all;">${login}</p>
+                                    </div>
+                                    
+                                    <div style="background: white; border: 2px solid #667eea; border-radius: 8px; padding: 16px;">
+                                        <p style="margin: 0 0 8px 0; color: #666; font-size: 12px;">ПАРОЛЬ</p>
+                                        <p style="margin: 0; color: #1a1a1a; font-size: 16px; font-weight: 600; word-break: break-all;">${password}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            ${instructions ? `
+                            <div style="background: #fff9e6; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+                                <p style="margin: 0 0 12px 0; color: #1a1a1a; font-size: 16px; font-weight: 600;">📝 Инструкция:</p>
+                                <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.6;">${instructions}</p>
+                            </div>
+                            ` : ''}
+                            
+                            <div style="text-align: center; margin-top: 32px;">
+                                <a href="https://truststore.ru" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 16px 48px; border-radius: 12px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);">
+                                    Посетить сайт
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background: #f8f9ff; padding: 32px; text-align: center; border-top: 1px solid #e0e0e0;">
+                            <p style="margin: 0 0 12px 0; color: #1a1a1a; font-size: 16px; font-weight: 600;">Нужна помощь?</p>
+                            <p style="margin: 0 0 16px 0; color: #666; font-size: 14px;">Напишите нам через виджет на сайте</p>
+                            <p style="margin: 0; color: #999; font-size: 12px;">© ${new Date().getFullYear()} Trust Store. Все права защищены.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+    `;
+}
+
+// Функция отправки письма с заказом
+async function sendOrderEmail(data) {
+    try {
+        const mailOptions = {
+            from: process.env.EMAIL_FROM || '"Trust Store" <orders@truststore.ru>',
+            to: data.to,
+            subject: `✅ Ваш заказ #${data.orderNumber} | Trust Store`,
+            html: createOrderEmailHTML(data),
+            attachments: [
+                {
+                    filename: 'logo.png',
+                    path: path.join(__dirname, 'logo.png'),
+                    cid: 'logo'
+                }
+            ]
+        };
+
+        const info = await emailTransporter.sendMail(mailOptions);
+        console.log(`✅ Письмо отправлено: ${data.to} (${info.messageId})`);
+        return { success: true, messageId: info.messageId };
+    } catch (error) {
+        console.error('❌ Ошибка отправки письма:', error.message);
+        return { success: false, error: error.message };
+    }
+}
+
+// Функция создания HTML для рассылки новостей
+function createNewsletterHTML(data) {
+    const { title, content, date, unsubscribeLink } = data;
+    
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f5f5f5;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background: #f5f5f5; padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 32px; text-align: center;">
+                            <img src="cid:logo" alt="Trust Store" style="max-width: 140px; height: auto;" />
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px;">
+                            <p style="margin: 0 0 16px 0; color: #667eea; font-size: 14px; font-weight: 600; text-transform: uppercase;">📰 Новости</p>
+                            <h1 style="margin: 0 0 16px 0; color: #1a1a1a; font-size: 28px; font-weight: 700; line-height: 1.3;">${title}</h1>
+                            ${date ? `<p style="margin: 0 0 24px 0; color: #999; font-size: 14px;">📅 ${date}</p>` : ''}
+                            
+                            <div style="color: #666; font-size: 16px; line-height: 1.8; margin-bottom: 32px;">
+                                ${content}
+                            </div>
+                            
+                            <div style="text-align: center;">
+                                <a href="https://truststore.ru" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 16px 48px; border-radius: 12px; font-size: 16px; font-weight: 600;">
+                                    Перейти на сайт
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background: #f8f9ff; padding: 24px; text-align: center; border-top: 1px solid #e0e0e0;">
+                            <p style="margin: 0 0 12px 0; color: #666; font-size: 14px;">Trust Store — Ваш магазин цифровых товаров</p>
+                            ${unsubscribeLink ? `<p style="margin: 0; font-size: 12px;"><a href="${unsubscribeLink}" style="color: #999; text-decoration: underline;">Отписаться от рассылки</a></p>` : ''}
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+    `;
+}
+
+// Функция отправки рассылки
+async function sendNewsletterEmail(data) {
+    try {
+        const mailOptions = {
+            from: process.env.EMAIL_FROM || '"Trust Store" <orders@truststore.ru>',
+            to: data.to,
+            subject: `📰 ${data.title} | Trust Store`,
+            html: createNewsletterHTML(data),
+            attachments: [
+                {
+                    filename: 'logo.png',
+                    path: path.join(__dirname, 'logo.png'),
+                    cid: 'logo'
+                }
+            ]
+        };
+
+        const info = await emailTransporter.sendMail(mailOptions);
+        console.log(`✅ Рассылка отправлена: ${data.to}`);
+        return { success: true, messageId: info.messageId };
+    } catch (error) {
+        console.error('❌ Ошибка рассылки:', error.message);
+        return { success: false, error: error.message };
+    }
+}
+
+// ==================== EMAIL API ENDPOINTS ====================
+
+// Тестовая отправка письма (админ)
+app.post('/api/admin/test-email', authMiddleware, async (req, res) => {
+    try {
+        const { to } = req.body;
+        
+        const result = await sendOrderEmail({
+            to: to || process.env.EMAIL_USER,
+            orderNumber: 'TEST-' + Date.now(),
+            productName: 'ChatGPT Plus 1 месяц (тестовый заказ)',
+            login: 'test@example.com',
+            password: 'TestPassword123',
+            instructions: 'Это тестовое письмо. Перейдите на chat.openai.com и введите данные для входа.'
+        });
+        
+        res.json(result);
+    } catch (error) {
+        console.error('Ошибка тестовой отправки:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Отправка письма с заказом (админ)
+app.post('/api/admin/send-order-email', authMiddleware, async (req, res) => {
+    try {
+        const { to, orderNumber, productName, login, password, instructions } = req.body;
+        
+        if (!to || !orderNumber || !productName || !login || !password) {
+            return res.status(400).json({ error: 'Не все поля заполнены' });
+        }
+        
+        const result = await sendOrderEmail({
+            to,
+            orderNumber,
+            productName,
+            login,
+            password,
+            instructions
+        });
+        
+        res.json(result);
+    } catch (error) {
+        console.error('Ошибка отправки заказа:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Рассылка новости всем подписчикам (админ)
+app.post('/api/admin/send-newsletter', authMiddleware, async (req, res) => {
+    try {
+        const { newsId } = req.body;
+        
+        if (!newsId) {
+            return res.status(400).json({ error: 'Не указан ID новости' });
+        }
+        
+        // Получаем новость из базы
+        const news = db.prepare('SELECT * FROM news WHERE id = ?').get(newsId);
+        
+        if (!news) {
+            return res.status(404).json({ error: 'Новость не найдена' });
+        }
+        
+        // Получаем всех активных подписчиков
+        const subscribers = db.prepare(`
+            SELECT * FROM newsletter_subscribers 
+            WHERE status = 'active'
+        `).all();
+        
+        if (subscribers.length === 0) {
+            return res.json({ success: true, sent: 0, message: 'Нет активных подписчиков' });
+        }
+        
+        let sent = 0;
+        let failed = 0;
+        
+        // Отправляем рассылку
+        for (const subscriber of subscribers) {
+            const result = await sendNewsletterEmail({
+                to: subscriber.email,
+                title: news.title,
+                content: news.content,
+                date: news.date,
+                unsubscribeLink: `https://truststore.ru/unsubscribe?email=${encodeURIComponent(subscriber.email)}`
+            });
+            
+            if (result.success) {
+                sent++;
+            } else {
+                failed++;
+            }
+            
+            // Задержка между отправками (чтобы не попасть в спам)
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        
+        // Отправляем уведомление в Telegram
+        const notificationText = `📧 Рассылка новости завершена!\n\n📰 ${news.title}\n\n✅ Отправлено: ${sent}\n❌ Ошибок: ${failed}`;
+        sendTelegramNotification(notificationText, true);
+        
+        res.json({ success: true, sent, failed, total: subscribers.length });
+    } catch (error) {
+        console.error('Ошибка рассылки:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
 
 // Запуск сервера
