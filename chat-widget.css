@@ -157,19 +157,23 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    font-size: 28px;
-    line-height: 1;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
     padding: 0;
+    flex-shrink: 0;
+}
+
+.chat-close-btn svg {
+    display: block;
+    flex-shrink: 0;
 }
 
 .chat-close-btn:hover {
     background: rgba(255, 255, 255, 0.3);
-    transform: rotate(90deg);
+    transform: scale(1.1);
 }
 
 /* Тело чата */
@@ -335,8 +339,8 @@
 }
 
 .chat-image-btn {
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     background: #f0f0f0;
     color: #666;
     border: none;
@@ -358,12 +362,12 @@
 .chat-image-btn:hover {
     background: #667eea;
     color: white;
-    transform: scale(1.05);
+    transform: scale(1.1);
 }
 
 .chat-send-btn {
-    width: 45px;
-    height: 45px;
+    width: 42px;
+    height: 42px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
     border-radius: 50%;
@@ -374,16 +378,22 @@
     align-items: center;
     justify-content: center;
     padding: 0;
+    flex-shrink: 0;
 }
 
 .chat-send-btn svg {
     display: block;
     flex-shrink: 0;
+    transform: translateX(1px);
 }
 
 .chat-send-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    transform: scale(1.15);
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.5);
+}
+
+.chat-send-btn:active {
+    transform: scale(1.05);
 }
 
 .chat-send-btn:disabled {

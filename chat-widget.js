@@ -23,7 +23,11 @@
                         Онлайн
                     </p>
                 </div>
-                <button class="chat-close-btn" id="chatCloseBtn">×</button>
+                <button class="chat-close-btn" id="chatCloseBtn">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="white">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </button>
             </div>
             
             <div class="chat-body" id="chatBody">
@@ -38,8 +42,8 @@
                     style="display: none;"
                 >
                 <button class="chat-image-btn" id="chatImageBtn" title="Прикрепить изображение">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                        <path d="M21.44 11.05l-9.19 9.19c-1.28 1.28-3.36 1.28-4.64 0-1.28-1.28-1.28-3.36 0-4.64l8.49-8.49c.76-.76 2-.76 2.76 0 .76.76.76 2 0 2.76l-7.07 7.07c-.25.25-.65.25-.9 0-.25-.25-.25-.65 0-.9l6.36-6.36c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0L9.48 14.63c-1.03 1.03-1.03 2.7 0 3.73 1.03 1.03 2.7 1.03 3.73 0l8.49-8.49c1.53-1.53 1.53-4.01 0-5.54-1.53-1.53-4.01-1.53-5.54 0l-9.19 9.19c-2.07 2.07-2.07 5.42 0 7.49 2.07 2.07 5.42 2.07 7.49 0l9.19-9.19c.39-.39.39-1.02 0-1.41-.39-.39-1.02-.39-1.41 0z"/>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
                     </svg>
                 </button>
                 <input 
@@ -50,7 +54,7 @@
                     autocomplete="off"
                 >
                 <button class="chat-send-btn" id="chatSendBtn">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="white">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="white">
                         <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
                     </svg>
                 </button>
