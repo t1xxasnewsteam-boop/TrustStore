@@ -3697,15 +3697,21 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    alert('✅ Синхронизация завершена!');
+                    const message = data.message || 'Синхронизация завершена!';
+                    alert('✅ ' + message);
                     loadEmails();
                     updateEmailBadge();
                 } else {
-                    alert('❌ Ошибка синхронизации: ' + (data.error || 'Неизвестная ошибка'));
+                    // Показываем понятное сообщение об ошибке
+                    let errorMsg = data.error || 'Неизвестная ошибка';
+                    if (data.details && data.details !== errorMsg) {
+                        errorMsg += ': ' + data.details;
+                    }
+                    alert('❌ ' + errorMsg);
                 }
             } catch (error) {
                 console.error('Error syncing emails:', error);
-                alert('❌ Ошибка синхронизации');
+                alert('❌ Ошибка синхронизации: ' + (error.message || 'Не удалось подключиться к серверу'));
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalText;

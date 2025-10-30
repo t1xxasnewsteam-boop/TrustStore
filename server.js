@@ -3360,11 +3360,51 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
 app.post('/api/admin/emails/sync', authMiddleware, async (req, res) => {
     try {
         console.log('🔄 Запуск ручной синхронизации писем...');
-        await syncAllEmails();
-        res.json({ success: true, message: 'Синхронизация завершена' });
+        
+        const result = await syncAllEmails();
+        
+        if (result && result.error) {
+            // Если была ошибка подключения
+            if (result.error.includes('Invalid login') || result.error.includes('invalid credentials')) {
+                return res.status(401).json({ 
+                    error: 'Ошибка подключения к почте', 
+                    details: 'Неверный логин или пароль. Для Yandex 360 нужен пароль приложения, а не основной пароль. Получить: https://id.yandex.ru/security/app-passwords'
+                });
+            }
+            
+            return res.status(500).json({ 
+                error: 'Ошибка синхронизации', 
+                details: result.error 
+            });
+        }
+        
+        const totalSaved = (result?.inbox?.saved || 0) + (result?.spam?.saved || 0);
+        const totalProcessed = (result?.inbox?.processed || 0) + (result?.spam?.processed || 0);
+        
+        res.json({ 
+            success: true, 
+            message: `Синхронизация завершена: обработано ${totalProcessed} писем, сохранено ${totalSaved} новых`,
+            inbox: result?.inbox || {},
+            spam: result?.spam || {}
+        });
     } catch (error) {
         console.error('Ошибка синхронизации:', error);
-        res.status(500).json({ error: 'Ошибка синхронизации', details: error.message });
+        
+        let errorMessage = 'Ошибка синхронизации';
+        let errorDetails = error.message || 'Неизвестная ошибка';
+        
+        if (error.message && (error.message.includes('Invalid login') || error.message.includes('invalid credentials'))) {
+            errorMessage = 'Ошибка подключения к почте';
+            errorDetails = 'Неверный логин или пароль. Для Yandex 360 нужен пароль приложения. Получить: https://id.yandex.ru/security/app-passwords';
+        } else if (error.message && error.message.includes('IMAP is disabled')) {
+            errorMessage = 'IMAP отключен';
+            errorDetails = 'IMAP не включен в настройках почты. Включите IMAP в Yandex 360: https://360.yandex.ru/ -> Почта -> Настройки -> Доступ к почте';
+        }
+        
+        res.status(500).json({ 
+            error: errorMessage, 
+            details: errorDetails 
+        });
     }
 });
 
