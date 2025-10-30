@@ -841,6 +841,11 @@
                     <span class="nav-icon">📦</span>
                     <span class="nav-label">Товары</span>
                 </a>
+                <a class="nav-item" data-section="inventory">
+                    <span class="nav-icon">🎁</span>
+                    <span class="nav-label">Инвентарь</span>
+                    <span class="nav-badge" id="inventoryBadge">0</span>
+                </a>
             </div>
 
             <div class="nav-section">
@@ -1470,6 +1475,171 @@
                         <tbody id="subscribersTableBody">
                             <tr>
                                 <td colspan="4" style="text-align: center; padding: 48px; color: var(--text-secondary);">
+                                    Загрузка...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Section -->
+        <div class="content-section" id="inventory">
+            <div class="top-bar">
+                <h1 class="page-title">🎁 Инвентарь товаров</h1>
+                <div class="top-bar-actions">
+                    <button class="btn btn-secondary" onclick="loadInventory()">
+                        <span>🔄</span> Обновить
+                    </button>
+                </div>
+            </div>
+
+            <!-- Add Product Form -->
+            <div class="glass-card" style="margin-bottom: 24px;">
+                <h2 style="margin: 0 0 20px 0; font-size: 20px; color: var(--text-primary);">
+                    ➕ Добавить товар в инвентарь
+                </h2>
+                <form id="addInventoryForm" style="display: grid; gap: 16px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-secondary);">
+                                Название товара
+                            </label>
+                            <input 
+                                type="text" 
+                                id="inventoryProductName" 
+                                class="form-input" 
+                                placeholder="Например: ChatGPT Plus 1 месяц"
+                                required
+                                list="productNamesList"
+                                style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-primary); font-size: 15px;"
+                            >
+                            <datalist id="productNamesList">
+                                <option value="ChatGPT Plus 1 месяц">
+                                <option value="ChatGPT Plus 3 месяца">
+                                <option value="Claude Pro 1 месяц">
+                                <option value="Cursor Pro 1 месяц">
+                                <option value="Midjourney Standard">
+                                <option value="YouTube Premium">
+                                <option value="Gemini Advanced">
+                                <option value="Adobe Creative Cloud">
+                                <option value="CapCut Pro">
+                            </datalist>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-secondary);">
+                                Логин / Email
+                            </label>
+                            <input 
+                                type="text" 
+                                id="inventoryLogin" 
+                                class="form-input" 
+                                placeholder="user@example.com"
+                                required
+                                style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-primary); font-size: 15px;"
+                            >
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-secondary);">
+                            Пароль
+                        </label>
+                        <input 
+                            type="text" 
+                            id="inventoryPassword" 
+                            class="form-input" 
+                            placeholder="password123"
+                            required
+                            style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-primary); font-size: 15px;"
+                        >
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-secondary);">
+                            Инструкции для клиента (опционально)
+                        </label>
+                        <textarea 
+                            id="inventoryInstructions" 
+                            class="form-input" 
+                            rows="3"
+                            placeholder="Например: Зайдите на chat.openai.com и введите эти данные..."
+                            style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-primary); font-size: 15px; resize: vertical; font-family: inherit;"
+                        ></textarea>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <button 
+                            type="submit" 
+                            class="btn btn-primary" 
+                            style="flex: 1;"
+                        >
+                            <span>➕</span> Добавить товар
+                        </button>
+                        <button 
+                            type="button" 
+                            class="btn btn-secondary" 
+                            onclick="document.getElementById('addInventoryForm').reset()"
+                        >
+                            Очистить
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Inventory Stats -->
+            <div class="glass-card" style="margin-bottom: 24px;">
+                <h2 style="margin: 0 0 20px 0; font-size: 20px; color: var(--text-primary);">
+                    📊 Статистика по товарам
+                </h2>
+                <div id="inventoryStatsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
+                    <div style="text-align: center; padding: 48px; color: var(--text-secondary); grid-column: 1 / -1;">
+                        Загрузка...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory Table -->
+            <div class="glass-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0; font-size: 20px; color: var(--text-primary);">
+                        📦 Все товары
+                    </h2>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <select 
+                            id="inventoryFilter" 
+                            onchange="filterInventory()"
+                            style="padding: 8px 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-primary); font-size: 14px;"
+                        >
+                            <option value="all">Все товары</option>
+                            <option value="available">Доступные</option>
+                            <option value="sold">Проданные</option>
+                        </select>
+                        <input 
+                            type="text" 
+                            id="inventorySearch" 
+                            placeholder="🔍 Поиск по названию..."
+                            oninput="filterInventory()"
+                            style="padding: 8px 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-primary); font-size: 14px; width: 250px;"
+                        >
+                    </div>
+                </div>
+                
+                <div class="table-container" id="inventoryTableContainer">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Товар</th>
+                                <th>Логин</th>
+                                <th>Пароль</th>
+                                <th>Статус</th>
+                                <th>Заказ</th>
+                                <th>Дата</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTableBody">
+                            <tr>
+                                <td colspan="8" style="text-align: center; padding: 48px; color: var(--text-secondary);">
                                     Загрузка...
                                 </td>
                             </tr>
@@ -2483,6 +2653,12 @@
                     case 'geography':
                         loadGeographyData();
                         break;
+                    case 'newsletter':
+                        loadNewsletterSubscribers();
+                        break;
+                    case 'inventory':
+                        loadInventory();
+                        break;
                 }
             });
         });
@@ -2951,6 +3127,221 @@
                         // Включаем кнопку обратно
                         sendBtn.disabled = false;
                         sendBtn.innerHTML = '<span>📧</span> Отправить всем подписчикам';
+                    }
+                });
+            }
+        });
+
+        // Inventory Functions
+        let allInventoryItems = [];
+        
+        async function loadInventory() {
+            try {
+                const response = await fetch('/api/admin/inventory', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    allInventoryItems = data.inventory;
+                    displayInventory(allInventoryItems);
+                    await loadInventoryStats();
+                }
+            } catch (error) {
+                console.error('Error loading inventory:', error);
+            }
+        }
+        
+        function displayInventory(items) {
+            const tbody = document.getElementById('inventoryTableBody');
+            
+            if (!items || items.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 48px; color: var(--text-secondary);">
+                            📭 Нет товаров в инвентаре
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = items.map(item => {
+                const statusClass = item.status === 'available' ? 'status-active' : 'status-inactive';
+                const statusText = item.status === 'available' ? '✅ Доступен' : '❌ Продан';
+                const date = new Date(item.created_at).toLocaleDateString('ru-RU');
+                const soldDate = item.sold_at ? new Date(item.sold_at).toLocaleDateString('ru-RU') : '-';
+                
+                return `
+                    <tr>
+                        <td><strong>#${item.id}</strong></td>
+                        <td><strong>${item.product_name}</strong></td>
+                        <td>
+                            <span style="font-family: monospace; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;">
+                                ${item.login}
+                            </span>
+                        </td>
+                        <td>
+                            <span style="font-family: monospace; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px;">
+                                ${item.password}
+                            </span>
+                        </td>
+                        <td><span class="badge ${statusClass}">${statusText}</span></td>
+                        <td>${item.order_id || '-'}</td>
+                        <td>${item.status === 'sold' ? soldDate : date}</td>
+                        <td>
+                            ${item.status === 'available' ? `
+                                <button class="btn btn-sm btn-danger" onclick="deleteInventoryItem(${item.id})">
+                                    <span>🗑️</span> Удалить
+                                </button>
+                            ` : `
+                                <span style="color: var(--text-secondary); font-size: 12px;">Продано</span>
+                            `}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            // Update badge
+            const availableCount = items.filter(i => i.status === 'available').length;
+            document.getElementById('inventoryBadge').textContent = availableCount;
+        }
+        
+        async function loadInventoryStats() {
+            try {
+                const response = await fetch('/api/admin/inventory/stats', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayInventoryStats(data.stats);
+                }
+            } catch (error) {
+                console.error('Error loading inventory stats:', error);
+            }
+        }
+        
+        function displayInventoryStats(stats) {
+            const container = document.getElementById('inventoryStatsContainer');
+            
+            if (!stats || stats.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 48px; color: var(--text-secondary); grid-column: 1 / -1;">
+                        📭 Нет товаров для статистики
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = stats.map(stat => `
+                <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px;">
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">
+                        ${stat.product_name}
+                    </div>
+                    <div style="font-size: 28px; font-weight: 700; margin-bottom: 4px;">
+                        ${stat.available}
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-secondary);">
+                        В наличии из ${stat.total} (продано: ${stat.sold})
+                    </div>
+                    ${stat.available === 0 ? `
+                        <div style="margin-top: 8px; padding: 6px 10px; background: rgba(255, 50, 50, 0.2); border: 1px solid rgba(255, 50, 50, 0.3); border-radius: 6px; font-size: 11px; color: #ff6666; font-weight: 600;">
+                            ⚠️ ЗАКОНЧИЛСЯ
+                        </div>
+                    ` : stat.available <= 2 ? `
+                        <div style="margin-top: 8px; padding: 6px 10px; background: rgba(255, 200, 0, 0.2); border: 1px solid rgba(255, 200, 0, 0.3); border-radius: 6px; font-size: 11px; color: #ffcc00; font-weight: 600;">
+                            ⚡ МАЛО В НАЛИЧИИ
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+        
+        function filterInventory() {
+            const filterValue = document.getElementById('inventoryFilter').value;
+            const searchValue = document.getElementById('inventorySearch').value.toLowerCase();
+            
+            let filtered = allInventoryItems;
+            
+            // Filter by status
+            if (filterValue !== 'all') {
+                filtered = filtered.filter(item => item.status === filterValue);
+            }
+            
+            // Filter by search
+            if (searchValue) {
+                filtered = filtered.filter(item => 
+                    item.product_name.toLowerCase().includes(searchValue) ||
+                    item.login.toLowerCase().includes(searchValue)
+                );
+            }
+            
+            displayInventory(filtered);
+        }
+        
+        async function deleteInventoryItem(id) {
+            if (!confirm('Вы уверены, что хотите удалить этот товар из инвентаря?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/admin/inventory/${id}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    await loadInventory();
+                    alert('✅ Товар удален из инвентаря');
+                } else {
+                    alert('❌ Ошибка удаления товара');
+                }
+            } catch (error) {
+                console.error('Error deleting inventory item:', error);
+                alert('❌ Ошибка удаления товара');
+            }
+        }
+        
+        // Add Inventory Form Handler
+        document.addEventListener('DOMContentLoaded', () => {
+            const addInventoryForm = document.getElementById('addInventoryForm');
+            if (addInventoryForm) {
+                addInventoryForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const productName = document.getElementById('inventoryProductName').value;
+                    const login = document.getElementById('inventoryLogin').value;
+                    const password = document.getElementById('inventoryPassword').value;
+                    const instructions = document.getElementById('inventoryInstructions').value;
+                    
+                    try {
+                        const response = await fetch('/api/admin/inventory', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            credentials: 'include',
+                            body: JSON.stringify({
+                                product_name: productName,
+                                login: login,
+                                password: password,
+                                instructions: instructions
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (response.ok) {
+                            alert('✅ Товар успешно добавлен в инвентарь!');
+                            addInventoryForm.reset();
+                            await loadInventory();
+                        } else {
+                            alert('❌ ' + data.error);
+                        }
+                    } catch (error) {
+                        console.error('Error adding inventory item:', error);
+                        alert('❌ Ошибка добавления товара');
                     }
                 });
             }
