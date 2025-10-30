@@ -528,6 +528,29 @@ try {
     console.error('❌ Ошибка миграции telegram_date:', error.message);
 }
 
+// Миграция 4: Добавляем колонку status в orders
+try {
+    const ordersTableInfo = db.pragma('table_info(orders)');
+    const hasStatus = ordersTableInfo.some(col => col.name === 'status');
+    
+    if (!hasStatus) {
+        console.log('⚙️ Добавление колонки status в orders...');
+        db.exec('ALTER TABLE orders ADD COLUMN status TEXT DEFAULT "pending"');
+        console.log('✅ Колонка status успешно добавлена!');
+        
+        // Обновляем существующие заказы (считаем их оплаченными)
+        const existingOrders = db.prepare('SELECT COUNT(*) as count FROM orders').get();
+        if (existingOrders.count > 0) {
+            db.exec('UPDATE orders SET status = "paid" WHERE status IS NULL');
+            console.log(`✅ Обновлено ${existingOrders.count} существующих заказов`);
+        }
+    } else {
+        console.log('✅ Колонка status уже существует');
+    }
+} catch (error) {
+    console.error('❌ Ошибка миграции status:', error.message);
+}
+
 // Создаем дефолтного админа (username: t1xxas, password: Gaga00723)
 const checkAdmin = db.prepare('SELECT * FROM admins WHERE username = ?').get('t1xxas');
 if (!checkAdmin) {
