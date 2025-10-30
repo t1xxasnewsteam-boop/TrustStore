@@ -1544,18 +1544,20 @@ app.get('/api/admin-stats', authMiddleware, (req, res) => {
         const totalSessions = db.prepare('SELECT COUNT(*) as count FROM sessions').get();
         const totalPageViews = db.prepare('SELECT COUNT(*) as count FROM visits').get();
         
-        // Заказы
-        const totalOrders = db.prepare('SELECT COUNT(*) as count, SUM(total_amount) as revenue FROM orders').get();
+        // Заказы (только оплаченные)
+        const totalOrders = db.prepare('SELECT COUNT(*) as count, SUM(total_amount) as revenue FROM orders WHERE status = "paid"').get();
         const ordersThisMonth = db.prepare(`
             SELECT COUNT(*) as count, SUM(total_amount) as revenue 
             FROM orders 
-            WHERE created_at >= datetime('now', 'start of month')
+            WHERE status = 'paid'
+            AND created_at >= datetime('now', 'start of month')
         `).get();
         
         const ordersLastMonth = db.prepare(`
             SELECT COUNT(*) as count, SUM(total_amount) as revenue 
             FROM orders 
-            WHERE created_at >= datetime('now', '-1 month', 'start of month')
+            WHERE status = 'paid'
+            AND created_at >= datetime('now', '-1 month', 'start of month')
             AND created_at < datetime('now', 'start of month')
         `).get();
         
