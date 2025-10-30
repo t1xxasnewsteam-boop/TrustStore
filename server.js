@@ -3124,7 +3124,8 @@ function syncEmailsFromFolder(imap, folderName) {
                                 // Проверяем, существует ли уже
                                 const existing = db.prepare('SELECT id FROM email_messages WHERE message_id = ?').get(messageId);
                                 if (existing) {
-                                    return; // Уже есть в БД
+                                    // Уже есть в БД - не сохраняем повторно
+                                    return;
                                 }
                                 
                                 // Парсим отправителя (безопасно)
@@ -3193,8 +3194,19 @@ function syncEmailsFromFolder(imap, folderName) {
             
             fetch.once('end', () => {
                 console.log(`✅ ${folderName}: обработано ${processed} писем, сохранено ${saved} новых`);
+                if (processed === 0 && saved === 0) {
+                    console.log(`⚠️ ${folderName}: предупреждение - письма получены, но ни одно не обработано!`);
+                }
                 resolve({ folder: folderName, processed, saved });
             });
+            
+            // Добавляем таймаут на случай зависания
+            setTimeout(() => {
+                if (processed === 0) {
+                    console.log(`⚠️ ${folderName}: таймаут - письма не обработаны за 30 секунд`);
+                    resolve({ folder: folderName, processed: 0, saved: 0, timeout: true });
+                }
+            }, 30000);
         });
     });
 }
