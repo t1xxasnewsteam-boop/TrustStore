@@ -3110,17 +3110,14 @@ function syncEmailsFromFolder(imap, folderName) {
                         console.error(`❌ Ошибка чтения письма #${seqno} из ${folderName}:`, streamErr.message);
                     });
                     
-                    stream.once('end', () => {
+                    stream.once('end', async () => {
                         const buffer = Buffer.concat(chunks);
                         
-                        // Парсим письмо (импортируем в момент использования)
-                        const mailparser = require('mailparser');
-                        mailparser.simpleParser(buffer, (err, parsed) => {
-                            if (err) {
-                                console.error(`❌ Ошибка парсинга письма #${seqno} из ${folderName}:`, err.message);
-                                return;
-                            }
-                        
+                        // Парсим письмо
+                        try {
+                            const { simpleParser } = require('mailparser');
+                            const parsed = await simpleParser(buffer);
+                            
                             // Сохраняем в БД
                             try {
                                 // Безопасное получение messageId
@@ -3191,13 +3188,15 @@ function syncEmailsFromFolder(imap, folderName) {
                                 const spamPrefix = isSpam ? '🚨 СПАМ: ' : '';
                                 const preview = bodyText.substring(0, 150) + (bodyText.length > 150 ? '...' : '');
                                 const telegramMessage = `${spamPrefix}📧 Новое письмо на ${process.env.EMAIL_USER}\n\n👤 От: ${fromName} <${fromEmail}>\n📌 Тема: ${finalSubject}\n\n💬 Сообщение:\n${preview}\n\n💡 Отвечайте через админ-панель!`;
-                                sendTelegramNotification(telegramMessage, false);
-                                console.log(`📤 Telegram уведомление отправлено для письма от ${fromEmail}`);
-                            } catch (dbError) {
-                                console.error(`❌ Ошибка сохранения письма #${seqno} из ${folderName} в БД:`, dbError.message);
-                                // Продолжаем обработку других писем
-                            }
-                        });
+                                    sendTelegramNotification(telegramMessage, false);
+                                    console.log(`📤 Telegram уведомление отправлено для письма от ${fromEmail}`);
+                                } catch (dbError) {
+                                    console.error(`❌ Ошибка сохранения письма #${seqno} из ${folderName} в БД:`, dbError.message);
+                                    // Продолжаем обработку других писем
+                                }
+                        } catch (parseError) {
+                            console.error(`❌ Ошибка парсинга письма #${seqno} из ${folderName}:`, parseError.message);
+                        }
                     });
                 });
                 
