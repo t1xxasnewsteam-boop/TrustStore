@@ -3045,18 +3045,26 @@ function saveEmailToDB(mail) {
         
         console.log(`📧 Новое письмо сохранено: ${fromEmail} - ${subject}`);
         
-        // Отправляем уведомление в Telegram для ВСЕХ новых писем
+        // ОБЯЗАТЕЛЬНО отправляем уведомление в Telegram для ВСЕХ новых писем
         const preview = bodyText.substring(0, 200) + (bodyText.length > 200 ? '...' : '');
         const isSpam = subject.startsWith('[СПАМ]');
         const spamPrefix = isSpam ? '🚨 СПАМ: ' : '';
         // Экранируем email адреса для Telegram (без < > чтобы не конфликтовало с HTML)
         const telegramMessage = `${spamPrefix}📧 Новое письмо на ${toEmail}\n\n👤 От: ${fromName}\n📧 Email: ${fromEmail}\n📌 Тема: ${subject}\n\n💬 Сообщение:\n${preview}\n\n💡 Отвечайте через админ-панель!`;
         
-        // Отправляем уведомление асинхронно (не блокируем сохранение)
+        // Отправляем уведомление ПРЯМО СЕЙЧАС (не асинхронно, чтобы гарантировать отправку)
+        console.log(`📤 Отправка Telegram уведомления для ${fromEmail}...`);
         sendTelegramNotification(telegramMessage, false).then(() => {
             console.log(`✅ Telegram уведомление отправлено для письма от ${fromEmail}`);
         }).catch(err => {
-            console.error(`❌ Не удалось отправить Telegram уведомление для ${fromEmail}:`, err.message);
+            console.error(`❌ КРИТИЧНО: Не удалось отправить Telegram уведомление для ${fromEmail}:`, err.message || err);
+            // Пробуем еще раз через 2 секунды
+            setTimeout(() => {
+                console.log(`🔄 Повторная попытка отправки Telegram уведомления для ${fromEmail}...`);
+                sendTelegramNotification(telegramMessage, false).catch(e => {
+                    console.error(`❌ Повторная отправка тоже не удалась для ${fromEmail}:`, e.message || e);
+                });
+            }, 2000);
         });
         
     } catch (error) {
@@ -3116,8 +3124,19 @@ function syncEmailsFromFolder(imap, folderName) {
                         
                         // Парсим письмо
                         try {
-                            const { simpleParser } = require('mailparser');
-                            const parsed = await simpleParser(buffer);
+                            const mailparser = require('mailparser');
+                            // Проверяем какой API доступен
+                            let parsed;
+                            if (typeof mailparser.simpleParser === 'function') {
+                                parsed = await mailparser.simpleParser(buffer);
+                            } else if (typeof mailparser.default?.simpleParser === 'function') {
+                                parsed = await mailparser.default.simpleParser(buffer);
+                            } else {
+                                // Используем SimpleParser напрямую
+                                const { SimpleParser } = require('mailparser');
+                                const parser = new SimpleParser();
+                                parsed = await parser.parse(buffer);
+                            }
                             
                             // Сохраняем в БД
                             try {
@@ -3419,11 +3438,20 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
         });
         
         mailListener.on('server:disconnected', () => {
-            console.log('⚠️ IMAP отключен, попытка переподключения...');
+            console.log('⚠️ IMAP отключен, попытка переподключения через 5 секунд...');
+            setTimeout(() => {
+                try {
+                    mailListener.start();
+                    console.log('🔄 Попытка переподключения IMAP listener...');
+                } catch (e) {
+                    console.error('❌ Ошибка переподключения:', e.message);
+                }
+            }, 5000);
         });
         
         mailListener.on('mail', (mail) => {
             console.log('📬 Новое письмо получено из INBOX в реальном времени!');
+            console.log(`📧 От: ${mail.from?.[0]?.address || 'unknown'}, Тема: ${mail.subject || 'Без темы'}`);
             saveEmailToDB(mail);
         });
         
@@ -3432,6 +3460,19 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
             if (err.message && err.message.includes('Invalid login')) {
                 console.error('⚠️ Проверьте EMAIL_USER и EMAIL_PASSWORD в .env');
                 console.error('⚠️ Для Yandex может потребоваться пароль приложения (не основной пароль)');
+            } else if (err.message && err.message.includes('ECONNRESET')) {
+                console.log('⚠️ IMAP соединение разорвано, попытка переподключения через 10 секунд...');
+                setTimeout(() => {
+                    try {
+                        mailListener.stop();
+                        setTimeout(() => {
+                            mailListener.start();
+                            console.log('🔄 Переподключение IMAP после ECONNRESET...');
+                        }, 2000);
+                    } catch (e) {
+                        console.error('❌ Ошибка переподключения после ECONNRESET:', e.message);
+                    }
+                }, 10000);
             }
         });
         
