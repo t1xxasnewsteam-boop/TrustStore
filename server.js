@@ -1184,7 +1184,7 @@ app.post('/api/create-order', (req, res) => {
         }
         
         // Обновляем счетчик продаж для товаров
-        const productsList = JSON.parse(products);
+        const productsList = typeof products === 'string' ? JSON.parse(products) : products;
         productsList.forEach(product => {
             db.prepare('UPDATE products SET sold_count = sold_count + ? WHERE name = ?')
                 .run(product.quantity || 1, product.name);
