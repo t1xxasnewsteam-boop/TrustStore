@@ -864,6 +864,11 @@
                     <span class="nav-label">Поддержка</span>
                     <span class="nav-badge" id="supportBadge">0</span>
                 </a>
+                <a class="nav-item" data-section="emails">
+                    <span class="nav-icon">📬</span>
+                    <span class="nav-label">Почта</span>
+                    <span class="nav-badge" id="emailsBadge">0</span>
+                </a>
                 <a class="nav-item" data-section="suggestions">
                     <span class="nav-icon">💡</span>
                     <span class="nav-label">Предложения</span>
@@ -1200,6 +1205,96 @@
                             <button class="btn btn-secondary" onclick="document.getElementById('admin-image-input').click()">📎 Прикрепить файл</button>
                             <button class="btn btn-primary" onclick="sendReply()">✉️ Отправить ответ</button>
                             <button class="btn btn-secondary" id="modal-status-btn" onclick="toggleTicketStatus()">Закрыть тикет</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emails Section -->
+        <div class="content-section" id="emails">
+            <div class="top-bar">
+                <h1 class="page-title">📬 Почта</h1>
+            </div>
+
+            <!-- Статистика -->
+            <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="stat-card">
+                    <div class="stat-title">Всего писем</div>
+                    <div class="stat-value" id="emails-total">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Непрочитанных</div>
+                    <div class="stat-value" id="emails-unread">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">С ответами</div>
+                    <div class="stat-value" id="emails-replied">0</div>
+                </div>
+            </div>
+
+            <!-- Список писем -->
+            <div class="glass-card" style="margin-top: 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 class="card-title">Входящие письма</h3>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button class="btn btn-secondary" onclick="syncEmails()" id="sync-emails-btn" style="white-space: nowrap;">
+                            🔄 Синхронизировать
+                        </button>
+                        <select id="email-filter" style="padding: 10px; border: 2px solid var(--border-color); border-radius: 10px; font-size: 14px; background: var(--bg-card); color: var(--text-primary);">
+                            <option value="all">Все письма</option>
+                            <option value="unread">Непрочитанные</option>
+                            <option value="read">Прочитанные</option>
+                        </select>
+                    </div>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>От</th>
+                            <th>Тема</th>
+                            <th>Превью</th>
+                            <th>Дата</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="emails-table"></tbody>
+                </table>
+            </div>
+
+            <!-- Модальное окно письма -->
+            <div id="email-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 2000; align-items: center; justify-content: center;">
+                <div style="background: var(--bg-card); border-radius: 20px; max-width: 900px; width: 90%; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; border: 1px solid var(--border-color);">
+                    <!-- Заголовок -->
+                    <div style="padding: 20px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;" id="modal-email-subject"></h2>
+                            <div style="font-size: 13px; color: var(--text-secondary);" id="modal-email-from"></div>
+                        </div>
+                        <button onclick="closeEmailModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);">×</button>
+                    </div>
+                    
+                    <!-- Тело письма -->
+                    <div id="modal-email-body" style="flex: 1; overflow-y: auto; padding: 30px; background: var(--bg-secondary); line-height: 1.8; color: var(--text-primary);">
+                        <!-- Email content will be here -->
+                    </div>
+                    
+                    <!-- История ответов -->
+                    <div id="modal-email-replies" style="padding: 20px 30px; border-top: 1px solid var(--border-color); background: var(--bg-card); max-height: 200px; overflow-y: auto;">
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">История ответов:</div>
+                        <div id="replies-list"></div>
+                    </div>
+                    
+                    <!-- Форма ответа -->
+                    <div style="padding: 20px 30px; border-top: 1px solid var(--border-color); background: var(--bg-card);">
+                        <div style="margin-bottom: 15px;">
+                            <input type="text" id="reply-subject" placeholder="Тема ответа (автоматически добавится Re:)" style="width: 100%; padding: 12px; border: 2px solid var(--border-color); border-radius: 10px; font-size: 14px; background: var(--bg-secondary); color: var(--text-primary);">
+                        </div>
+                        <textarea id="reply-body" placeholder="Введите ваш ответ..." style="width: 100%; padding: 15px; border: 2px solid var(--border-color); border-radius: 10px; font-size: 14px; font-family: inherit; min-height: 100px; resize: vertical; background: var(--bg-secondary); color: var(--text-primary);"></textarea>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="btn btn-primary" onclick="sendEmailReply()">✉️ Отправить ответ</button>
+                            <button class="btn btn-secondary" id="email-read-btn" onclick="toggleEmailRead()">Пометить как прочитанное</button>
                         </div>
                     </div>
                 </div>
@@ -2635,6 +2730,9 @@
                     case 'support':
                         loadSupport();
                         break;
+                    case 'emails':
+                        loadEmails();
+                        break;
                     case 'suggestions':
                         loadSuggestions();
                         break;
@@ -3347,11 +3445,290 @@
             }
         });
 
+        // ==================== EMAIL INBOX FUNCTIONS ====================
+        
+        let allEmails = [];
+        let currentEmailId = null;
+        
+        async function loadEmails() {
+            try {
+                const filter = document.getElementById('email-filter')?.value || 'all';
+                const response = await fetch(`/api/admin/emails?filter=${filter}&limit=100`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    allEmails = data.emails || [];
+                    displayEmails(allEmails);
+                    updateEmailStats(allEmails);
+                    updateEmailBadge();
+                }
+            } catch (error) {
+                console.error('Error loading emails:', error);
+            }
+        }
+        
+        function displayEmails(emails) {
+            const table = document.getElementById('emails-table');
+            if (!table) return;
+            
+            if (!emails || emails.length === 0) {
+                table.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-secondary);">📭 Нет писем</td></tr>';
+                return;
+            }
+            
+            table.innerHTML = emails.map(email => {
+                const date = new Date(email.created_at).toLocaleString('ru-RU');
+                const preview = (email.body_text || email.body_html || '').substring(0, 100).replace(/<[^>]*>/g, '') + '...';
+                const isUnread = email.is_read === 0;
+                const hasReply = email.has_reply;
+                
+                return `
+                    <tr style="${isUnread ? 'background: rgba(102, 126, 234, 0.1);' : ''}">
+                        <td>
+                            <div style="font-weight: ${isUnread ? '700' : '500'};">
+                                ${email.from_name || email.from_email}
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">
+                                ${email.from_email}
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-weight: ${isUnread ? '700' : '500'};">
+                                ${email.subject || 'Без темы'}
+                            </div>
+                        </td>
+                        <td style="color: var(--text-secondary); font-size: 13px;">
+                            ${preview}
+                        </td>
+                        <td style="color: var(--text-secondary); font-size: 12px;">
+                            ${date}
+                        </td>
+                        <td>
+                            ${isUnread ? '<span style="background: rgba(102, 126, 234, 0.2); color: #667eea; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;">Новое</span>' : ''}
+                            ${hasReply ? '<span style="background: rgba(34, 197, 94, 0.2); color: #22c55e; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; margin-left: 6px;">Ответ</span>' : ''}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="openEmailModal(${email.id})">
+                                👁️ Открыть
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function updateEmailStats(emails) {
+            const total = emails.length;
+            const unread = emails.filter(e => e.is_read === 0).length;
+            const replied = emails.filter(e => e.has_reply).length;
+            
+            document.getElementById('emails-total').textContent = total;
+            document.getElementById('emails-unread').textContent = unread;
+            document.getElementById('emails-replied').textContent = replied;
+        }
+        
+        async function updateEmailBadge() {
+            try {
+                const response = await fetch('/api/admin/emails/unread/count', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const badge = document.getElementById('emailsBadge');
+                    if (badge) {
+                        badge.textContent = data.count > 0 ? data.count : '';
+                        badge.style.display = data.count > 0 ? 'inline-block' : 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating email badge:', error);
+            }
+        }
+        
+        async function openEmailModal(emailId) {
+            try {
+                const response = await fetch(`/api/admin/emails/${emailId}`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const email = data.email;
+                    currentEmailId = emailId;
+                    
+                    document.getElementById('modal-email-subject').textContent = email.subject || 'Без темы';
+                    document.getElementById('modal-email-from').textContent = `${email.from_name || ''} <${email.from_email}>`;
+                    
+                    // Тело письма
+                    const bodyDiv = document.getElementById('modal-email-body');
+                    if (email.body_html) {
+                        bodyDiv.innerHTML = email.body_html;
+                    } else {
+                        bodyDiv.textContent = email.body_text || '';
+                    }
+                    
+                    // История ответов
+                    const repliesList = document.getElementById('replies-list');
+                    if (email.replies && email.replies.length > 0) {
+                        repliesList.innerHTML = email.replies.map(reply => `
+                            <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #667eea;">
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 6px;">
+                                    ${new Date(reply.sent_at).toLocaleString('ru-RU')}
+                                </div>
+                                <div style="font-size: 13px; color: var(--text-primary);">
+                                    ${reply.reply_body.replace(/\n/g, '<br>')}
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        repliesList.innerHTML = '<div style="color: var(--text-secondary); font-size: 12px;">Нет ответов</div>';
+                    }
+                    
+                    // Предзаполняем тему ответа
+                    document.getElementById('reply-subject').value = email.subject.startsWith('Re:') ? email.subject : `Re: ${email.subject}`;
+                    document.getElementById('reply-body').value = '';
+                    
+                    // Кнопка статуса
+                    const readBtn = document.getElementById('email-read-btn');
+                    if (email.is_read === 0) {
+                        readBtn.textContent = '✓ Пометить как прочитанное';
+                    } else {
+                        readBtn.textContent = '↩ Пометить как непрочитанное';
+                    }
+                    
+                    document.getElementById('email-modal').style.display = 'flex';
+                    updateEmailBadge();
+                    loadEmails();
+                }
+            } catch (error) {
+                console.error('Error opening email:', error);
+                alert('❌ Ошибка загрузки письма');
+            }
+        }
+        
+        function closeEmailModal() {
+            document.getElementById('email-modal').style.display = 'none';
+            currentEmailId = null;
+        }
+        
+        async function sendEmailReply() {
+            if (!currentEmailId) return;
+            
+            const subject = document.getElementById('reply-subject').value.trim();
+            const body = document.getElementById('reply-body').value.trim();
+            
+            if (!subject || !body) {
+                alert('⚠️ Заполните тему и текст ответа');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/admin/emails/${currentEmailId}/reply`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ subject, body })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('✅ Ответ отправлен!');
+                    document.getElementById('reply-body').value = '';
+                    closeEmailModal();
+                    loadEmails();
+                } else {
+                    alert('❌ Ошибка отправки: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                console.error('Error sending reply:', error);
+                alert('❌ Ошибка отправки ответа');
+            }
+        }
+        
+        async function toggleEmailRead() {
+            if (!currentEmailId) return;
+            
+            const email = allEmails.find(e => e.id === currentEmailId);
+            if (!email) return;
+            
+            const newReadStatus = email.is_read === 0 ? 1 : 0;
+            
+            try {
+                const response = await fetch(`/api/admin/emails/${currentEmailId}/read`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ is_read: newReadStatus })
+                });
+                
+                if (response.ok) {
+                    loadEmails();
+                    if (document.getElementById('email-modal').style.display === 'flex') {
+                        openEmailModal(currentEmailId);
+                    }
+                }
+            } catch (error) {
+                console.error('Error toggling read status:', error);
+            }
+        }
+        
+        // Функция синхронизации писем
+        async function syncEmails() {
+            const btn = document.getElementById('sync-emails-btn');
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Синхронизация...';
+            
+            try {
+                const response = await fetch('/api/admin/emails/sync', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('✅ Синхронизация завершена!');
+                    loadEmails();
+                    updateEmailBadge();
+                } else {
+                    alert('❌ Ошибка синхронизации: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                console.error('Error syncing emails:', error);
+                alert('❌ Ошибка синхронизации');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+        
+        // Email filter handler
+        document.addEventListener('DOMContentLoaded', () => {
+            const emailFilter = document.getElementById('email-filter');
+            if (emailFilter) {
+                emailFilter.addEventListener('change', () => {
+                    loadEmails();
+                });
+            }
+        });
+        
         // Auto-refresh every 30 seconds
         setInterval(() => {
             if (isAuthenticated) {
                 loadDashboardData();
                 refreshTickets();
+                loadEmails();
+                updateEmailBadge();
             }
         }, 30000);
     </script>

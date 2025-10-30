@@ -14,6 +14,7 @@ require('dotenv').config();
 const nodemailer = require('nodemailer');
 const sgMail = require('@sendgrid/mail');
 const crypto = require('crypto');
+const MailListener = require('mail-listener2');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -486,6 +487,29 @@ db.exec(`
         sold_at DATETIME,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
+    
+    CREATE TABLE IF NOT EXISTS email_messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        message_id TEXT UNIQUE NOT NULL,
+        from_email TEXT NOT NULL,
+        from_name TEXT,
+        to_email TEXT NOT NULL,
+        subject TEXT NOT NULL,
+        body_text TEXT,
+        body_html TEXT,
+        reply_to_message_id TEXT,
+        is_read INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    
+    CREATE TABLE IF NOT EXISTS email_replies (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        original_message_id INTEGER NOT NULL,
+        reply_subject TEXT NOT NULL,
+        reply_body TEXT NOT NULL,
+        sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (original_message_id) REFERENCES email_messages(id)
+    );
 
     CREATE INDEX IF NOT EXISTS idx_session_id ON visits(session_id);
     CREATE INDEX IF NOT EXISTS idx_timestamp ON visits(timestamp);
@@ -495,6 +519,9 @@ db.exec(`
     CREATE INDEX IF NOT EXISTS idx_ticket_status ON support_tickets(status);
     CREATE INDEX IF NOT EXISTS idx_ticket_id ON support_messages(ticket_id);
     CREATE INDEX IF NOT EXISTS idx_telegram_comment_id ON telegram_reviews(telegram_comment_id);
+    CREATE INDEX IF NOT EXISTS idx_email_message_id ON email_messages(message_id);
+    CREATE INDEX IF NOT EXISTS idx_email_from ON email_messages(from_email);
+    CREATE INDEX IF NOT EXISTS idx_email_read ON email_messages(is_read);
 `);
 
 // Миграция: добавление колонки image_url если её нет
@@ -2801,6 +2828,444 @@ app.get('/api/admin/inventory/stats', authMiddleware, (req, res) => {
     } catch (error) {
         console.error('Ошибка получения статистики:', error);
         res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// ==================== EMAIL INBOX API (АДМИНКА) ====================
+
+// Получить все письма
+app.get('/api/admin/emails', authMiddleware, (req, res) => {
+    try {
+        const { filter, limit = 50 } = req.query;
+        
+        let query = 'SELECT * FROM email_messages';
+        const params = [];
+        
+        if (filter === 'unread') {
+            query += ' WHERE is_read = 0';
+        } else if (filter === 'read') {
+            query += ' WHERE is_read = 1';
+        }
+        
+        query += ' ORDER BY created_at DESC LIMIT ?';
+        params.push(parseInt(limit));
+        
+        const emails = db.prepare(query).all(...params);
+        
+        // Получаем информацию о ответах
+        const emailsWithReplies = emails.map(email => {
+            const replies = db.prepare(`
+                SELECT * FROM email_replies 
+                WHERE original_message_id = ?
+                ORDER BY sent_at DESC
+            `).all(email.id);
+            
+            return {
+                ...email,
+                has_reply: replies.length > 0,
+                replies_count: replies.length
+            };
+        });
+        
+        res.json({ emails: emailsWithReplies });
+    } catch (error) {
+        console.error('Ошибка получения писем:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Получить одно письмо по ID
+app.get('/api/admin/emails/:id', authMiddleware, (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const email = db.prepare('SELECT * FROM email_messages WHERE id = ?').get(id);
+        
+        if (!email) {
+            return res.status(404).json({ error: 'Письмо не найдено' });
+        }
+        
+        // Помечаем как прочитанное
+        db.prepare('UPDATE email_messages SET is_read = 1 WHERE id = ?').run(id);
+        
+        // Получаем ответы
+        const replies = db.prepare(`
+            SELECT * FROM email_replies 
+            WHERE original_message_id = ?
+            ORDER BY sent_at DESC
+        `).all(id);
+        
+        res.json({ email: { ...email, replies } });
+    } catch (error) {
+        console.error('Ошибка получения письма:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Отправить ответ на письмо
+app.post('/api/admin/emails/:id/reply', authMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { subject, body } = req.body;
+        
+        if (!subject || !body) {
+            return res.status(400).json({ error: 'Укажите тему и текст ответа' });
+        }
+        
+        // Получаем оригинальное письмо
+        const originalEmail = db.prepare('SELECT * FROM email_messages WHERE id = ?').get(id);
+        
+        if (!originalEmail) {
+            return res.status(404).json({ error: 'Письмо не найдено' });
+        }
+        
+        // Отправляем ответ
+        const mailOptions = {
+            from: process.env.EMAIL_FROM || '"Trust Store" <orders@truststore.ru>',
+            to: originalEmail.from_email,
+            replyTo: originalEmail.message_id ? `<${originalEmail.message_id}>` : undefined,
+            subject: subject.startsWith('Re:') ? subject : `Re: ${subject}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                    <div style="background: #f5f5f5; padding: 15px; border-left: 4px solid #667eea; margin-bottom: 20px;">
+                        <div style="color: #666; font-size: 12px; margin-bottom: 10px;">
+                            <strong>Ответ на:</strong><br>
+                            От: ${originalEmail.from_name || originalEmail.from_email}<br>
+                            Дата: ${new Date(originalEmail.created_at).toLocaleString('ru-RU')}<br>
+                            Тема: ${originalEmail.subject}
+                        </div>
+                        <div style="color: #333; font-size: 13px; white-space: pre-wrap;">${originalEmail.body_text || originalEmail.body_html || ''}</div>
+                    </div>
+                    <div style="color: #333; white-space: pre-wrap;">${body.replace(/\n/g, '<br>')}</div>
+                    <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+                    <div style="color: #999; font-size: 12px;">
+                        Trust Store<br>
+                        Магазин цифровых товаров
+                    </div>
+                </div>
+            `,
+            text: `Ответ на письмо от ${originalEmail.from_name || originalEmail.from_email}:\n\n${originalEmail.body_text || ''}\n\n---\n\n${body}`
+        };
+        
+        try {
+            await emailTransporter.sendMail(mailOptions);
+            
+            // Сохраняем ответ в БД
+            db.prepare(`
+                INSERT INTO email_replies (original_message_id, reply_subject, reply_body)
+                VALUES (?, ?, ?)
+            `).run(id, subject, body);
+            
+            // Помечаем письмо как прочитанное
+            db.prepare('UPDATE email_messages SET is_read = 1 WHERE id = ?').run(id);
+            
+            console.log(`✅ Ответ отправлен: ${originalEmail.from_email}`);
+            
+            // Отправляем уведомление в Telegram
+            sendTelegramNotification(`📧 Ответ отправлен на письмо от ${originalEmail.from_email}`, true);
+            
+            res.json({ success: true, message: 'Ответ отправлен' });
+        } catch (emailError) {
+            console.error('Ошибка отправки ответа:', emailError);
+            res.status(500).json({ error: 'Ошибка отправки письма', details: emailError.message });
+        }
+    } catch (error) {
+        console.error('Ошибка отправки ответа:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Получить количество непрочитанных писем
+app.get('/api/admin/emails/unread/count', authMiddleware, (req, res) => {
+    try {
+        const count = db.prepare('SELECT COUNT(*) as count FROM email_messages WHERE is_read = 0').get();
+        res.json({ count: count.count });
+    } catch (error) {
+        console.error('Ошибка получения количества писем:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Пометить письмо как прочитанное/непрочитанное
+app.put('/api/admin/emails/:id/read', authMiddleware, (req, res) => {
+    try {
+        const { id } = req.params;
+        const { is_read } = req.body;
+        
+        db.prepare('UPDATE email_messages SET is_read = ? WHERE id = ?').run(is_read ? 1 : 0, id);
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Ошибка обновления статуса письма:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// ==================== IMAP EMAIL LISTENER ====================
+
+// Функция для сохранения письма в БД
+function saveEmailToDB(mail) {
+    try {
+        const messageId = mail.messageId || mail.uid || `msg-${Date.now()}-${Math.random()}`;
+        
+        // Проверяем, существует ли уже такое письмо
+        const existing = db.prepare('SELECT id FROM email_messages WHERE message_id = ?').get(messageId);
+        if (existing) {
+            console.log(`⏸️  Письмо ${messageId} уже существует, пропускаем`);
+            return;
+        }
+        
+        const fromEmail = mail.from && mail.from[0] ? mail.from[0].address : 'unknown@example.com';
+        const fromName = mail.from && mail.from[0] ? (mail.from[0].name || fromEmail) : fromEmail;
+        const subject = mail.subject || 'Без темы';
+        const bodyText = mail.text || '';
+        const bodyHtml = mail.html || '';
+        const toEmail = mail.to && mail.to[0] ? mail.to[0].address : process.env.EMAIL_USER || 'orders@truststore.ru';
+        
+        // Определяем, является ли это ответом на другое письмо
+        const replyToMessageId = mail.inReplyTo || mail.references || null;
+        
+        db.prepare(`
+            INSERT INTO email_messages (message_id, from_email, from_name, to_email, subject, body_text, body_html, reply_to_message_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(messageId, fromEmail, fromName, toEmail, subject, bodyText, bodyHtml, replyToMessageId);
+        
+        console.log(`📧 Новое письмо сохранено: ${fromEmail} - ${subject}`);
+        
+        // Отправляем уведомление в Telegram
+        const preview = bodyText.substring(0, 200) + (bodyText.length > 200 ? '...' : '');
+        const telegramMessage = `📧 Новое письмо на ${toEmail}\n\n👤 От: ${fromName} <${fromEmail}>\n📌 Тема: ${subject}\n\n💬 Сообщение:\n${preview}\n\n💡 Отвечайте через админ-панель!`;
+        sendTelegramNotification(telegramMessage, false);
+        
+    } catch (error) {
+        console.error('❌ Ошибка сохранения письма в БД:', error);
+    }
+}
+
+// Глобальная переменная для IMAP listener
+let mailListener = null;
+
+// Функция для синхронизации всех писем (не только новых)
+function syncAllEmails() {
+    return new Promise((resolve, reject) => {
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+            console.log('⚠️ Синхронизация писем пропущена: не указаны EMAIL_USER или EMAIL_PASSWORD');
+            resolve();
+            return;
+        }
+        
+        try {
+            const Imap = require('imap');
+            const simpleParser = require('mailparser').simpleParser;
+            
+            const imap = new Imap({
+                user: process.env.EMAIL_USER,
+                password: process.env.EMAIL_PASSWORD,
+                host: 'imap.yandex.ru',
+                port: 993,
+                tls: true,
+                tlsOptions: { rejectUnauthorized: false },
+                connTimeout: 10000
+            });
+            
+            imap.once('ready', () => {
+                console.log('📧 IMAP подключен для синхронизации...');
+                imap.openBox('INBOX', false, (err, box) => {
+                    if (err) {
+                        console.error('❌ Ошибка открытия INBOX:', err);
+                        imap.end();
+                        reject(err);
+                        return;
+                    }
+                    
+                    console.log(`📬 Всего писем в ящике: ${box.messages.total}`);
+                    
+                    if (box.messages.total === 0) {
+                        console.log('📭 Ящик пуст');
+                        imap.end();
+                        resolve();
+                        return;
+                    }
+                    
+                    // Получаем последние 100 писем (или все, если меньше 100)
+                    const start = Math.max(1, box.messages.total - 99);
+                    const end = box.messages.total;
+                    
+                    console.log(`📥 Получаю письма с ${start} по ${end}...`);
+                    
+                    const fetch = imap.seq.fetch(`${start}:${end}`, {
+                        bodies: '',
+                        struct: true
+                    });
+                    
+                    let processed = 0;
+                    let saved = 0;
+                    
+                    fetch.on('message', (msg, seqno) => {
+                        msg.on('body', (stream, info) => {
+                            simpleParser(stream, (err, parsed) => {
+                                if (err) {
+                                    console.error(`❌ Ошибка парсинга письма #${seqno}:`, err.message);
+                                    return;
+                                }
+                                
+                                // Сохраняем в БД
+                                try {
+                                    const messageId = parsed.messageId || parsed.headers.get('message-id') || `sync-${Date.now()}-${seqno}`;
+                                    
+                                    // Проверяем, существует ли уже
+                                    const existing = db.prepare('SELECT id FROM email_messages WHERE message_id = ?').get(messageId);
+                                    if (existing) {
+                                        return; // Уже есть в БД
+                                    }
+                                    
+                                    // Парсим отправителя
+                                    let fromEmail = 'unknown@example.com';
+                                    let fromName = 'Unknown';
+                                    
+                                    if (parsed.from) {
+                                        if (typeof parsed.from === 'string') {
+                                            fromEmail = parsed.from;
+                                            fromName = parsed.from;
+                                        } else if (parsed.from.value && Array.isArray(parsed.from.value) && parsed.from.value[0]) {
+                                            fromEmail = parsed.from.value[0].address || fromEmail;
+                                            fromName = parsed.from.value[0].name || fromEmail;
+                                        } else if (parsed.from.address) {
+                                            fromEmail = parsed.from.address;
+                                            fromName = parsed.from.name || fromEmail;
+                                        }
+                                    }
+                                    
+                                    const subject = parsed.subject || 'Без темы';
+                                    const bodyText = parsed.text || '';
+                                    const bodyHtml = parsed.html || '';
+                                    
+                                    db.prepare(`
+                                        INSERT INTO email_messages (message_id, from_email, from_name, to_email, subject, body_text, body_html, reply_to_message_id, is_read)
+                                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+                                    `).run(messageId, fromEmail, fromName, process.env.EMAIL_USER, subject, bodyText, bodyHtml, null);
+                                    
+                                    saved++;
+                                    if (saved % 10 === 0) {
+                                        console.log(`   💾 Сохранено ${saved} новых писем...`);
+                                    }
+                                } catch (dbError) {
+                                    console.error(`❌ Ошибка сохранения письма #${seqno} в БД:`, dbError.message);
+                                }
+                            });
+                        });
+                        
+                        msg.once('end', () => {
+                            processed++;
+                        });
+                    });
+                    
+                    fetch.once('error', (err) => {
+                        console.error('❌ Ошибка при получении писем:', err);
+                        imap.end();
+                        reject(err);
+                    });
+                    
+                    fetch.once('end', () => {
+                        console.log(`✅ Синхронизация завершена: обработано ${processed} писем, сохранено ${saved} новых`);
+                        imap.end();
+                        resolve();
+                    });
+                });
+            });
+            
+            imap.once('error', (err) => {
+                console.error('❌ Ошибка IMAP подключения:', err.message);
+                if (err.message && err.message.includes('Invalid login')) {
+                    console.error('⚠️ Проверьте EMAIL_USER и EMAIL_PASSWORD в .env');
+                    console.error('⚠️ Для Yandex может потребоваться пароль приложения (не основной пароль)');
+                    console.error('⚠️ Получить пароль приложения: https://yandex.ru/support/id/authorization/app-passwords.html');
+                }
+                reject(err);
+            });
+            
+            imap.connect();
+        } catch (error) {
+            console.error('❌ Ошибка запуска синхронизации:', error.message);
+            reject(error);
+        }
+    });
+}
+
+// Настройка IMAP listener (если указаны настройки в .env)
+if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+    try {
+        mailListener = new MailListener({
+            username: process.env.EMAIL_USER,
+            password: process.env.EMAIL_PASSWORD,
+            host: 'imap.yandex.ru',
+            port: 993,
+            tls: true,
+            tlsOptions: { rejectUnauthorized: false },
+            mailbox: 'INBOX',
+            searchFilter: ['UNSEEN'], // Только непрочитанные (новые)
+            markSeen: false, // Не помечаем как прочитанное автоматически
+            fetchUnreadOnStart: false, // Не получаем все при старте (сделаем отдельно через syncAllEmails)
+            mailParserOptions: { streamAttachments: false }
+        });
+        
+        mailListener.on('server:connected', () => {
+            console.log('✅ IMAP подключен, ожидание новых писем...');
+        });
+        
+        mailListener.on('server:disconnected', () => {
+            console.log('⚠️ IMAP отключен, попытка переподключения...');
+        });
+        
+        mailListener.on('mail', (mail) => {
+            console.log('📬 Новое письмо получено!');
+            saveEmailToDB(mail);
+        });
+        
+        mailListener.on('error', (err) => {
+            console.error('❌ Ошибка IMAP:', err.message || err);
+            if (err.message && err.message.includes('Invalid login')) {
+                console.error('⚠️ Проверьте EMAIL_USER и EMAIL_PASSWORD в .env');
+                console.error('⚠️ Для Yandex может потребоваться пароль приложения (не основной пароль)');
+            }
+        });
+        
+        mailListener.start();
+        
+        console.log('✅ IMAP listener запущен');
+        
+        // Синхронизируем все письма при старте (с задержкой 10 секунд)
+        setTimeout(() => {
+            console.log('🔄 Запуск синхронизации всех писем...');
+            syncAllEmails().catch(err => {
+                console.error('❌ Ошибка синхронизации:', err.message);
+            });
+        }, 10000);
+        
+        // Периодическая синхронизация каждые 3 минуты
+        setInterval(() => {
+            syncAllEmails().catch(err => {
+                console.error('❌ Ошибка периодической синхронизации:', err.message);
+            });
+        }, 3 * 60 * 1000);
+        
+    } catch (error) {
+        console.error('❌ Ошибка запуска IMAP listener:', error.message);
+        console.log('⚠️ Проверьте EMAIL_USER и EMAIL_PASSWORD в .env');
+    }
+} else {
+    console.log('⚠️ IMAP listener не запущен: не указаны EMAIL_USER или EMAIL_PASSWORD');
+}
+
+// API для ручной синхронизации писем
+app.post('/api/admin/emails/sync', authMiddleware, async (req, res) => {
+    try {
+        console.log('🔄 Запуск ручной синхронизации писем...');
+        await syncAllEmails();
+        res.json({ success: true, message: 'Синхронизация завершена' });
+    } catch (error) {
+        console.error('Ошибка синхронизации:', error);
+        res.status(500).json({ error: 'Ошибка синхронизации', details: error.message });
     }
 });
 

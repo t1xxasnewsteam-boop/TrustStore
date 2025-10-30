@@ -1,0 +1,39 @@
+#!/usr/bin/expect -f
+set timeout 60
+set host "45.95.234.173"
+set user "root"
+set password "o-4zWa6SFWUGo"
+
+spawn ssh ${user}@${host}
+expect {
+    "password:" {
+        send "${password}\r"
+    }
+    "yes/no" {
+        send "yes\r"
+        expect "password:"
+        send "${password}\r"
+    }
+}
+
+expect "# "
+send "cd /root/TrustStore && git pull origin main\r"
+expect "# "
+
+send "node send-test-email.js\r"
+expect {
+    "✅ Тестовое письмо отправлено!" {
+        puts "\n✅ Успешно!"
+    }
+    "❌ Ошибка:" {
+        puts "\n❌ Ошибка отправки"
+    }
+    timeout {
+        puts "\n⏳ Скрипт выполняется..."
+    }
+}
+
+expect "# "
+send "exit\r"
+expect eof
+
