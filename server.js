@@ -3045,12 +3045,18 @@ function saveEmailToDB(mail) {
         
         console.log(`📧 Новое письмо сохранено: ${fromEmail} - ${subject}`);
         
-        // Отправляем уведомление в Telegram (не молчим!)
+        // Отправляем уведомление в Telegram для ВСЕХ новых писем
         const preview = bodyText.substring(0, 200) + (bodyText.length > 200 ? '...' : '');
         const isSpam = subject.startsWith('[СПАМ]');
         const spamPrefix = isSpam ? '🚨 СПАМ: ' : '';
         const telegramMessage = `${spamPrefix}📧 Новое письмо на ${toEmail}\n\n👤 От: ${fromName} <${fromEmail}>\n📌 Тема: ${subject}\n\n💬 Сообщение:\n${preview}\n\n💡 Отвечайте через админ-панель!`;
-        sendTelegramNotification(telegramMessage, false);
+        
+        // Отправляем уведомление асинхронно (не блокируем сохранение)
+        sendTelegramNotification(telegramMessage, false).then(() => {
+            console.log(`✅ Telegram уведомление отправлено для письма от ${fromEmail}`);
+        }).catch(err => {
+            console.error(`❌ Не удалось отправить Telegram уведомление для ${fromEmail}:`, err.message);
+        });
         
     } catch (error) {
         console.error('❌ Ошибка сохранения письма в БД:', error);
@@ -3347,7 +3353,7 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
             });
             
             spamListener.on('mail', (mail) => {
-                console.log('🚨 Новое письмо из спама получено!');
+                console.log('🚨 Новое письмо из спама получено в реальном времени!');
                 // Добавляем пометку [СПАМ] к теме
                 if (mail.subject && !mail.subject.startsWith('[СПАМ]')) {
                     mail.subject = `[СПАМ] ${mail.subject}`;
@@ -3380,7 +3386,7 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
                         });
                         
                         spamListenerRu.on('mail', (mail) => {
-                            console.log('🚨 Новое письмо из спама получено!');
+                            console.log('🚨 Новое письмо из спама (Спам) получено в реальном времени!');
                             if (mail.subject && !mail.subject.startsWith('[СПАМ]')) {
                                 mail.subject = `[СПАМ] ${mail.subject}`;
                             }
@@ -3414,7 +3420,7 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
         });
         
         mailListener.on('mail', (mail) => {
-            console.log('📬 Новое письмо получено из INBOX!');
+            console.log('📬 Новое письмо получено из INBOX в реальном времени!');
             saveEmailToDB(mail);
         });
         
