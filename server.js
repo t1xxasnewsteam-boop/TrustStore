@@ -3087,6 +3087,10 @@ function syncEmailsFromFolder(imap, folderName) {
                         chunks.push(chunk);
                     });
                     
+                    stream.on('error', (streamErr) => {
+                        console.error(`❌ Ошибка чтения письма #${seqno} из ${folderName}:`, streamErr.message);
+                    });
+                    
                     stream.once('end', () => {
                         const buffer = Buffer.concat(chunks);
                         
@@ -3098,77 +3102,74 @@ function syncEmailsFromFolder(imap, folderName) {
                             }
                         
                             // Сохраняем в БД
-                        try {
-                            // Безопасное получение messageId
-                            let messageId = null;
                             try {
-                                if (parsed.messageId) {
-                                    messageId = parsed.messageId;
-                                } else if (parsed.headers && typeof parsed.headers.get === 'function') {
-                                    messageId = parsed.headers.get('message-id');
-                                }
-                            } catch (e) {
-                                // Игнорируем ошибки парсинга headers
-                            }
-                            
-                            if (!messageId) {
-                                messageId = `sync-${Date.now()}-${seqno}-${folderName}-${Math.random().toString(36).substr(2, 9)}`;
-                            }
-                            
-                            // Проверяем, существует ли уже
-                            const existing = db.prepare('SELECT id FROM email_messages WHERE message_id = ?').get(messageId);
-                            if (existing) {
-                                return; // Уже есть в БД
-                            }
-                            
-                            // Парсим отправителя (безопасно)
-                            let fromEmail = 'unknown@example.com';
-                            let fromName = 'Unknown';
-                            
-                            try {
-                                if (parsed.from) {
-                                    if (typeof parsed.from === 'string') {
-                                        fromEmail = parsed.from;
-                                        fromName = parsed.from;
-                                    } else if (parsed.from.value && Array.isArray(parsed.from.value) && parsed.from.value[0]) {
-                                        fromEmail = parsed.from.value[0].address || fromEmail;
-                                        fromName = parsed.from.value[0].name || fromEmail;
-                                    } else if (parsed.from.address) {
-                                        fromEmail = parsed.from.address;
-                                        fromName = parsed.from.name || fromEmail;
+                                // Безопасное получение messageId
+                                let messageId = null;
+                                try {
+                                    if (parsed.messageId) {
+                                        messageId = parsed.messageId;
+                                    } else if (parsed.headers && typeof parsed.headers.get === 'function') {
+                                        messageId = parsed.headers.get('message-id');
                                     }
+                                } catch (e) {
+                                    // Игнорируем ошибки парсинга headers
                                 }
-                            } catch (e) {
-                                console.log(`⚠️ Ошибка парсинга отправителя для письма #${seqno}, используем значения по умолчанию`);
+                                
+                                if (!messageId) {
+                                    messageId = `sync-${Date.now()}-${seqno}-${folderName}-${Math.random().toString(36).substr(2, 9)}`;
+                                }
+                                
+                                // Проверяем, существует ли уже
+                                const existing = db.prepare('SELECT id FROM email_messages WHERE message_id = ?').get(messageId);
+                                if (existing) {
+                                    return; // Уже есть в БД
+                                }
+                                
+                                // Парсим отправителя (безопасно)
+                                let fromEmail = 'unknown@example.com';
+                                let fromName = 'Unknown';
+                                
+                                try {
+                                    if (parsed.from) {
+                                        if (typeof parsed.from === 'string') {
+                                            fromEmail = parsed.from;
+                                            fromName = parsed.from;
+                                        } else if (parsed.from.value && Array.isArray(parsed.from.value) && parsed.from.value[0]) {
+                                            fromEmail = parsed.from.value[0].address || fromEmail;
+                                            fromName = parsed.from.value[0].name || fromEmail;
+                                        } else if (parsed.from.address) {
+                                            fromEmail = parsed.from.address;
+                                            fromName = parsed.from.name || fromEmail;
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.log(`⚠️ Ошибка парсинга отправителя для письма #${seqno}, используем значения по умолчанию`);
+                                }
+                                
+                                const subject = (parsed.subject || 'Без темы').substring(0, 500); // Ограничиваем длину
+                                const bodyText = (parsed.text || '').substring(0, 50000); // Ограничиваем длину
+                                const bodyHtml = (parsed.html || '').substring(0, 50000); // Ограничиваем длину
+                                
+                                // Добавляем пометку если письмо из спама
+                                const finalSubject = folderName === 'Spam' || folderName === 'Спам' 
+                                    ? `[СПАМ] ${subject}` 
+                                    : subject;
+                                
+                                db.prepare(`
+                                    INSERT INTO email_messages (message_id, from_email, from_name, to_email, subject, body_text, body_html, reply_to_message_id, is_read)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+                                `).run(messageId, fromEmail, fromName, process.env.EMAIL_USER, finalSubject, bodyText, bodyHtml, null);
+                                
+                                saved++;
+                                if (saved % 10 === 0) {
+                                    console.log(`   💾 ${folderName}: сохранено ${saved} новых писем...`);
+                                }
+                            } catch (dbError) {
+                                console.error(`❌ Ошибка сохранения письма #${seqno} из ${folderName} в БД:`, dbError.message);
+                                // Продолжаем обработку других писем
                             }
-                            
-                            const subject = (parsed.subject || 'Без темы').substring(0, 500); // Ограничиваем длину
-                            const bodyText = (parsed.text || '').substring(0, 50000); // Ограничиваем длину
-                            const bodyHtml = (parsed.html || '').substring(0, 50000); // Ограничиваем длину
-                            
-                            // Добавляем пометку если письмо из спама
-                            const finalSubject = folderName === 'Spam' || folderName === 'Спам' 
-                                ? `[СПАМ] ${subject}` 
-                                : subject;
-                            
-                            db.prepare(`
-                                INSERT INTO email_messages (message_id, from_email, from_name, to_email, subject, body_text, body_html, reply_to_message_id, is_read)
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
-                            `).run(messageId, fromEmail, fromName, process.env.EMAIL_USER, finalSubject, bodyText, bodyHtml, null);
-                            
-                            saved++;
-                            if (saved % 10 === 0) {
-                                console.log(`   💾 ${folderName}: сохранено ${saved} новых писем...`);
-                            }
-                        } catch (dbError) {
-                            console.error(`❌ Ошибка сохранения письма #${seqno} из ${folderName} в БД:`, dbError.message);
-                            // Продолжаем обработку других писем
-                        }
+                        });
                     });
-                });
-                
-                stream.on('error', (streamErr) => {
-                    console.error(`❌ Ошибка чтения письма #${seqno} из ${folderName}:`, streamErr.message);
                 });
                 
                 msg.once('end', () => {
