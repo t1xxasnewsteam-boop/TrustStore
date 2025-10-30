@@ -2276,9 +2276,16 @@ function createOrderEmailHTML(data) {
             <td style="padding:32px;color:#1a1a1a;">
               <h1 style="margin:0 0 12px 0;font-size:22px;line-height:1.3;color:#1a1a1a;text-align:center;">Спасибо за покупку!</h1>
               <p style="margin:0 0 24px 0;font-size:14px;color:#666;text-align:center;">Ниже — данные для доступа и краткая информация по заказу.</p>
-              <div style="background:linear-gradient(135deg, rgba(102,126,234,0.08) 0%, rgba(118,75,162,0.08) 100%);border:2px solid rgba(102,126,234,0.2);border-radius:16px;padding:20px 24px;margin:0 0 24px 0;text-align:center;">
-                <div style="font-size:12px;color:#667eea;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px 0;">📦 Ваш товар</div>
-                <div style="font-size:20px;color:#1a1a1a;font-weight:700;margin:0;">${productName}</div>
+              <div style="background:#ffffff;border-left:4px solid #667eea;border-radius:8px;padding:20px 24px;margin:0 0 24px 0;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <div>
+                    <div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 6px 0;">Товар</div>
+                    <div style="font-size:18px;color:#1a1a1a;font-weight:700;margin:0;">${productName}</div>
+                  </div>
+                  <div style="width:48px;height:48px;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <span style="font-size:24px;">📦</span>
+                  </div>
+                </div>
               </div>
               <div style="margin:18px 0 22px 0;">
                 <div style="background:#f8f9ff;border:2px solid #667eea;border-radius:12px;padding:16px 18px;margin:0 0 10px 0;">
