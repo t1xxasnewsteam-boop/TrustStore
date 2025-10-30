@@ -2274,8 +2274,8 @@ function createOrderEmailHTML(data) {
           </tr>
           <tr>
             <td style="padding:32px;color:#1a1a1a;">
-              <h1 style="margin:0 0 12px 0;font-size:22px;line-height:1.3;color:#1a1a1a;">Спасибо за покупку!</h1>
-              <p style="margin:0 0 24px 0;font-size:14px;color:#666;">Ниже — данные для доступа и краткая информация по заказу.</p>
+              <h1 style="margin:0 0 12px 0;font-size:22px;line-height:1.3;color:#1a1a1a;text-align:center;">Спасибо за покупку!</h1>
+              <p style="margin:0 0 24px 0;font-size:14px;color:#666;text-align:center;">Ниже — данные для доступа и краткая информация по заказу.</p>
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8f9ff;border:1px solid rgba(102,126,234,0.15);border-radius:12px;margin:0 0 16px 0;">
                 <tr>
                   <td style="padding:16px 18px;font-size:13px;color:#666;width:38%;">Товар</td>
