@@ -2237,85 +2237,74 @@ app.get('/product/:productName', (req, res) => {
 // Функция создания HTML шаблона для письма с заказом
 function createOrderEmailHTML(data) {
     const { orderNumber, productName, login, password, instructions } = data;
-    
     return `
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ваш заказ #${orderNumber}</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ваш заказ #${orderNumber}</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f5f5f5;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background: #f5f5f5; padding: 40px 20px;">
-        <tr>
-            <td align="center">
-                <table width="600" cellpadding="0" cellspacing="0" style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.1);">
-                    <!-- Header with Logo -->
-                    <tr>
-                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center;">
-                            <img src="cid:logo" alt="Trust Store" style="max-width: 180px; height: auto; margin-bottom: 16px;" />
-                            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">Trust Store</h1>
-                            <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 16px;">Ваш магазин цифровых товаров</p>
-                        </td>
-                    </tr>
-                    
-                    <!-- Order Info -->
-                    <tr>
-                        <td style="padding: 40px;">
-                            <h2 style="color: #1a1a1a; margin: 0 0 24px 0; font-size: 24px;">Спасибо за покупку! 🎉</h2>
-                            
-                            <div style="background: #f8f9ff; border-left: 4px solid #667eea; padding: 20px; margin-bottom: 24px; border-radius: 8px;">
-                                <p style="margin: 0 0 8px 0; color: #666; font-size: 14px;">Номер заказа</p>
-                                <p style="margin: 0; color: #1a1a1a; font-size: 20px; font-weight: 600;">#${orderNumber}</p>
-                            </div>
-                            
-                            <div style="background: #f8f9ff; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
-                                <p style="margin: 0 0 16px 0; color: #1a1a1a; font-size: 18px; font-weight: 600;">📦 Ваш товар:</p>
-                                <p style="margin: 0 0 24px 0; color: #667eea; font-size: 20px; font-weight: 700;">${productName}</p>
-                                
-                                <div style="border-top: 2px dashed #e0e0e0; padding-top: 20px;">
-                                    <p style="margin: 0 0 12px 0; color: #666; font-size: 14px;">🔑 Данные для входа:</p>
-                                    
-                                    <div style="background: white; border: 2px solid #667eea; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
-                                        <p style="margin: 0 0 8px 0; color: #666; font-size: 12px;">ЛОГИН</p>
-                                        <p style="margin: 0; color: #1a1a1a; font-size: 16px; font-weight: 600; word-break: break-all;">${login}</p>
-                                    </div>
-                                    
-                                    <div style="background: white; border: 2px solid #667eea; border-radius: 8px; padding: 16px;">
-                                        <p style="margin: 0 0 8px 0; color: #666; font-size: 12px;">ПАРОЛЬ</p>
-                                        <p style="margin: 0; color: #1a1a1a; font-size: 16px; font-weight: 600; word-break: break-all;">${password}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            ${instructions ? `
-                            <div style="background: #fff9e6; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
-                                <p style="margin: 0 0 12px 0; color: #1a1a1a; font-size: 16px; font-weight: 600;">📝 Инструкция:</p>
-                                <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.6;">${instructions}</p>
-                            </div>
-                            ` : ''}
-                            
-                            <div style="text-align: center; margin-top: 32px;">
-                                <a href="https://truststore.ru" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 16px 48px; border-radius: 12px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);">
-                                    Посетить сайт
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    
-                    <!-- Footer -->
-                    <tr>
-                        <td style="background: #f8f9ff; padding: 32px; text-align: center; border-top: 1px solid #e0e0e0;">
-                            <p style="margin: 0 0 12px 0; color: #1a1a1a; font-size: 16px; font-weight: 600;">Нужна помощь?</p>
-                            <p style="margin: 0 0 16px 0; color: #666; font-size: 14px;">Напишите нам через виджет на сайте</p>
-                            <p style="margin: 0; color: #999; font-size: 12px;">© ${new Date().getFullYear()} Trust Store. Все права защищены.</p>
-                        </td>
-                    </tr>
-                </table>
+<body style="margin:0;padding:0;background:#0f1220;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#0f1220;padding:32px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="640" cellspacing="0" cellpadding="0" style="background:#111528;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+          <tr>
+            <td style="padding:28px 32px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);">
+              <table width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td align="left">
+                    <img src="cid:logo" alt="Trust Store" style="display:block;max-width:140px;height:auto;">
+                  </td>
+                  <td align="right" style="color:#fff;font-size:14px;opacity:.9;white-space:nowrap;">Заказ <strong>#${orderNumber}</strong></td>
+                </tr>
+              </table>
             </td>
-        </tr>
-    </table>
+          </tr>
+          <tr>
+            <td style="padding:32px;color:#E5E7EB;">
+              <h1 style="margin:0 0 12px 0;font-size:22px;line-height:1.3;color:#fff;">Спасибо за покупку!</h1>
+              <p style="margin:0 0 24px 0;font-size:14px;color:#A7B0C0;">Ниже — данные для доступа и краткая информация по заказу.</p>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#0f1220;border:1px solid rgba(255,255,255,0.06);border-radius:12px;margin:0 0 16px 0;">
+                <tr>
+                  <td style="padding:16px 18px;font-size:13px;color:#A7B0C0;width:38%;">Товар</td>
+                  <td style="padding:16px 18px;font-size:15px;color:#C7D2FE;font-weight:700;">${productName}</td>
+                </tr>
+              </table>
+              <div style="margin:18px 0 22px 0;">
+                <div style="background:#0f1220;border:1px solid rgba(102,126,234,.35);border-radius:12px;padding:16px 18px;margin:0 0 10px 0;">
+                  <div style="font-size:11px;color:#A7B0C0;margin:0 0 6px 0;letter-spacing:.4px;">ЛОГИН</div>
+                  <div style="font-size:15px;color:#fff;word-break:break-all;">${login}</div>
+                </div>
+                <div style="background:#0f1220;border:1px solid rgba(102,126,234,.35);border-radius:12px;padding:16px 18px;">
+                  <div style="font-size:11px;color:#A7B0C0;margin:0 0 6px 0;letter-spacing:.4px;">ПАРОЛЬ</div>
+                  <div style="font-size:15px;color:#fff;word-break:break-all;">${password}</div>
+                </div>
+              </div>
+              ${instructions ? `
+              <div style="background:rgba(255,184,0,.08);border:1px solid rgba(255,184,0,.35);color:#FDE68A;border-radius:12px;padding:16px 18px;margin:0 0 22px 0;">
+                <div style="font-size:14px;font-weight:600;margin:0 0 6px 0;color:#FDE68A;">Инструкции</div>
+                <div style="font-size:13px;line-height:1.7;color:#E5E7EB;">${instructions}</div>
+              </div>` : ''}
+              <table role="presentation" cellspacing="0" cellpadding="0" style="margin-top:4px;">
+                <tr>
+                  <td style="background:#667eea;padding:12px 22px;border-radius:10px;">
+                    <a href="https://truststore.ru" style="font-size:14px;color:#fff;text-decoration:none;display:inline-block;">Перейти в магазин</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 28px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;color:#8A94A7;font-size:12px;background:#0f1220;">
+              Есть вопросы? Ответьте на это письмо или напишите через виджет на сайте.<br>© ${new Date().getFullYear()} Trust Store
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
     `;
