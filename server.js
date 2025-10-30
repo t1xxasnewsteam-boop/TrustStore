@@ -523,6 +523,17 @@ db.exec(`
         sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (original_message_id) REFERENCES email_messages(id)
     );
+    
+    CREATE TABLE IF NOT EXISTS email_attachments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email_message_id INTEGER NOT NULL,
+        filename TEXT NOT NULL,
+        content_type TEXT,
+        file_path TEXT NOT NULL,
+        file_size INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (email_message_id) REFERENCES email_messages(id)
+    );
 
     CREATE INDEX IF NOT EXISTS idx_session_id ON visits(session_id);
     CREATE INDEX IF NOT EXISTS idx_timestamp ON visits(timestamp);
@@ -2908,7 +2919,14 @@ app.get('/api/admin/emails/:id', authMiddleware, (req, res) => {
             ORDER BY sent_at DESC
         `).all(id);
         
-        res.json({ email: { ...email, replies } });
+        // Получаем вложения
+        const attachments = db.prepare(`
+            SELECT * FROM email_attachments 
+            WHERE email_message_id = ?
+            ORDER BY created_at ASC
+        `).all(id);
+        
+        res.json({ email: { ...email, replies, attachments } });
     } catch (error) {
         console.error('Ошибка получения письма:', error);
         res.status(500).json({ error: 'Ошибка сервера' });
@@ -3073,7 +3091,7 @@ function saveEmailToDB(mail) {
 }
 
 // Функция сохранения нового письма и отправки уведомления
-function saveNewEmail(parsed, folderName) {
+async function saveNewEmail(parsed, folderName) {
     try {
         // Получаем messageId
         let messageId = parsed.messageId || 
@@ -3112,12 +3130,77 @@ function saveNewEmail(parsed, folderName) {
             : subject;
         
         // Сохраняем в БД
-        db.prepare(`
+        const result = db.prepare(`
             INSERT INTO email_messages (message_id, from_email, from_name, to_email, subject, body_text, body_html, reply_to_message_id, is_read)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
         `).run(messageId, fromEmail, fromName, process.env.EMAIL_USER, finalSubject, bodyText, bodyHtml, null);
         
-        console.log(`✅ Новое письмо сохранено: ${fromEmail} - ${finalSubject}`);
+        const emailId = result.lastInsertRowid;
+        
+        // Обрабатываем вложения
+        const attachments = parsed.attachments || [];
+        const imageAttachments = [];
+        
+        if (attachments.length > 0) {
+            const attachmentsDir = path.join(__dirname, 'uploads', 'email-attachments');
+            if (!fs.existsSync(attachmentsDir)) {
+                fs.mkdirSync(attachmentsDir, { recursive: true });
+            }
+            
+            for (const attachment of attachments) {
+                try {
+                    const uniqueFilename = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${attachment.filename || 'attachment'}`;
+                    const filePath = path.join(attachmentsDir, uniqueFilename);
+                    
+                    // Сохраняем файл
+                    fs.writeFileSync(filePath, attachment.content);
+                    
+                    // Определяем content type
+                    let contentType = attachment.contentType || 'application/octet-stream';
+                    if (!contentType || contentType === 'application/octet-stream') {
+                        try {
+                            const mimeTypes = require('mime-types');
+                            contentType = mimeTypes.lookup(attachment.filename || '') || 'application/octet-stream';
+                        } catch (e) {
+                            // Если mime-types не установлен - используем простую проверку
+                            const ext = attachment.filename ? attachment.filename.split('.').pop().toLowerCase() : '';
+                            if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+                                contentType = `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+                            }
+                        }
+                    }
+                    
+                    // Проверяем, это изображение?
+                    const isImage = contentType.startsWith('image/');
+                    
+                    // Сохраняем в БД
+                    db.prepare(`
+                        INSERT INTO email_attachments (email_message_id, filename, content_type, file_path, file_size)
+                        VALUES (?, ?, ?, ?, ?)
+                    `).run(
+                        emailId,
+                        attachment.filename || 'attachment',
+                        contentType,
+                        `/uploads/email-attachments/${uniqueFilename}`,
+                        attachment.size || attachment.content?.length || 0
+                    );
+                    
+                    // Если это изображение - добавляем в список для отправки в Telegram
+                    if (isImage) {
+                        imageAttachments.push({
+                            path: `/uploads/email-attachments/${uniqueFilename}`,
+                            filename: attachment.filename || 'image'
+                        });
+                    }
+                    
+                    console.log(`📎 Вложение сохранено: ${attachment.filename || 'attachment'}`);
+                } catch (attachError) {
+                    console.error(`❌ Ошибка сохранения вложения ${attachment.filename}:`, attachError.message);
+                }
+            }
+        }
+        
+        console.log(`✅ Новое письмо сохранено: ${fromEmail} - ${finalSubject} (${attachments.length} вложений)`);
         
         // ОБЯЗАТЕЛЬНО отправляем в Telegram
         const isSpam = folderName === 'Spam' || folderName === 'Спам';
@@ -3126,17 +3209,43 @@ function saveNewEmail(parsed, folderName) {
         const telegramMessage = `${spamPrefix}📧 Новое письмо на ${process.env.EMAIL_USER}\n\n👤 От: ${fromName}\n📧 Email: ${fromEmail}\n📌 Тема: ${finalSubject}\n\n💬 Сообщение:\n${preview}\n\n💡 Отвечайте через админ-панель!`;
         
         console.log(`📤 Отправка Telegram уведомления для ${fromEmail}...`);
-        sendTelegramNotification(telegramMessage, false).then(() => {
-            console.log(`✅ Telegram уведомление отправлено: ${fromEmail}`);
-        }).catch(err => {
-            console.error(`❌ Ошибка Telegram для ${fromEmail}:`, err.message);
-            // Повтор через 3 секунды
-            setTimeout(() => {
+        
+        // Если есть фото - отправляем их
+        if (imageAttachments.length > 0) {
+            // Отправляем первое фото с текстом как caption
+            const firstImage = imageAttachments[0];
+            sendTelegramPhoto(firstImage.path, telegramMessage, false).then(() => {
+                console.log(`✅ Telegram фото отправлено: ${firstImage.filename}`);
+                
+                // Отправляем остальные фото без текста (если есть)
+                for (let i = 1; i < imageAttachments.length; i++) {
+                    setTimeout(() => {
+                        sendTelegramPhoto(imageAttachments[i].path, `${fromEmail}: ${imageAttachments[i].filename}`, false).catch(err => {
+                            console.error(`❌ Ошибка отправки фото #${i + 1}:`, err.message);
+                        });
+                    }, i * 1000); // Задержка 1 секунда между фото
+                }
+            }).catch(err => {
+                console.error(`❌ Ошибка отправки Telegram фото для ${fromEmail}:`, err.message);
+                // Если фото не отправилось - отправляем текст
                 sendTelegramNotification(telegramMessage, false).catch(e => {
-                    console.error(`❌ Повторная отправка не удалась для ${fromEmail}`);
+                    console.error(`❌ Ошибка Telegram текста:`, e.message);
                 });
-            }, 3000);
-        });
+            });
+        } else {
+            // Нет фото - отправляем только текст
+            sendTelegramNotification(telegramMessage, false).then(() => {
+                console.log(`✅ Telegram уведомление отправлено: ${fromEmail}`);
+            }).catch(err => {
+                console.error(`❌ Ошибка Telegram для ${fromEmail}:`, err.message);
+                // Повтор через 3 секунды
+                setTimeout(() => {
+                    sendTelegramNotification(telegramMessage, false).catch(e => {
+                        console.error(`❌ Повторная отправка не удалась для ${fromEmail}`);
+                    });
+                }, 3000);
+            });
+        }
         
         return true; // Новое письмо сохранено
     } catch (error) {
@@ -3192,21 +3301,27 @@ function syncEmailsFromFolder(imap, folderName) {
                     stream.once('end', async () => {
                         const buffer = Buffer.concat(chunks);
                         
-                        // Парсим письмо
+                        // Парсим письмо с вложениями
                         try {
                             const mailparser = require('mailparser');
-                            // Проверяем какой API доступен
                             let parsed;
                             if (typeof mailparser.simpleParser === 'function') {
-                                parsed = await mailparser.simpleParser(buffer);
+                                parsed = await mailparser.simpleParser(buffer, {
+                                    attachments: true,
+                                    keepCidLinks: false
+                                });
                             } else if (typeof mailparser.default?.simpleParser === 'function') {
-                                parsed = await mailparser.default.simpleParser(buffer);
+                                parsed = await mailparser.default.simpleParser(buffer, {
+                                    attachments: true,
+                                    keepCidLinks: false
+                                });
                             } else {
                                 throw new Error('simpleParser не найден в mailparser');
                             }
                             
                             // Сохраняем письмо (функция сама отправит уведомление в Telegram)
-                            if (saveNewEmail(parsed, folderName)) {
+                            const savedEmail = await saveNewEmail(parsed, folderName);
+                            if (savedEmail) {
                                 saved++;
                                 if (saved % 10 === 0) {
                                     console.log(`   💾 ${folderName}: сохранено ${saved} новых писем...`);
