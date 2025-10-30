@@ -177,6 +177,7 @@ async function sendTelegramDocument(documentUrl, caption, silent = false) {
 
 // Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // Для YooMoney form-data
 app.use(cookieParser());
 app.use(cors());
 
