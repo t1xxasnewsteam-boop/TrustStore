@@ -2276,12 +2276,10 @@ function createOrderEmailHTML(data) {
             <td style="padding:32px;color:#1a1a1a;">
               <h1 style="margin:0 0 12px 0;font-size:22px;line-height:1.3;color:#1a1a1a;text-align:center;">Спасибо за покупку!</h1>
               <p style="margin:0 0 24px 0;font-size:14px;color:#666;text-align:center;">Ниже — данные для доступа и краткая информация по заказу.</p>
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8f9ff;border:1px solid rgba(102,126,234,0.15);border-radius:12px;margin:0 0 16px 0;">
-                <tr>
-                  <td style="padding:16px 18px;font-size:13px;color:#666;width:38%;">Товар</td>
-                  <td style="padding:16px 18px;font-size:15px;color:#667eea;font-weight:700;">${productName}</td>
-                </tr>
-              </table>
+              <div style="background:linear-gradient(135deg, rgba(102,126,234,0.08) 0%, rgba(118,75,162,0.08) 100%);border:2px solid rgba(102,126,234,0.2);border-radius:16px;padding:20px 24px;margin:0 0 24px 0;text-align:center;">
+                <div style="font-size:12px;color:#667eea;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px 0;">📦 Ваш товар</div>
+                <div style="font-size:20px;color:#1a1a1a;font-weight:700;margin:0;">${productName}</div>
+              </div>
               <div style="margin:18px 0 22px 0;">
                 <div style="background:#f8f9ff;border:2px solid #667eea;border-radius:12px;padding:16px 18px;margin:0 0 10px 0;">
                   <div style="font-size:11px;color:#666;margin:0 0 6px 0;letter-spacing:.4px;">ЛОГИН</div>
