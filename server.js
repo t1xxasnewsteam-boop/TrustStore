@@ -3099,8 +3099,6 @@ function syncEmailsFromFolder(imap, folderName) {
             let saved = 0;
             
             fetch.on('message', (msg, seqno) => {
-                const { simpleParser } = require('mailparser');
-                
                 msg.on('body', (stream, info) => {
                     // Собираем весь stream в буфер перед парсингом
                     const chunks = [];
@@ -3115,8 +3113,9 @@ function syncEmailsFromFolder(imap, folderName) {
                     stream.once('end', () => {
                         const buffer = Buffer.concat(chunks);
                         
-                        // Парсим письмо
-                        simpleParser(buffer, (err, parsed) => {
+                        // Парсим письмо (импортируем в момент использования)
+                        const mailparser = require('mailparser');
+                        mailparser.simpleParser(buffer, (err, parsed) => {
                             if (err) {
                                 console.error(`❌ Ошибка парсинга письма #${seqno} из ${folderName}:`, err.message);
                                 return;
