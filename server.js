@@ -1305,12 +1305,18 @@ app.post('/api/payment/yoomoney', async (req, res) => {
                         WHERE id = ?
                     `).run(label, availableItem.id);
                     
+                    // Получаем информацию о товаре из БД
+                    const productInfo = db.prepare('SELECT * FROM products WHERE name = ?').get(product.name);
+                    
                     // Отправляем email с товаром
                     try {
                         await sendOrderEmail({
                             to: order.customer_email,
                             orderNumber: label,
                             productName: product.name,
+                            productImage: productInfo ? productInfo.image : null,
+                            productCategory: productInfo ? productInfo.category : null,
+                            productDescription: productInfo ? productInfo.description : null,
                             login: availableItem.login,
                             password: availableItem.password,
                             instructions: availableItem.instructions || 'Используйте эти данные для входа в сервис.'
@@ -2236,7 +2242,7 @@ app.get('/product/:productName', (req, res) => {
 
 // Функция создания HTML шаблона для письма с заказом
 function createOrderEmailHTML(data) {
-    const { orderNumber, productName, login, password, instructions } = data;
+    const { orderNumber, productName, productImage, productCategory, productDescription, login, password, instructions } = data;
     return `
 <!DOCTYPE html>
 <html>
@@ -2276,6 +2282,18 @@ function createOrderEmailHTML(data) {
             <td style="padding:32px;color:#1a1a1a;">
               <h1 style="margin:0 0 12px 0;font-size:22px;line-height:1.3;color:#1a1a1a;text-align:center;">Спасибо за покупку!</h1>
               <p style="margin:0 0 24px 0;font-size:14px;color:#666;text-align:center;">Ниже — данные для доступа и краткая информация по заказу.</p>
+              ${productImage ? `
+              <div style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.08);margin:0 0 24px 0;border:1px solid rgba(102,126,234,0.1);">
+                <div style="background:linear-gradient(135deg, rgba(102,126,234,0.05) 0%, rgba(118,75,162,0.05) 100%);padding:24px;text-align:center;">
+                  <img src="https://truststore.ru/${productImage}" alt="${productName}" style="max-width:180px;max-height:180px;width:auto;height:auto;object-fit:contain;display:block;margin:0 auto;">
+                </div>
+                <div style="padding:20px 24px;">
+                  ${productCategory ? `<div style="font-size:11px;color:#667eea;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px 0;">${productCategory}</div>` : ''}
+                  <div style="font-size:20px;color:#1a1a1a;font-weight:700;margin:0 0 8px 0;">${productName}</div>
+                  ${productDescription ? `<div style="font-size:14px;color:#666;line-height:1.5;margin:0;">${productDescription}</div>` : ''}
+                </div>
+              </div>
+              ` : `
               <div style="background:#ffffff;border-left:4px solid #667eea;border-radius:8px;padding:20px 24px;margin:0 0 24px 0;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
                 <div style="display:flex;align-items:center;justify-content:space-between;">
                   <div>
@@ -2287,6 +2305,7 @@ function createOrderEmailHTML(data) {
                   </div>
                 </div>
               </div>
+              `}
               <div style="margin:18px 0 22px 0;">
                 <div style="background:#f8f9ff;border:2px solid #667eea;border-radius:12px;padding:16px 18px;margin:0 0 10px 0;">
                   <div style="font-size:11px;color:#666;margin:0 0 6px 0;letter-spacing:.4px;">ЛОГИН</div>
