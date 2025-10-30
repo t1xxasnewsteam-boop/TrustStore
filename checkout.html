@@ -1500,7 +1500,7 @@
                     // Формируем данные для оплаты
                     const paymentData = {
                         receiver: YOOMONEY_CONFIG.receiver,
-                        quickpay_form: 'shop',
+                        'quickpay-form': 'small',
                         targets: `Заказ ${result.orderId}: ${fullDescription}`,
                         paymentType: 'AC',
                         sum: currentTotalPrice,
@@ -1533,7 +1533,7 @@
                 // Если API не доступен, все равно отправляем на оплату
                 const paymentData = {
                     receiver: YOOMONEY_CONFIG.receiver,
-                    quickpay_form: 'shop',
+                    'quickpay-form': 'small',
                     targets: `Заказ Trust Store: ${fullDescription}`,
                     paymentType: 'AC',
                     sum: currentTotalPrice,
