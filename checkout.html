@@ -744,11 +744,27 @@
                         <div class="payment-methods">
                             <div class="payment-method selected" data-method="yoomoney">
                                 <div class="payment-method-icon">
-                                    <svg width="28" height="20" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Банковская карта" role="img">
-                                        <rect x="1.5" y="3.5" width="45" height="25" rx="6" ry="6" fill="#ffffff" stroke="#667eea" stroke-width="3"/>
-                                        <rect x="3" y="10" width="42" height="4" rx="2" fill="#667eea"/>
-                                        <rect x="6" y="20" width="10" height="4" rx="2" fill="#A5B4FC"/>
-                                        <rect x="19" y="20" width="8" height="4" rx="2" fill="#C7D2FE"/>
+                                    <svg width="28" height="20" viewBox="0 0 56 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Банковская карта" role="img">
+                                        <defs>
+                                            <linearGradient id="cardGrad" x1="0" y1="0" x2="56" y2="40" gradientUnits="userSpaceOnUse">
+                                                <stop offset="0" stop-color="#667eea"/>
+                                                <stop offset="1" stop-color="#764ba2"/>
+                                            </linearGradient>
+                                        </defs>
+                                        <!-- Card body -->
+                                        <rect x="2" y="3" width="52" height="34" rx="8" fill="url(#cardGrad)"/>
+                                        <!-- Top strip -->
+                                        <rect x="4" y="12" width="48" height="4" rx="2" fill="rgba(255,255,255,0.35)"/>
+                                        <!-- Chip -->
+                                        <rect x="8" y="20" width="10" height="8" rx="2" fill="#F3F4F6"/>
+                                        <path d="M9 24h8M9 22h8M9 26h8" stroke="#9CA3AF" stroke-width="1"/>
+                                        <!-- Number blocks -->
+                                        <rect x="22" y="22" width="10" height="4" rx="2" fill="#E5E7EB"/>
+                                        <rect x="34" y="22" width="10" height="4" rx="2" fill="#E5E7EB"/>
+                                        <!-- Contactless waves -->
+                                        <path d="M46 18c2 1.5 2 4.5 0 6M49 16c3 2.2 3 7.8 0 10" stroke="#FFFFFF" stroke-opacity="0.65" stroke-width="1.5" stroke-linecap="round"/>
+                                        <!-- Border for crispness -->
+                                        <rect x="2" y="3" width="52" height="34" rx="8" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
                                     </svg>
                                 </div>
                                 <div class="payment-method-info">
