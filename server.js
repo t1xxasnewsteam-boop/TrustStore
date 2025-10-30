@@ -2245,11 +2245,11 @@ function createOrderEmailHTML(data) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ваш заказ #${orderNumber}</title>
 </head>
-<body style="margin:0;padding:0;background:#0f1220;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#0f1220;padding:32px 12px;">
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f5f5;padding:32px 12px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="640" cellspacing="0" cellpadding="0" style="background:#111528;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <table role="presentation" width="640" cellspacing="0" cellpadding="0" style="background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid rgba(0,0,0,0.08);box-shadow:0 4px 24px rgba(0,0,0,0.1);">
           <tr>
             <td style="padding:28px 32px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);">
               <table width="100%" cellspacing="0" cellpadding="0">
@@ -2273,29 +2273,29 @@ function createOrderEmailHTML(data) {
             </td>
           </tr>
           <tr>
-            <td style="padding:32px;color:#E5E7EB;">
-              <h1 style="margin:0 0 12px 0;font-size:22px;line-height:1.3;color:#fff;">Спасибо за покупку!</h1>
-              <p style="margin:0 0 24px 0;font-size:14px;color:#A7B0C0;">Ниже — данные для доступа и краткая информация по заказу.</p>
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#0f1220;border:1px solid rgba(255,255,255,0.06);border-radius:12px;margin:0 0 16px 0;">
+            <td style="padding:32px;color:#1a1a1a;">
+              <h1 style="margin:0 0 12px 0;font-size:22px;line-height:1.3;color:#1a1a1a;">Спасибо за покупку!</h1>
+              <p style="margin:0 0 24px 0;font-size:14px;color:#666;">Ниже — данные для доступа и краткая информация по заказу.</p>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8f9ff;border:1px solid rgba(102,126,234,0.15);border-radius:12px;margin:0 0 16px 0;">
                 <tr>
-                  <td style="padding:16px 18px;font-size:13px;color:#A7B0C0;width:38%;">Товар</td>
-                  <td style="padding:16px 18px;font-size:15px;color:#C7D2FE;font-weight:700;">${productName}</td>
+                  <td style="padding:16px 18px;font-size:13px;color:#666;width:38%;">Товар</td>
+                  <td style="padding:16px 18px;font-size:15px;color:#667eea;font-weight:700;">${productName}</td>
                 </tr>
               </table>
               <div style="margin:18px 0 22px 0;">
-                <div style="background:#0f1220;border:1px solid rgba(102,126,234,.35);border-radius:12px;padding:16px 18px;margin:0 0 10px 0;">
-                  <div style="font-size:11px;color:#A7B0C0;margin:0 0 6px 0;letter-spacing:.4px;">ЛОГИН</div>
-                  <div style="font-size:15px;color:#fff;word-break:break-all;">${login}</div>
+                <div style="background:#f8f9ff;border:2px solid #667eea;border-radius:12px;padding:16px 18px;margin:0 0 10px 0;">
+                  <div style="font-size:11px;color:#666;margin:0 0 6px 0;letter-spacing:.4px;">ЛОГИН</div>
+                  <div style="font-size:15px;color:#1a1a1a;font-weight:600;word-break:break-all;">${login}</div>
                 </div>
-                <div style="background:#0f1220;border:1px solid rgba(102,126,234,.35);border-radius:12px;padding:16px 18px;">
-                  <div style="font-size:11px;color:#A7B0C0;margin:0 0 6px 0;letter-spacing:.4px;">ПАРОЛЬ</div>
-                  <div style="font-size:15px;color:#fff;word-break:break-all;">${password}</div>
+                <div style="background:#f8f9ff;border:2px solid #667eea;border-radius:12px;padding:16px 18px;">
+                  <div style="font-size:11px;color:#666;margin:0 0 6px 0;letter-spacing:.4px;">ПАРОЛЬ</div>
+                  <div style="font-size:15px;color:#1a1a1a;font-weight:600;word-break:break-all;">${password}</div>
                 </div>
               </div>
               ${instructions ? `
-              <div style="background:rgba(255,184,0,.08);border:1px solid rgba(255,184,0,.35);color:#FDE68A;border-radius:12px;padding:16px 18px;margin:0 0 22px 0;">
-                <div style="font-size:14px;font-weight:600;margin:0 0 6px 0;color:#FDE68A;">Инструкции</div>
-                <div style="font-size:13px;line-height:1.7;color:#E5E7EB;">${instructions}</div>
+              <div style="background:#fff9e6;border:1px solid rgba(255,184,0,0.35);border-radius:12px;padding:16px 18px;margin:0 0 22px 0;">
+                <div style="font-size:14px;font-weight:600;margin:0 0 6px 0;color:#B45309;">Инструкции</div>
+                <div style="font-size:13px;line-height:1.7;color:#666;">${instructions}</div>
               </div>` : ''}
               <table role="presentation" cellspacing="0" cellpadding="0" style="margin-top:4px;">
                 <tr>
@@ -2307,7 +2307,7 @@ function createOrderEmailHTML(data) {
             </td>
           </tr>
           <tr>
-            <td style="padding:20px 28px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;color:#8A94A7;font-size:12px;background:#0f1220;">
+            <td style="padding:20px 28px;border-top:1px solid rgba(0,0,0,0.08);text-align:center;color:#999;font-size:12px;background:#f8f9ff;">
               Есть вопросы? Ответьте на это письмо или напишите через виджет на сайте.<br>© ${new Date().getFullYear()} Trust Store
             </td>
           </tr>
