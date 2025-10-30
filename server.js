@@ -2341,6 +2341,24 @@ function createOrderEmailHTML(data) {
     `;
 }
 
+// Функция создания текстовой версии письма
+function createOrderEmailText(data) {
+    const { orderNumber, productName } = data;
+    return `
+Спасибо за покупку!
+
+Ваш заказ #${orderNumber}
+
+Товар: ${productName}
+
+Для получения товара напишите @truststore_admin в Telegram: https://t.me/truststore_admin
+
+Если у вас есть вопросы, ответьте на это письмо или напишите через виджет на сайте.
+
+© ${new Date().getFullYear()} Trust Store
+`;
+}
+
 // Функция отправки письма с заказом
 async function sendOrderEmail(data) {
     // Попытка отправить через SendGrid (если настроен)
@@ -2349,8 +2367,13 @@ async function sendOrderEmail(data) {
             const msg = {
                 to: data.to,
                 from: process.env.EMAIL_USER || 'orders@truststore.ru',
-                subject: `✅ Ваш заказ #${data.orderNumber} | Trust Store`,
-                html: createOrderEmailHTML(data)
+                subject: `Ваш заказ #${data.orderNumber} | Trust Store`,
+                html: createOrderEmailHTML(data),
+                text: createOrderEmailText(data),
+                headers: {
+                    'X-Mailer': 'Trust Store',
+                    'List-Unsubscribe': '<https://truststore.ru/unsubscribe>'
+                }
             };
             
             const response = await sgMail.send(msg);
@@ -2367,8 +2390,16 @@ async function sendOrderEmail(data) {
         const mailOptions = {
             from: process.env.EMAIL_FROM || '"Trust Store" <orders@truststore.ru>',
             to: data.to,
-            subject: `✅ Ваш заказ #${data.orderNumber} | Trust Store`,
+            replyTo: 'orders@truststore.ru',
+            subject: `Ваш заказ #${data.orderNumber} | Trust Store`,
             html: createOrderEmailHTML(data),
+            text: createOrderEmailText(data),
+            headers: {
+                'X-Mailer': 'Trust Store',
+                'List-Unsubscribe': '<https://truststore.ru/unsubscribe>',
+                'X-Priority': '3',
+                'X-MSMail-Priority': 'Normal'
+            },
             attachments: [
                 {
                     filename: 'youtube-avatar.png',

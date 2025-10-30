@@ -130,6 +130,24 @@ function createOrderEmailHTML(data) {
     `;
 }
 
+// Функция создания текстовой версии
+function createOrderEmailText(data) {
+    const { orderNumber, productName } = data;
+    return `
+Спасибо за покупку!
+
+Ваш заказ #${orderNumber}
+
+Товар: ${productName}
+
+Для получения товара напишите @truststore_admin в Telegram: https://t.me/truststore_admin
+
+Если у вас есть вопросы, ответьте на это письмо или напишите через виджет на сайте.
+
+© ${new Date().getFullYear()} Trust Store
+`;
+}
+
 // Функция отправки письма
 async function sendOrderEmail(data) {
     try {
@@ -140,13 +158,21 @@ async function sendOrderEmail(data) {
         const mailOptions = {
             from: process.env.EMAIL_FROM || '"Trust Store" <orders@truststore.ru>',
             to: data.to,
-            subject: `✅ Ваш заказ #${data.orderNumber} | Trust Store`,
+            replyTo: 'orders@truststore.ru',
+            subject: `Ваш заказ #${data.orderNumber} | Trust Store`,
             html: createOrderEmailHTML({
                 ...data,
                 productImage: product.image || null,
                 productCategory: product.category || null,
                 productDescription: product.description || null
             }),
+            text: createOrderEmailText(data),
+            headers: {
+                'X-Mailer': 'Trust Store',
+                'List-Unsubscribe': '<https://truststore.ru/unsubscribe>',
+                'X-Priority': '3',
+                'X-MSMail-Priority': 'Normal'
+            },
             attachments: [
                 {
                     filename: 'youtube-avatar.png',
@@ -229,8 +255,8 @@ let failedCount = 0;
                 failedCount++;
             }
             
-            // Небольшая задержка между отправками (чтобы не перегрузить SMTP)
-            await new Promise(resolve => setTimeout(resolve, 1000));
+        // Увеличенная задержка между отправками (чтобы не попасть в спам)
+        await new Promise(resolve => setTimeout(resolve, 3000));
         }
     }
     
