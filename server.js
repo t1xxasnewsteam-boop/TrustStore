@@ -2951,10 +2951,21 @@ app.post('/api/admin/emails/:id/reply', authMiddleware, async (req, res) => {
         }
         
         // Отправляем ответ
+        // Адрес получателя - это тот, кто отправил письмо (from_email)
+        const recipientEmail = originalEmail.from_email;
+        
+        console.log(`📧 Отправка ответа на письмо #${id}`);
+        console.log(`   Получатель (from_email): ${recipientEmail}`);
+        console.log(`   От (EMAIL_USER): ${process.env.EMAIL_USER}`);
+        
+        if (!recipientEmail || recipientEmail === 'unknown@example.com') {
+            return res.status(400).json({ error: 'Невозможно отправить ответ: адрес получателя не указан' });
+        }
+        
         const mailOptions = {
-            from: process.env.EMAIL_FROM || '"Trust Store" <orders@truststore.ru>',
-            to: originalEmail.from_email,
-            replyTo: originalEmail.message_id ? `<${originalEmail.message_id}>` : undefined,
+            from: process.env.EMAIL_FROM || `"Trust Store" <${process.env.EMAIL_USER || 'orders@truststore.ru'}>`,
+            to: recipientEmail,
+            replyTo: process.env.EMAIL_USER || 'orders@truststore.ru',
             subject: subject.startsWith('Re:') ? subject : `Re: ${subject}`,
             html: `
                 <div style="font-family: Arial, sans-serif; line-height: 1.6;">
