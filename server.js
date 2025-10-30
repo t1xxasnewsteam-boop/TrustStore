@@ -1568,7 +1568,7 @@ app.get('/api/admin-stats', authMiddleware, (req, res) => {
         const totalPageViews = db.prepare('SELECT COUNT(*) as count FROM visits').get();
         
         // Заказы (только оплаченные)
-        const totalOrders = db.prepare('SELECT COUNT(*) as count, COALESCE(SUM(total_amount), 0) as revenue FROM orders WHERE status = "paid"').get();
+        const totalOrders = db.prepare("SELECT COUNT(*) as count, COALESCE(SUM(total_amount), 0) as revenue FROM orders WHERE status = 'paid'").get();
         const ordersThisMonth = db.prepare(`
             SELECT COUNT(*) as count, COALESCE(SUM(total_amount), 0) as revenue 
             FROM orders 
