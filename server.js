@@ -2258,22 +2258,22 @@ function createOrderEmailHTML(data) {
         <table role="presentation" width="640" cellspacing="0" cellpadding="0" style="background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid rgba(0,0,0,0.08);box-shadow:0 4px 24px rgba(0,0,0,0.1);">
           <tr>
             <td style="padding:28px 32px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);">
-              <table width="100%" cellspacing="0" cellpadding="0">
+              <table width="100%" cellspacing="0" cellpadding="0" style="table-layout:fixed;">
                 <tr>
-                  <td align="left" style="vertical-align:middle;">
-                    <table cellspacing="0" cellpadding="0">
+                  <td align="left" style="vertical-align:middle;width:auto;">
+                    <table cellspacing="0" cellpadding="0" style="display:inline-table;">
                       <tr>
                         <td style="padding-right:16px;vertical-align:middle;">
                           <img src="cid:youtube-avatar" alt="Trust Store" style="display:block;max-width:60px;height:60px;border-radius:50%;border:3px solid rgba(255,255,255,0.2);">
                         </td>
-                        <td style="vertical-align:middle;">
-                          <div style="color:#fff;font-size:24px;font-weight:700;letter-spacing:-0.5px;margin:0;">Trust Store</div>
-                          <div style="color:rgba(255,255,255,0.85);font-size:13px;margin-top:2px;">магазин цифровых товаров</div>
+                        <td style="vertical-align:middle;white-space:nowrap;">
+                          <span style="color:#fff;font-size:24px;font-weight:700;letter-spacing:-0.5px;margin:0;display:inline-block;">Trust Store</span>
+                          <span style="color:rgba(255,255,255,0.85);font-size:13px;margin-left:12px;display:inline-block;">магазин цифровых товаров</span>
                         </td>
                       </tr>
                     </table>
                   </td>
-                  <td align="right" style="color:#fff;font-size:14px;opacity:.9;white-space:nowrap;vertical-align:middle;">Заказ <strong style="font-weight:700;">#${orderNumber}</strong></td>
+                  <td align="right" style="color:#fff;font-size:14px;opacity:.9;white-space:nowrap;vertical-align:middle;width:auto;">Заказ <strong style="font-weight:700;">#${orderNumber}</strong></td>
                 </tr>
               </table>
             </td>
@@ -2283,13 +2283,13 @@ function createOrderEmailHTML(data) {
               <h1 style="margin:0 0 12px 0;font-size:22px;line-height:1.3;color:#1a1a1a;text-align:center;">Спасибо за покупку!</h1>
               <p style="margin:0 0 24px 0;font-size:14px;color:#666;text-align:center;">Ниже — данные для доступа и краткая информация по заказу.</p>
               <div style="background:#f8f9ff;border:1px solid rgba(102,126,234,0.15);border-radius:12px;padding:20px 24px;margin:0 0 24px 0;">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout:fixed;">
                   <tr>
-                    <td style="font-size:14px;color:#1a1a1a;width:100px;vertical-align:middle;">Товар:</td>
-                    <td style="font-size:16px;color:#1a1a1a;font-weight:700;vertical-align:middle;">
+                    <td style="font-size:14px;color:#1a1a1a;width:80px;vertical-align:middle;white-space:nowrap;">Товар:</td>
+                    <td style="font-size:16px;color:#1a1a1a;font-weight:700;vertical-align:middle;word-wrap:break-word;word-break:break-word;padding-right:16px;">
                       ${productName}
                     </td>
-                    ${productImage ? `<td style="text-align:right;vertical-align:middle;width:100px;">
+                    ${productImage ? `<td style="text-align:right;vertical-align:middle;width:120px;white-space:nowrap;">
                       <img src="https://truststore.ru/${productImage}" alt="${productName}" style="max-width:100px;max-height:100px;width:auto;height:auto;object-fit:contain;display:block;margin-left:auto;">
                     </td>` : ''}
                   </tr>

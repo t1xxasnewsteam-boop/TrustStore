@@ -2,20 +2,7 @@ require('dotenv').config();
 const nodemailer = require('nodemailer');
 const path = require('path');
 
-// Статические данные о продуктах (из БД или код)
-const productInfo = {
-    'ChatGPT Plus': { image: 'gpt-image.png', category: 'AI Генерация', description: 'Доступ к ChatGPT Plus' },
-    'Midjourney': { image: 'midjourney-image.png', category: 'AI Генерация', description: 'Подписка Midjourney' },
-    'Claude AI Pro': { image: 'claude-image.png', category: 'AI Генерация', description: 'Claude AI Pro' },
-    'Cursor AI': { image: 'cursor-image.png', category: 'AI Генерация', description: 'Cursor AI Pro' },
-    'Google Gemini': { image: 'gemini-image.png', category: 'AI Генерация', description: 'Google Gemini + Veo 3' },
-    'YouTube Premium': { image: 'youtube-image.png', category: 'Видео', description: 'YouTube Premium + Music' },
-    'VPN Premium': { image: 'vpn-image.png', category: 'Безопасность', description: 'Личный VPN' },
-    'Adobe Creative Cloud': { image: 'adobe-image.png', category: 'Дизайн', description: 'Adobe Creative Cloud All Apps' },
-    'CapCut Pro': { image: 'capcut-image.png', category: 'Монтаж', description: 'CapCut Pro' }
-};
-
-// Настройка email транспортера (как в server.js)
+// Настройка email транспортера
 const emailTransporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST || 'smtp.yandex.ru',
     port: parseInt(process.env.EMAIL_PORT) || 465,
@@ -33,9 +20,9 @@ const emailTransporter = nodemailer.createTransport({
     socketTimeout: 10000
 });
 
-// Копируем функцию создания HTML из server.js
+// HTML шаблон (из server.js с исправлениями)
 function createOrderEmailHTML(data) {
-    const { orderNumber, productName, productImage, productCategory, productDescription } = data;
+    const { orderNumber, productName, productImage } = data;
     return `
 <!DOCTYPE html>
 <html>
@@ -129,43 +116,20 @@ function createOrderEmailHTML(data) {
     `;
 }
 
-// Функция создания текстовой версии
-function createOrderEmailText(data) {
-    const { orderNumber, productName } = data;
-    return `
-Спасибо за покупку!
-
-Ваш заказ #${orderNumber}
-
-Товар: ${productName}
-
-Для получения товара напишите @truststore_admin в Telegram: https://t.me/truststore_admin
-
-Если у вас есть вопросы, ответьте на это письмо или напишите через виджет на сайте.
-
-© ${new Date().getFullYear()} Trust Store
-`;
-}
-
-// Функция отправки письма
-async function sendOrderEmail(data) {
+// Функция отправки
+async function sendTestEmail() {
     try {
-        // Определяем базовое название товара (убираем тариф из скобок)
-        const baseProductName = data.productName.split(' (')[0];
-        const product = productInfo[baseProductName] || { image: null, category: null, description: null };
-        
         const mailOptions = {
             from: process.env.EMAIL_FROM || '"Trust Store" <orders@truststore.ru>',
-            to: data.to,
+            to: 'tichonmarts@gmail.com',
             replyTo: 'orders@truststore.ru',
-            subject: `Ваш заказ #${data.orderNumber} | Trust Store`,
+            subject: `Ваш заказ #TEST-${Date.now()} | Trust Store`,
             html: createOrderEmailHTML({
-                ...data,
-                productImage: product.image || null,
-                productCategory: product.category || null,
-                productDescription: product.description || null
+                orderNumber: `TEST-${Date.now()}`,
+                productName: 'YouTube Premium (3 месяца)',
+                productImage: 'youtube-image.png'
             }),
-            text: createOrderEmailText(data),
+            text: `Спасибо за покупку!\n\nВаш заказ #TEST-${Date.now()}\n\nТовар: YouTube Premium (3 месяца)\n\nДля получения товара напишите @truststore_admin в Telegram: https://t.me/truststore_admin`,
             headers: {
                 'X-Mailer': 'Trust Store',
                 'List-Unsubscribe': '<https://truststore.ru/unsubscribe>',
@@ -180,66 +144,15 @@ async function sendOrderEmail(data) {
                 }
             ]
         };
-        
+
         const info = await emailTransporter.sendMail(mailOptions);
+        console.log(`✅ Тестовое письмо отправлено! (${info.messageId})`);
         return { success: true, messageId: info.messageId };
     } catch (error) {
+        console.error('❌ Ошибка:', error.message);
         return { success: false, error: error.message };
     }
 }
 
-// Все 32 комбинации товар+тариф
-const allProducts = [
-    { name: 'ChatGPT Plus', tariffs: ['1 месяц', '3 месяца', '6 месяцев', '12 месяцев'] },
-    { name: 'Midjourney', tariffs: ['Standard Plan', 'Pro Plan'] },
-    { name: 'Claude AI Pro', tariffs: ['1 месяц', '3 месяца', '6 месяцев', '12 месяцев'] },
-    { name: 'Cursor AI', tariffs: ['1 месяц', '3 месяца', '6 месяцев', '12 месяцев'] },
-    { name: 'Google Gemini', tariffs: ['1 месяц', '12 месяцев'] },
-    { name: 'YouTube Premium', tariffs: ['1 месяц', '3 месяца', '6 месяцев', '12 месяцев'] },
-    { name: 'VPN Premium', tariffs: ['1 месяц', '3 месяца', '12 месяцев', 'Навсегда'] },
-    { name: 'Adobe Creative Cloud', tariffs: ['1 месяц', '3 месяца', '6 месяцев', '12 месяцев'] },
-    { name: 'CapCut Pro', tariffs: ['1 месяц', '3 месяца', '6 месяцев', '12 месяцев'] }
-];
-
-console.log('📧 Отправка всех 32 писем о покупке...\n');
-console.log('='.repeat(60));
-
-const targetEmail = 'tichonmarts@gmail.com';
-let sentCount = 0;
-let failedCount = 0;
-
-// Асинхронная функция для отправки всех писем
-(async () => {
-    // Отправляем все письма
-    for (const product of allProducts) {
-        for (const tariff of product.tariffs) {
-            const orderNumber = `TEST-${Date.now()}-${sentCount + 1}`;
-            const fullProductName = `${product.name} (${tariff})`;
-            
-            console.log(`📤 [${sentCount + 1}/32] Отправка: ${fullProductName}...`);
-            
-            const result = await sendOrderEmail({
-                to: targetEmail,
-                orderNumber: orderNumber,
-                productName: fullProductName
-            });
-            
-            if (result.success) {
-                console.log(`   ✅ Успешно отправлено (ID: ${result.messageId?.substring(0, 20) || 'N/A'}...)`);
-                sentCount++;
-            } else {
-                console.log(`   ❌ Ошибка: ${result.error}`);
-                failedCount++;
-            }
-            
-        // Увеличенная задержка между отправками (чтобы не попасть в спам)
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        }
-    }
-    
-    console.log('\n' + '='.repeat(60));
-    console.log(`✅ Успешно отправлено: ${sentCount}/32`);
-    console.log(`❌ Ошибок: ${failedCount}/32`);
-    console.log(`📧 Получатель: ${targetEmail}`);
-})();
+sendTestEmail();
 
