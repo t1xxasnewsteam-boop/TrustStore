@@ -113,8 +113,8 @@ async function sendTelegramNotification(message, silent = false) {
             body: JSON.stringify({
                 chat_id: TELEGRAM_CHAT_ID,
                 text: message,
-                parse_mode: 'HTML',
                 disable_notification: silent
+                // Убрали parse_mode: 'HTML' чтобы избежать ошибок с email адресами
             })
         });
         
@@ -3049,7 +3049,8 @@ function saveEmailToDB(mail) {
         const preview = bodyText.substring(0, 200) + (bodyText.length > 200 ? '...' : '');
         const isSpam = subject.startsWith('[СПАМ]');
         const spamPrefix = isSpam ? '🚨 СПАМ: ' : '';
-        const telegramMessage = `${spamPrefix}📧 Новое письмо на ${toEmail}\n\n👤 От: ${fromName} <${fromEmail}>\n📌 Тема: ${subject}\n\n💬 Сообщение:\n${preview}\n\n💡 Отвечайте через админ-панель!`;
+        // Экранируем email адреса для Telegram (без < > чтобы не конфликтовало с HTML)
+        const telegramMessage = `${spamPrefix}📧 Новое письмо на ${toEmail}\n\n👤 От: ${fromName}\n📧 Email: ${fromEmail}\n📌 Тема: ${subject}\n\n💬 Сообщение:\n${preview}\n\n💡 Отвечайте через админ-панель!`;
         
         // Отправляем уведомление асинхронно (не блокируем сохранение)
         sendTelegramNotification(telegramMessage, false).then(() => {
@@ -3183,13 +3184,17 @@ function syncEmailsFromFolder(imap, folderName) {
                                     console.log(`   💾 ${folderName}: сохранено ${saved} новых писем...`);
                                 }
                                 
-                                // Отправляем уведомление в Telegram для ВСЕХ новых писем
-                                const isSpam = folderName === 'Spam' || folderName === 'Спам';
-                                const spamPrefix = isSpam ? '🚨 СПАМ: ' : '';
-                                const preview = bodyText.substring(0, 150) + (bodyText.length > 150 ? '...' : '');
-                                const telegramMessage = `${spamPrefix}📧 Новое письмо на ${process.env.EMAIL_USER}\n\n👤 От: ${fromName} <${fromEmail}>\n📌 Тема: ${finalSubject}\n\n💬 Сообщение:\n${preview}\n\n💡 Отвечайте через админ-панель!`;
-                                    sendTelegramNotification(telegramMessage, false);
-                                    console.log(`📤 Telegram уведомление отправлено для письма от ${fromEmail}`);
+                // Отправляем уведомление в Telegram для ВСЕХ новых писем
+                const isSpam = folderName === 'Spam' || folderName === 'Спам';
+                const spamPrefix = isSpam ? '🚨 СПАМ: ' : '';
+                const preview = bodyText.substring(0, 150) + (bodyText.length > 150 ? '...' : '');
+                // Экранируем email адреса для Telegram (без < > чтобы не конфликтовало с HTML)
+                const telegramMessage = `${spamPrefix}📧 Новое письмо на ${process.env.EMAIL_USER}\n\n👤 От: ${fromName}\n📧 Email: ${fromEmail}\n📌 Тема: ${finalSubject}\n\n💬 Сообщение:\n${preview}\n\n💡 Отвечайте через админ-панель!`;
+                sendTelegramNotification(telegramMessage, false).then(() => {
+                    console.log(`📤 Telegram уведомление отправлено для письма от ${fromEmail}`);
+                }).catch(err => {
+                    console.error(`❌ Не удалось отправить Telegram уведомление для ${fromEmail}:`, err.message);
+                });
                                 } catch (dbError) {
                                     console.error(`❌ Ошибка сохранения письма #${seqno} из ${folderName} в БД:`, dbError.message);
                                     // Продолжаем обработку других писем
