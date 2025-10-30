@@ -3032,9 +3032,11 @@ function saveEmailToDB(mail) {
         
         console.log(`📧 Новое письмо сохранено: ${fromEmail} - ${subject}`);
         
-        // Отправляем уведомление в Telegram
+        // Отправляем уведомление в Telegram (не молчим!)
         const preview = bodyText.substring(0, 200) + (bodyText.length > 200 ? '...' : '');
-        const telegramMessage = `📧 Новое письмо на ${toEmail}\n\n👤 От: ${fromName} <${fromEmail}>\n📌 Тема: ${subject}\n\n💬 Сообщение:\n${preview}\n\n💡 Отвечайте через админ-панель!`;
+        const isSpam = subject.startsWith('[СПАМ]');
+        const spamPrefix = isSpam ? '🚨 СПАМ: ' : '';
+        const telegramMessage = `${spamPrefix}📧 Новое письмо на ${toEmail}\n\n👤 От: ${fromName} <${fromEmail}>\n📌 Тема: ${subject}\n\n💬 Сообщение:\n${preview}\n\n💡 Отвечайте через админ-панель!`;
         sendTelegramNotification(telegramMessage, false);
         
     } catch (error) {
@@ -3164,6 +3166,13 @@ function syncEmailsFromFolder(imap, folderName) {
                                 if (saved % 10 === 0) {
                                     console.log(`   💾 ${folderName}: сохранено ${saved} новых писем...`);
                                 }
+                                
+                                // Отправляем уведомление в Telegram для писем из спама
+                                if (folderName === 'Spam' || folderName === 'Спам') {
+                                    const preview = bodyText.substring(0, 150) + (bodyText.length > 150 ? '...' : '');
+                                    const telegramMessage = `🚨 СПАМ: 📧 Новое письмо на ${process.env.EMAIL_USER}\n\n👤 От: ${fromName} <${fromEmail}>\n📌 Тема: ${subject}\n\n💬 Сообщение:\n${preview}\n\n💡 Отвечайте через админ-панель!`;
+                                    sendTelegramNotification(telegramMessage, false);
+                                }
                             } catch (dbError) {
                                 console.error(`❌ Ошибка сохранения письма #${seqno} из ${folderName} в БД:`, dbError.message);
                                 // Продолжаем обработку других писем
@@ -3217,18 +3226,24 @@ function syncAllEmails() {
                 
                 try {
                     // Синхронизируем INBOX
+                    console.log('📬 Синхронизация INBOX...');
                     const inboxResult = await syncEmailsFromFolder(imap, 'INBOX');
+                    console.log(`✅ INBOX: ${inboxResult.processed} обработано, ${inboxResult.saved} сохранено`);
                     
                     // Синхронизируем Spam (пробуем разные названия)
                     let spamResult = { folder: 'Spam', processed: 0, saved: 0 };
-                    try {
-                        spamResult = await syncEmailsFromFolder(imap, 'Spam');
-                    } catch (e) {
-                        try {
-                            spamResult = await syncEmailsFromFolder(imap, 'Спам');
-                        } catch (e2) {
-                            console.log('⚠️ Папка спама не найдена (Spam/Спам)');
-                        }
+                    console.log('📬 Попытка синхронизации папки Spam...');
+                    
+                    // Пробуем английское название
+                    spamResult = await syncEmailsFromFolder(imap, 'Spam');
+                    if (spamResult.processed === 0 && spamResult.saved === 0) {
+                        // Если не получилось, пробуем русское
+                        console.log('📬 Попытка синхронизации папки Спам...');
+                        spamResult = await syncEmailsFromFolder(imap, 'Спам');
+                    }
+                    
+                    if (spamResult.saved > 0) {
+                        console.log(`✅ Spam: ${spamResult.processed} обработано, ${spamResult.saved} сохранено`);
                     }
                     
                     const totalProcessed = inboxResult.processed + spamResult.processed;
@@ -3296,8 +3311,12 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
                 mailParserOptions: { streamAttachments: false }
             });
             
+            spamListener.on('server:connected', () => {
+                console.log('✅ IMAP подключен (Spam), ожидание новых писем из спама...');
+            });
+            
             spamListener.on('mail', (mail) => {
-                console.log('📬 Новое письмо из спама получено!');
+                console.log('🚨 Новое письмо из спама получено!');
                 // Добавляем пометку [СПАМ] к теме
                 if (mail.subject && !mail.subject.startsWith('[СПАМ]')) {
                     mail.subject = `[СПАМ] ${mail.subject}`;
@@ -3306,8 +3325,10 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
             });
             
             spamListener.on('error', (err) => {
+                console.error('❌ Ошибка Spam listener:', err.message || err);
                 // Если папка Spam не найдена, пробуем "Спам"
-                if (err.message && err.message.includes('does not exist')) {
+                if (err.message && (err.message.includes('does not exist') || err.message.includes('not found'))) {
+                    console.log('📬 Пробую подключиться к папке "Спам" (русское название)...');
                     try {
                         const spamListenerRu = new MailListener({
                             username: process.env.EMAIL_USER,
@@ -3323,22 +3344,32 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
                             mailParserOptions: { streamAttachments: false }
                         });
                         
+                        spamListenerRu.on('server:connected', () => {
+                            console.log('✅ IMAP подключен (Спам), ожидание новых писем из спама...');
+                        });
+                        
                         spamListenerRu.on('mail', (mail) => {
-                            console.log('📬 Новое письмо из спама получено!');
+                            console.log('🚨 Новое письмо из спама получено!');
                             if (mail.subject && !mail.subject.startsWith('[СПАМ]')) {
                                 mail.subject = `[СПАМ] ${mail.subject}`;
                             }
                             saveEmailToDB(mail);
                         });
                         
+                        spamListenerRu.on('error', (e) => {
+                            console.error('❌ Ошибка Спам listener:', e.message || e);
+                        });
+                        
                         spamListenerRu.start();
+                        console.log('✅ Spam listener (Спам) запущен');
                     } catch (e) {
-                        console.log('⚠️ Не удалось подключиться к папке спама');
+                        console.log('⚠️ Не удалось подключиться к папке спама:', e.message);
                     }
                 }
             });
             
             spamListener.start();
+            console.log('✅ Spam listener (Spam) запущен');
         } catch (e) {
             console.log('⚠️ Не удалось создать listener для спама:', e.message);
         }
