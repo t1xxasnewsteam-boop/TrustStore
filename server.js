@@ -3236,20 +3236,25 @@ function syncAllEmails() {
                     
                     // Пробуем английское название
                     spamResult = await syncEmailsFromFolder(imap, 'Spam');
-                    if (spamResult.processed === 0 && spamResult.saved === 0) {
-                        // Если не получилось, пробуем русское
-                        console.log('📬 Попытка синхронизации папки Спам...');
-                        spamResult = await syncEmailsFromFolder(imap, 'Спам');
-                    }
+                    console.log(`📬 Результат Spam: ${spamResult.processed} обработано, ${spamResult.saved} сохранено`);
+                    
+                    // Пробуем русское название независимо (может быть обе папки)
+                    console.log('📬 Попытка синхронизации папки Спам...');
+                    const spamRuResult = await syncEmailsFromFolder(imap, 'Спам');
+                    console.log(`📬 Результат Спам: ${spamRuResult.processed} обработано, ${spamRuResult.saved} сохранено`);
+                    
+                    // Суммируем результаты
+                    spamResult.processed += spamRuResult.processed;
+                    spamResult.saved += spamRuResult.saved;
                     
                     if (spamResult.saved > 0) {
-                        console.log(`✅ Spam: ${spamResult.processed} обработано, ${spamResult.saved} сохранено`);
+                        console.log(`✅ Spam всего: ${spamResult.processed} обработано, ${spamResult.saved} сохранено`);
                     }
                     
                     const totalProcessed = inboxResult.processed + spamResult.processed;
                     const totalSaved = inboxResult.saved + spamResult.saved;
                     
-                    console.log(`✅ Синхронизация завершена: всего обработано ${totalProcessed} писем, сохранено ${totalSaved} новых`);
+                    console.log(`✅ Синхронизация завершена: INBOX ${inboxResult.saved} новых, Spam ${spamResult.saved} новых, всего ${totalSaved} новых писем`);
                     imap.end();
                     resolve({ inbox: inboxResult, spam: spamResult });
                 } catch (err) {
