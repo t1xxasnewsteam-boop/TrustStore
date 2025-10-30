@@ -9,7 +9,7 @@ const YOOMONEY_CONFIG = {
     // 1. Номер кошелька ЮMoney (receiver)
     // Пример: '410011234567890'
     // Где найти: Личный кабинет → Настройки → Номер кошелька
-    receiver: '410011234567890', // ← ЗАМЕНИ НА СВОЙ НОМЕР КОШЕЛЬКА
+    receiver: '4100119384647029', // ✅ Номер кошелька Trust Store
     
     // 2. Shop ID (если у тебя магазин для бизнеса)
     // Пример: '123456'
@@ -24,7 +24,7 @@ const YOOMONEY_CONFIG = {
     // 4. URL для уведомлений (HTTP-уведомления)
     // Пример: 'https://truststore.ru/payment-notification'
     // Настраивается в: yoomoney.ru/merchant/ → HTTP-уведомления
-    notificationURL: 'https://truststore.ru/payment-notification'
+    notificationURL: 'https://truststore.ru/api/payment/yoomoney' // ✅ Webhook URL
 };
 
 // ===================================

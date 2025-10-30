@@ -13,6 +13,7 @@ const cheerio = require('cheerio');
 require('dotenv').config();
 const nodemailer = require('nodemailer');
 const sgMail = require('@sendgrid/mail');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +25,10 @@ app.set('trust proxy', 1);
 // Telegram уведомления
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '7268320384:AAGngFsmkg_x-2rryDtoJkmYD3ymxy5gM9o';
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '6185074849';
+
+// YooMoney настройки
+const YOOMONEY_SECRET = process.env.YOOMONEY_SECRET || ''; // Секретный ключ из YooMoney
+const YOOMONEY_WALLET = process.env.YOOMONEY_WALLET || ''; // Номер кошелька
 
 // ==================== EMAIL CONFIGURATION ====================
 const emailTransporter = nodemailer.createTransport({
@@ -467,6 +472,18 @@ db.exec(`
         emoji TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         sort_order INTEGER DEFAULT 0
+    );
+    
+    CREATE TABLE IF NOT EXISTS product_inventory (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        product_name TEXT NOT NULL,
+        login TEXT NOT NULL,
+        password TEXT NOT NULL,
+        instructions TEXT,
+        status TEXT DEFAULT 'available',
+        order_id TEXT,
+        sold_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
     CREATE INDEX IF NOT EXISTS idx_session_id ON visits(session_id);
@@ -1176,6 +1193,143 @@ app.post('/api/create-order', (req, res) => {
     } catch (error) {
         console.error('Ошибка создания заказа:', error);
         res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// ==================== YOOMONEY PAYMENT WEBHOOK ====================
+
+// YooMoney webhook для уведомлений об оплате
+app.post('/api/payment/yoomoney', async (req, res) => {
+    try {
+        console.log('📥 Получено уведомление от YooMoney:', req.body);
+        
+        const {
+            notification_type,
+            operation_id,
+            amount,
+            currency,
+            datetime,
+            sender,
+            codepro,
+            label,
+            sha1_hash
+        } = req.body;
+        
+        // Проверяем, что это уведомление об успешном переводе
+        if (notification_type !== 'p2p-incoming') {
+            console.log('⚠️ Неподдерживаемый тип уведомления:', notification_type);
+            return res.status(400).send('Wrong notification type');
+        }
+        
+        // Проверяем подпись (если есть секретный ключ)
+        if (YOOMONEY_SECRET) {
+            const string = `${notification_type}&${operation_id}&${amount}&${currency}&${datetime}&${sender}&${codepro}&${YOOMONEY_SECRET}&${label}`;
+            const hash = crypto.createHash('sha1').update(string).digest('hex');
+            
+            if (hash !== sha1_hash) {
+                console.error('❌ Неверная подпись от YooMoney!');
+                return res.status(400).send('Invalid signature');
+            }
+            console.log('✅ Подпись проверена');
+        }
+        
+        // Находим заказ по label (order_id)
+        const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(label);
+        
+        if (!order) {
+            console.error('❌ Заказ не найден:', label);
+            return res.status(404).send('Order not found');
+        }
+        
+        // Проверяем, не обработан ли уже этот платеж
+        if (order.status === 'paid') {
+            console.log('⚠️ Заказ уже обработан:', label);
+            return res.status(200).send('OK');
+        }
+        
+        // Проверяем сумму
+        if (parseFloat(amount) < order.total_amount) {
+            console.error('❌ Неверная сумма платежа:', amount, 'ожидалось:', order.total_amount);
+            return res.status(400).send('Wrong amount');
+        }
+        
+        console.log('💰 Платеж подтвержден:', label, 'Сумма:', amount);
+        
+        // Обновляем статус заказа
+        db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('paid', label);
+        
+        // Получаем товары из заказа
+        const products = JSON.parse(order.products);
+        
+        // Обрабатываем каждый товар
+        for (const product of products) {
+            const quantity = product.quantity || 1;
+            
+            // Получаем доступные товары из инвентаря
+            for (let i = 0; i < quantity; i++) {
+                const availableItem = db.prepare(`
+                    SELECT * FROM product_inventory 
+                    WHERE product_name = ? AND status = 'available'
+                    LIMIT 1
+                `).get(product.name);
+                
+                if (availableItem) {
+                    // Помечаем товар как проданный
+                    db.prepare(`
+                        UPDATE product_inventory 
+                        SET status = 'sold', order_id = ?, sold_at = CURRENT_TIMESTAMP
+                        WHERE id = ?
+                    `).run(label, availableItem.id);
+                    
+                    // Отправляем email с товаром
+                    try {
+                        await sendOrderEmail({
+                            to: order.customer_email,
+                            orderNumber: label,
+                            productName: product.name,
+                            login: availableItem.login,
+                            password: availableItem.password,
+                            instructions: availableItem.instructions || 'Используйте эти данные для входа в сервис.'
+                        });
+                        
+                        console.log(`✅ Email отправлен: ${order.customer_email} - ${product.name}`);
+                    } catch (emailError) {
+                        console.error('❌ Ошибка отправки email:', emailError);
+                    }
+                } else {
+                    console.error(`⚠️ Товар не найден в инвентаре: ${product.name}`);
+                    
+                    // Отправляем уведомление админу в Telegram
+                    const notificationText = `⚠️ <b>ВНИМАНИЕ! Товара нет в наличии!</b>\n\n` +
+                        `📦 Товар: ${product.name}\n` +
+                        `🆔 Заказ: ${label}\n` +
+                        `👤 Клиент: ${order.customer_name}\n` +
+                        `📧 Email: ${order.customer_email}\n` +
+                        `💰 Сумма: ${order.total_amount} ₽\n\n` +
+                        `⚡ СРОЧНО ДОБАВЬ ТОВАР В ИНВЕНТАРЬ!`;
+                    
+                    sendTelegramNotification(notificationText, false);
+                }
+            }
+        }
+        
+        // Отправляем уведомление об успешной оплате в Telegram
+        const successNotification = `💰 <b>Новый платеж!</b>\n\n` +
+            `🆔 Заказ: ${label}\n` +
+            `👤 Клиент: ${order.customer_name}\n` +
+            `📧 Email: ${order.customer_email}\n` +
+            `💵 Сумма: ${amount} ${currency}\n` +
+            `📦 Товары: ${products.map(p => p.name).join(', ')}\n` +
+            `📅 Дата: ${datetime}\n\n` +
+            `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
+        
+        sendTelegramNotification(successNotification, false);
+        
+        res.status(200).send('OK');
+        
+    } catch (error) {
+        console.error('❌ Ошибка обработки YooMoney webhook:', error);
+        res.status(500).send('Server error');
     }
 });
 
@@ -2477,6 +2631,80 @@ app.post('/api/admin/send-newsletter', authMiddleware, async (req, res) => {
     } catch (error) {
         console.error('Ошибка рассылки:', error);
         res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ==================== PRODUCT INVENTORY API (АДМИНКА) ====================
+
+// Получить весь инвентарь товаров
+app.get('/api/admin/inventory', authMiddleware, (req, res) => {
+    try {
+        const inventory = db.prepare(`
+            SELECT * FROM product_inventory 
+            ORDER BY created_at DESC
+        `).all();
+        
+        res.json({ inventory });
+    } catch (error) {
+        console.error('Ошибка получения инвентаря:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Добавить товар в инвентарь
+app.post('/api/admin/inventory', authMiddleware, (req, res) => {
+    try {
+        const { product_name, login, password, instructions } = req.body;
+        
+        if (!product_name || !login || !password) {
+            return res.status(400).json({ error: 'Заполните все обязательные поля' });
+        }
+        
+        db.prepare(`
+            INSERT INTO product_inventory (product_name, login, password, instructions)
+            VALUES (?, ?, ?, ?)
+        `).run(product_name, login, password, instructions || '');
+        
+        console.log('📦 Товар добавлен в инвентарь:', product_name);
+        
+        res.json({ success: true, message: 'Товар добавлен в инвентарь' });
+    } catch (error) {
+        console.error('Ошибка добавления товара:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Удалить товар из инвентаря
+app.delete('/api/admin/inventory/:id', authMiddleware, (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        db.prepare('DELETE FROM product_inventory WHERE id = ?').run(id);
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Ошибка удаления товара:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Получить статистику инвентаря по товарам
+app.get('/api/admin/inventory/stats', authMiddleware, (req, res) => {
+    try {
+        const stats = db.prepare(`
+            SELECT 
+                product_name,
+                COUNT(*) as total,
+                SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) as available,
+                SUM(CASE WHEN status = 'sold' THEN 1 ELSE 0 END) as sold
+            FROM product_inventory
+            GROUP BY product_name
+        `).all();
+        
+        res.json({ stats });
+    } catch (error) {
+        console.error('Ошибка получения статистики:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
     }
 });
 
