@@ -2255,7 +2255,7 @@ function createOrderEmailHTML(data) {
               <table width="100%" cellspacing="0" cellpadding="0">
                 <tr>
                   <td align="left">
-                    <img src="cid:logo" alt="Trust Store" style="display:block;max-width:140px;height:auto;">
+                    <img src="cid:youtube-avatar" alt="Trust Store" style="display:block;max-width:140px;height:auto;">
                   </td>
                   <td align="right" style="color:#fff;font-size:14px;opacity:.9;white-space:nowrap;">Заказ <strong>#${orderNumber}</strong></td>
                 </tr>
@@ -2340,9 +2340,9 @@ async function sendOrderEmail(data) {
             html: createOrderEmailHTML(data),
             attachments: [
                 {
-                    filename: 'logo.png',
-                    path: path.join(__dirname, 'logo.png'),
-                    cid: 'logo'
+                    filename: 'youtube-avatar.png',
+                    path: path.join(__dirname, 'youtube-avatar.png'),
+                    cid: 'youtube-avatar'
                 }
             ]
         };
