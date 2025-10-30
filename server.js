@@ -3086,9 +3086,23 @@ function syncEmailsFromFolder(imap, folderName) {
                             return;
                         }
                         
-                        // Сохраняем в БД
+                            // Сохраняем в БД
                         try {
-                            const messageId = parsed.messageId || parsed.headers?.get('message-id') || `sync-${Date.now()}-${seqno}-${folderName}`;
+                            // Безопасное получение messageId
+                            let messageId = null;
+                            try {
+                                if (parsed.messageId) {
+                                    messageId = parsed.messageId;
+                                } else if (parsed.headers && typeof parsed.headers.get === 'function') {
+                                    messageId = parsed.headers.get('message-id');
+                                }
+                            } catch (e) {
+                                // Игнорируем ошибки парсинга headers
+                            }
+                            
+                            if (!messageId) {
+                                messageId = `sync-${Date.now()}-${seqno}-${folderName}-${Math.random().toString(36).substr(2, 9)}`;
+                            }
                             
                             // Проверяем, существует ли уже
                             const existing = db.prepare('SELECT id FROM email_messages WHERE message_id = ?').get(messageId);
@@ -3096,26 +3110,30 @@ function syncEmailsFromFolder(imap, folderName) {
                                 return; // Уже есть в БД
                             }
                             
-                            // Парсим отправителя
+                            // Парсим отправителя (безопасно)
                             let fromEmail = 'unknown@example.com';
                             let fromName = 'Unknown';
                             
-                            if (parsed.from) {
-                                if (typeof parsed.from === 'string') {
-                                    fromEmail = parsed.from;
-                                    fromName = parsed.from;
-                                } else if (parsed.from.value && Array.isArray(parsed.from.value) && parsed.from.value[0]) {
-                                    fromEmail = parsed.from.value[0].address || fromEmail;
-                                    fromName = parsed.from.value[0].name || fromEmail;
-                                } else if (parsed.from.address) {
-                                    fromEmail = parsed.from.address;
-                                    fromName = parsed.from.name || fromEmail;
+                            try {
+                                if (parsed.from) {
+                                    if (typeof parsed.from === 'string') {
+                                        fromEmail = parsed.from;
+                                        fromName = parsed.from;
+                                    } else if (parsed.from.value && Array.isArray(parsed.from.value) && parsed.from.value[0]) {
+                                        fromEmail = parsed.from.value[0].address || fromEmail;
+                                        fromName = parsed.from.value[0].name || fromEmail;
+                                    } else if (parsed.from.address) {
+                                        fromEmail = parsed.from.address;
+                                        fromName = parsed.from.name || fromEmail;
+                                    }
                                 }
+                            } catch (e) {
+                                console.log(`⚠️ Ошибка парсинга отправителя для письма #${seqno}, используем значения по умолчанию`);
                             }
                             
-                            const subject = parsed.subject || 'Без темы';
-                            const bodyText = parsed.text || '';
-                            const bodyHtml = parsed.html || '';
+                            const subject = (parsed.subject || 'Без темы').substring(0, 500); // Ограничиваем длину
+                            const bodyText = (parsed.text || '').substring(0, 50000); // Ограничиваем длину
+                            const bodyHtml = (parsed.html || '').substring(0, 50000); // Ограничиваем длину
                             
                             // Добавляем пометку если письмо из спама
                             const finalSubject = folderName === 'Spam' || folderName === 'Спам' 
@@ -3133,6 +3151,7 @@ function syncEmailsFromFolder(imap, folderName) {
                             }
                         } catch (dbError) {
                             console.error(`❌ Ошибка сохранения письма #${seqno} из ${folderName} в БД:`, dbError.message);
+                            // Продолжаем обработку других писем
                         }
                     });
                 });
@@ -3333,20 +3352,33 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
         
         console.log('✅ IMAP listener запущен');
         
+        // Функция для безопасной синхронизации с обработкой ошибок
+        async function safeSyncEmails() {
+            try {
+                await syncAllEmails();
+                console.log('✅ Автосинхронизация завершена успешно');
+            } catch (err) {
+                console.error('❌ Ошибка автосинхронизации:', err.message);
+                // Не останавливаем процесс, просто логируем ошибку
+            }
+        }
+        
         // Синхронизируем все письма при старте (с задержкой 10 секунд)
         setTimeout(() => {
-            console.log('🔄 Запуск синхронизации всех писем...');
-            syncAllEmails().catch(err => {
-                console.error('❌ Ошибка синхронизации:', err.message);
-            });
+            console.log('🔄 Запуск начальной синхронизации всех писем...');
+            safeSyncEmails();
         }, 10000);
         
-        // Периодическая синхронизация каждые 3 минуты
-        setInterval(() => {
-            syncAllEmails().catch(err => {
-                console.error('❌ Ошибка периодической синхронизации:', err.message);
-            });
-        }, 3 * 60 * 1000);
+        // Периодическая синхронизация каждые 2 минуты (24/7)
+        const syncInterval = setInterval(() => {
+            console.log('🔄 Автосинхронизация писем (каждые 2 минуты)...');
+            safeSyncEmails();
+        }, 2 * 60 * 1000); // 2 минуты
+        
+        // Сохраняем интервал для возможной остановки
+        global.emailSyncInterval = syncInterval;
+        
+        console.log('✅ Автосинхронизация писем запущена (каждые 2 минуты, 24/7)');
         
     } catch (error) {
         console.error('❌ Ошибка запуска IMAP listener:', error.message);
