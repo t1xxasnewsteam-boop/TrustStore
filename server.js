@@ -3099,7 +3099,7 @@ function syncEmailsFromFolder(imap, folderName) {
             let saved = 0;
             
             fetch.on('message', (msg, seqno) => {
-                const simpleParser = require('mailparser').simpleParser;
+                const { simpleParser } = require('mailparser');
                 
                 msg.on('body', (stream, info) => {
                     // Собираем весь stream в буфер перед парсингом
