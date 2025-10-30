@@ -3045,7 +3045,117 @@ function saveEmailToDB(mail) {
 // Глобальная переменная для IMAP listener
 let mailListener = null;
 
-// Функция для синхронизации всех писем (не только новых)
+// Функция для синхронизации писем из конкретной папки
+function syncEmailsFromFolder(imap, folderName) {
+    return new Promise((resolve, reject) => {
+        imap.openBox(folderName, false, (err, box) => {
+            if (err) {
+                console.log(`⚠️ Не удалось открыть папку ${folderName}:`, err.message);
+                resolve({ folder: folderName, processed: 0, saved: 0 }); // Не критичная ошибка
+                return;
+            }
+            
+            const totalMessages = box.messages.total;
+            console.log(`📬 Папка ${folderName}: ${totalMessages} писем`);
+            
+            if (totalMessages === 0) {
+                resolve({ folder: folderName, processed: 0, saved: 0 });
+                return;
+            }
+            
+            // Получаем последние 100 писем (или все, если меньше 100)
+            const start = Math.max(1, totalMessages - 99);
+            const end = totalMessages;
+            
+            console.log(`📥 Получаю письма из ${folderName} с ${start} по ${end}...`);
+            
+            const fetch = imap.seq.fetch(`${start}:${end}`, {
+                bodies: '',
+                struct: true
+            });
+            
+            let processed = 0;
+            let saved = 0;
+            
+            fetch.on('message', (msg, seqno) => {
+                msg.on('body', (stream, info) => {
+                    const simpleParser = require('mailparser').simpleParser;
+                    simpleParser(stream, (err, parsed) => {
+                        if (err) {
+                            console.error(`❌ Ошибка парсинга письма #${seqno} из ${folderName}:`, err.message);
+                            return;
+                        }
+                        
+                        // Сохраняем в БД
+                        try {
+                            const messageId = parsed.messageId || parsed.headers?.get('message-id') || `sync-${Date.now()}-${seqno}-${folderName}`;
+                            
+                            // Проверяем, существует ли уже
+                            const existing = db.prepare('SELECT id FROM email_messages WHERE message_id = ?').get(messageId);
+                            if (existing) {
+                                return; // Уже есть в БД
+                            }
+                            
+                            // Парсим отправителя
+                            let fromEmail = 'unknown@example.com';
+                            let fromName = 'Unknown';
+                            
+                            if (parsed.from) {
+                                if (typeof parsed.from === 'string') {
+                                    fromEmail = parsed.from;
+                                    fromName = parsed.from;
+                                } else if (parsed.from.value && Array.isArray(parsed.from.value) && parsed.from.value[0]) {
+                                    fromEmail = parsed.from.value[0].address || fromEmail;
+                                    fromName = parsed.from.value[0].name || fromEmail;
+                                } else if (parsed.from.address) {
+                                    fromEmail = parsed.from.address;
+                                    fromName = parsed.from.name || fromEmail;
+                                }
+                            }
+                            
+                            const subject = parsed.subject || 'Без темы';
+                            const bodyText = parsed.text || '';
+                            const bodyHtml = parsed.html || '';
+                            
+                            // Добавляем пометку если письмо из спама
+                            const finalSubject = folderName === 'Spam' || folderName === 'Спам' 
+                                ? `[СПАМ] ${subject}` 
+                                : subject;
+                            
+                            db.prepare(`
+                                INSERT INTO email_messages (message_id, from_email, from_name, to_email, subject, body_text, body_html, reply_to_message_id, is_read)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+                            `).run(messageId, fromEmail, fromName, process.env.EMAIL_USER, finalSubject, bodyText, bodyHtml, null);
+                            
+                            saved++;
+                            if (saved % 10 === 0) {
+                                console.log(`   💾 ${folderName}: сохранено ${saved} новых писем...`);
+                            }
+                        } catch (dbError) {
+                            console.error(`❌ Ошибка сохранения письма #${seqno} из ${folderName} в БД:`, dbError.message);
+                        }
+                    });
+                });
+                
+                msg.once('end', () => {
+                    processed++;
+                });
+            });
+            
+            fetch.once('error', (err) => {
+                console.error(`❌ Ошибка при получении писем из ${folderName}:`, err);
+                resolve({ folder: folderName, processed, saved, error: err.message });
+            });
+            
+            fetch.once('end', () => {
+                console.log(`✅ ${folderName}: обработано ${processed} писем, сохранено ${saved} новых`);
+                resolve({ folder: folderName, processed, saved });
+            });
+        });
+    });
+}
+
+// Функция для синхронизации всех писем (не только новых) из INBOX и Spam
 function syncAllEmails() {
     return new Promise((resolve, reject) => {
         if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
@@ -3056,7 +3166,6 @@ function syncAllEmails() {
         
         try {
             const Imap = require('imap');
-            const simpleParser = require('mailparser').simpleParser;
             
             const imap = new Imap({
                 user: process.env.EMAIL_USER,
@@ -3068,110 +3177,36 @@ function syncAllEmails() {
                 connTimeout: 10000
             });
             
-            imap.once('ready', () => {
+            imap.once('ready', async () => {
                 console.log('📧 IMAP подключен для синхронизации...');
-                imap.openBox('INBOX', false, (err, box) => {
-                    if (err) {
-                        console.error('❌ Ошибка открытия INBOX:', err);
-                        imap.end();
-                        reject(err);
-                        return;
+                
+                try {
+                    // Синхронизируем INBOX
+                    const inboxResult = await syncEmailsFromFolder(imap, 'INBOX');
+                    
+                    // Синхронизируем Spam (пробуем разные названия)
+                    let spamResult = { folder: 'Spam', processed: 0, saved: 0 };
+                    try {
+                        spamResult = await syncEmailsFromFolder(imap, 'Spam');
+                    } catch (e) {
+                        try {
+                            spamResult = await syncEmailsFromFolder(imap, 'Спам');
+                        } catch (e2) {
+                            console.log('⚠️ Папка спама не найдена (Spam/Спам)');
+                        }
                     }
                     
-                    console.log(`📬 Всего писем в ящике: ${box.messages.total}`);
+                    const totalProcessed = inboxResult.processed + spamResult.processed;
+                    const totalSaved = inboxResult.saved + spamResult.saved;
                     
-                    if (box.messages.total === 0) {
-                        console.log('📭 Ящик пуст');
-                        imap.end();
-                        resolve();
-                        return;
-                    }
-                    
-                    // Получаем последние 100 писем (или все, если меньше 100)
-                    const start = Math.max(1, box.messages.total - 99);
-                    const end = box.messages.total;
-                    
-                    console.log(`📥 Получаю письма с ${start} по ${end}...`);
-                    
-                    const fetch = imap.seq.fetch(`${start}:${end}`, {
-                        bodies: '',
-                        struct: true
-                    });
-                    
-                    let processed = 0;
-                    let saved = 0;
-                    
-                    fetch.on('message', (msg, seqno) => {
-                        msg.on('body', (stream, info) => {
-                            simpleParser(stream, (err, parsed) => {
-                                if (err) {
-                                    console.error(`❌ Ошибка парсинга письма #${seqno}:`, err.message);
-                                    return;
-                                }
-                                
-                                // Сохраняем в БД
-                                try {
-                                    const messageId = parsed.messageId || parsed.headers.get('message-id') || `sync-${Date.now()}-${seqno}`;
-                                    
-                                    // Проверяем, существует ли уже
-                                    const existing = db.prepare('SELECT id FROM email_messages WHERE message_id = ?').get(messageId);
-                                    if (existing) {
-                                        return; // Уже есть в БД
-                                    }
-                                    
-                                    // Парсим отправителя
-                                    let fromEmail = 'unknown@example.com';
-                                    let fromName = 'Unknown';
-                                    
-                                    if (parsed.from) {
-                                        if (typeof parsed.from === 'string') {
-                                            fromEmail = parsed.from;
-                                            fromName = parsed.from;
-                                        } else if (parsed.from.value && Array.isArray(parsed.from.value) && parsed.from.value[0]) {
-                                            fromEmail = parsed.from.value[0].address || fromEmail;
-                                            fromName = parsed.from.value[0].name || fromEmail;
-                                        } else if (parsed.from.address) {
-                                            fromEmail = parsed.from.address;
-                                            fromName = parsed.from.name || fromEmail;
-                                        }
-                                    }
-                                    
-                                    const subject = parsed.subject || 'Без темы';
-                                    const bodyText = parsed.text || '';
-                                    const bodyHtml = parsed.html || '';
-                                    
-                                    db.prepare(`
-                                        INSERT INTO email_messages (message_id, from_email, from_name, to_email, subject, body_text, body_html, reply_to_message_id, is_read)
-                                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
-                                    `).run(messageId, fromEmail, fromName, process.env.EMAIL_USER, subject, bodyText, bodyHtml, null);
-                                    
-                                    saved++;
-                                    if (saved % 10 === 0) {
-                                        console.log(`   💾 Сохранено ${saved} новых писем...`);
-                                    }
-                                } catch (dbError) {
-                                    console.error(`❌ Ошибка сохранения письма #${seqno} в БД:`, dbError.message);
-                                }
-                            });
-                        });
-                        
-                        msg.once('end', () => {
-                            processed++;
-                        });
-                    });
-                    
-                    fetch.once('error', (err) => {
-                        console.error('❌ Ошибка при получении писем:', err);
-                        imap.end();
-                        reject(err);
-                    });
-                    
-                    fetch.once('end', () => {
-                        console.log(`✅ Синхронизация завершена: обработано ${processed} писем, сохранено ${saved} новых`);
-                        imap.end();
-                        resolve();
-                    });
-                });
+                    console.log(`✅ Синхронизация завершена: всего обработано ${totalProcessed} писем, сохранено ${totalSaved} новых`);
+                    imap.end();
+                    resolve({ inbox: inboxResult, spam: spamResult });
+                } catch (err) {
+                    console.error('❌ Ошибка синхронизации:', err);
+                    imap.end();
+                    reject(err);
+                }
             });
             
             imap.once('error', (err) => {
@@ -3203,14 +3238,78 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
             tls: true,
             tlsOptions: { rejectUnauthorized: false },
             mailbox: 'INBOX',
-            searchFilter: ['UNSEEN'], // Только непрочитанные (новые)
+            searchFilter: ['ALL'], // Получаем все письма (включая прочитанные), чтобы не пропустить спам
             markSeen: false, // Не помечаем как прочитанное автоматически
             fetchUnreadOnStart: false, // Не получаем все при старте (сделаем отдельно через syncAllEmails)
             mailParserOptions: { streamAttachments: false }
         });
         
+        // Создаем второй listener для папки Spam
+        let spamListener = null;
+        try {
+            spamListener = new MailListener({
+                username: process.env.EMAIL_USER,
+                password: process.env.EMAIL_PASSWORD,
+                host: 'imap.yandex.ru',
+                port: 993,
+                tls: true,
+                tlsOptions: { rejectUnauthorized: false },
+                mailbox: 'Spam', // Пробуем "Spam"
+                searchFilter: ['ALL'],
+                markSeen: false,
+                fetchUnreadOnStart: false,
+                mailParserOptions: { streamAttachments: false }
+            });
+            
+            spamListener.on('mail', (mail) => {
+                console.log('📬 Новое письмо из спама получено!');
+                // Добавляем пометку [СПАМ] к теме
+                if (mail.subject && !mail.subject.startsWith('[СПАМ]')) {
+                    mail.subject = `[СПАМ] ${mail.subject}`;
+                }
+                saveEmailToDB(mail);
+            });
+            
+            spamListener.on('error', (err) => {
+                // Если папка Spam не найдена, пробуем "Спам"
+                if (err.message && err.message.includes('does not exist')) {
+                    try {
+                        const spamListenerRu = new MailListener({
+                            username: process.env.EMAIL_USER,
+                            password: process.env.EMAIL_PASSWORD,
+                            host: 'imap.yandex.ru',
+                            port: 993,
+                            tls: true,
+                            tlsOptions: { rejectUnauthorized: false },
+                            mailbox: 'Спам', // Пробуем русское название
+                            searchFilter: ['ALL'],
+                            markSeen: false,
+                            fetchUnreadOnStart: false,
+                            mailParserOptions: { streamAttachments: false }
+                        });
+                        
+                        spamListenerRu.on('mail', (mail) => {
+                            console.log('📬 Новое письмо из спама получено!');
+                            if (mail.subject && !mail.subject.startsWith('[СПАМ]')) {
+                                mail.subject = `[СПАМ] ${mail.subject}`;
+                            }
+                            saveEmailToDB(mail);
+                        });
+                        
+                        spamListenerRu.start();
+                    } catch (e) {
+                        console.log('⚠️ Не удалось подключиться к папке спама');
+                    }
+                }
+            });
+            
+            spamListener.start();
+        } catch (e) {
+            console.log('⚠️ Не удалось создать listener для спама:', e.message);
+        }
+        
         mailListener.on('server:connected', () => {
-            console.log('✅ IMAP подключен, ожидание новых писем...');
+            console.log('✅ IMAP подключен (INBOX), ожидание новых писем...');
         });
         
         mailListener.on('server:disconnected', () => {
@@ -3218,7 +3317,7 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
         });
         
         mailListener.on('mail', (mail) => {
-            console.log('📬 Новое письмо получено!');
+            console.log('📬 Новое письмо получено из INBOX!');
             saveEmailToDB(mail);
         });
         
