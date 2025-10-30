@@ -2254,10 +2254,20 @@ function createOrderEmailHTML(data) {
             <td style="padding:28px 32px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);">
               <table width="100%" cellspacing="0" cellpadding="0">
                 <tr>
-                  <td align="left">
-                    <img src="cid:youtube-avatar" alt="Trust Store" style="display:block;max-width:140px;height:auto;">
+                  <td align="left" style="vertical-align:middle;">
+                    <table cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td style="padding-right:16px;vertical-align:middle;">
+                          <img src="cid:youtube-avatar" alt="Trust Store" style="display:block;max-width:60px;height:60px;border-radius:50%;border:3px solid rgba(255,255,255,0.2);">
+                        </td>
+                        <td style="vertical-align:middle;">
+                          <div style="color:#fff;font-size:24px;font-weight:700;letter-spacing:-0.5px;margin:0;">Trust Store</div>
+                          <div style="color:rgba(255,255,255,0.85);font-size:13px;margin-top:2px;">магазин цифровых товаров</div>
+                        </td>
+                      </tr>
+                    </table>
                   </td>
-                  <td align="right" style="color:#fff;font-size:14px;opacity:.9;white-space:nowrap;">Заказ <strong>#${orderNumber}</strong></td>
+                  <td align="right" style="color:#fff;font-size:14px;opacity:.9;white-space:nowrap;vertical-align:middle;">Заказ <strong style="font-weight:700;">#${orderNumber}</strong></td>
                 </tr>
               </table>
             </td>
