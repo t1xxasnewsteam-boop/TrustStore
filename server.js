@@ -1830,6 +1830,15 @@ app.post('/api/newsletter/subscribe', (req, res) => {
         
         console.log('📧 Новый подписчик:', email);
         
+        // Отправляем приветственное письмо (асинхронно)
+        sendWelcomeEmail(email).then(result => {
+            if (result.success) {
+                console.log(`✅ Приветственное письмо доставлено: ${email}`);
+            } else {
+                console.error(`❌ Не удалось отправить приветственное письмо: ${email}`);
+            }
+        });
+        
         // Отправляем беззвучное уведомление в Telegram
         const notificationText = `📧 <b>Новая подписка на новости!</b>\n\n` +
             `📬 Email: ${email}\n` +
@@ -1838,7 +1847,7 @@ app.post('/api/newsletter/subscribe', (req, res) => {
         
         sendTelegramNotification(notificationText, true);
         
-        res.json({ success: true, message: 'Спасибо за подписку!' });
+        res.json({ success: true, message: 'Спасибо за подписку! Проверьте почту 📬' });
     } catch (error) {
         console.error('Ошибка подписки:', error);
         res.status(500).json({ error: 'Ошибка сервера' });
@@ -1868,6 +1877,84 @@ app.delete('/api/admin/newsletter/subscribers/:id', authMiddleware, (req, res) =
         res.json({ success: true });
     } catch (error) {
         console.error('Ошибка удаления подписчика:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// API для админа: массовая рассылка всем подписчикам
+app.post('/api/admin/newsletter/send-bulk', authMiddleware, async (req, res) => {
+    try {
+        const { title, content } = req.body;
+        
+        if (!title || !content) {
+            return res.status(400).json({ error: 'Заполните заголовок и текст рассылки' });
+        }
+        
+        // Получаем всех активных подписчиков
+        const subscribers = db.prepare(`
+            SELECT email FROM newsletter_subscribers 
+            WHERE status = 'active'
+        `).all();
+        
+        if (subscribers.length === 0) {
+            return res.json({ 
+                success: true, 
+                message: 'Нет активных подписчиков',
+                sent: 0,
+                failed: 0
+            });
+        }
+        
+        console.log(`📧 Начинаем массовую рассылку ${subscribers.length} подписчикам...`);
+        
+        let sent = 0;
+        let failed = 0;
+        
+        // Отправляем письма всем подписчикам (последовательно, чтобы не перегружать SMTP)
+        for (const subscriber of subscribers) {
+            try {
+                await sendNewsletterEmail({
+                    to: subscriber.email,
+                    title: title,
+                    content: content,
+                    date: new Date().toLocaleDateString('ru-RU', { 
+                        day: 'numeric', 
+                        month: 'long',
+                        year: 'numeric' 
+                    })
+                });
+                sent++;
+                console.log(`✅ Отправлено ${sent}/${subscribers.length}: ${subscriber.email}`);
+                
+                // Небольшая задержка между письмами (чтобы не попасть в спам-фильтры)
+                await new Promise(resolve => setTimeout(resolve, 500));
+            } catch (error) {
+                failed++;
+                console.error(`❌ Ошибка отправки ${subscriber.email}:`, error.message);
+            }
+        }
+        
+        console.log(`📊 Рассылка завершена: отправлено ${sent}, ошибок ${failed}`);
+        
+        // Отправляем уведомление в Telegram
+        const notificationText = `📬 <b>Рассылка завершена!</b>\n\n` +
+            `✉️ Заголовок: ${title}\n` +
+            `✅ Отправлено: ${sent}\n` +
+            `❌ Ошибок: ${failed}\n` +
+            `📊 Всего подписчиков: ${subscribers.length}`;
+        
+        sendTelegramNotification(notificationText, true);
+        
+        res.json({ 
+            success: true, 
+            message: `Рассылка завершена: отправлено ${sent} из ${subscribers.length}`,
+            sent: sent,
+            failed: failed,
+            total: subscribers.length
+        });
+        
+    } catch (error) {
+        console.error('Ошибка массовой рассылки:', error);
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 });
@@ -2097,6 +2184,106 @@ async function sendOrderEmail(data) {
     } catch (error) {
         console.error('❌ Ошибка отправки письма (SMTP):', error.message);
         return { success: false, error: error.message, note: 'Проверьте настройки SMTP или добавьте SENDGRID_API_KEY' };
+    }
+}
+
+// Функция создания HTML для приветственного письма при подписке
+function createWelcomeEmailHTML() {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добро пожаловать в Trust Store!</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f5f5f5;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background: #f5f5f5; padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.1);">
+                    <!-- Header with Logo -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center;">
+                            <img src="cid:logo" alt="Trust Store" style="max-width: 180px; height: auto; margin-bottom: 16px;" />
+                            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">Trust Store</h1>
+                            <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 16px;">Ваш магазин цифровых товаров</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Welcome Content -->
+                    <tr>
+                        <td style="padding: 40px;">
+                            <h2 style="color: #1a1a1a; margin: 0 0 24px 0; font-size: 24px;">Спасибо за подписку! 🎉</h2>
+                            
+                            <div style="background: #f8f9ff; border-left: 4px solid #667eea; padding: 24px; margin-bottom: 24px; border-radius: 8px;">
+                                <p style="margin: 0 0 16px 0; color: #1a1a1a; font-size: 16px; line-height: 1.6;">
+                                    Рады приветствовать вас в числе наших подписчиков! 
+                                </p>
+                                <p style="margin: 0; color: #666; font-size: 16px; line-height: 1.6;">
+                                    Теперь вы будете первыми узнавать о <b style="color: #667eea;">специальных предложениях</b>, 
+                                    <b style="color: #667eea;">скидках</b> и <b style="color: #667eea;">новинках</b> нашего магазина!
+                                </p>
+                            </div>
+                            
+                            <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                                <p style="margin: 0 0 12px 0; color: #1a1a1a; font-size: 18px; font-weight: 600;">🎁 Что вас ждет:</p>
+                                <ul style="margin: 0; padding-left: 24px; color: #666; font-size: 15px; line-height: 2;">
+                                    <li>Эксклюзивные скидки для подписчиков</li>
+                                    <li>Первыми узнавайте о новых товарах</li>
+                                    <li>Специальные акции и предложения</li>
+                                    <li>Полезные новости из мира цифровых сервисов</li>
+                                </ul>
+                            </div>
+                            
+                            <div style="text-align: center; margin-top: 32px;">
+                                <a href="https://truststore.ru" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 16px 48px; border-radius: 12px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);">
+                                    Перейти в магазин
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background: #f8f9ff; padding: 32px; text-align: center; border-top: 1px solid #e0e0e0;">
+                            <p style="margin: 0 0 12px 0; color: #1a1a1a; font-size: 16px; font-weight: 600;">Есть вопросы?</p>
+                            <p style="margin: 0 0 16px 0; color: #666; font-size: 14px;">Напишите нам через виджет на сайте</p>
+                            <p style="margin: 0; color: #999; font-size: 12px;">© ${new Date().getFullYear()} Trust Store. Все права защищены.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+    `;
+}
+
+// Функция отправки приветственного письма
+async function sendWelcomeEmail(email) {
+    try {
+        const mailOptions = {
+            from: process.env.EMAIL_FROM || '"Trust Store" <orders@truststore.ru>',
+            to: email,
+            subject: '🎉 Спасибо за подписку на новости Trust Store!',
+            html: createWelcomeEmailHTML(),
+            attachments: [
+                {
+                    filename: 'logo.png',
+                    path: path.join(__dirname, 'logo.png'),
+                    cid: 'logo'
+                }
+            ]
+        };
+
+        const info = await emailTransporter.sendMail(mailOptions);
+        console.log(`✅ Приветственное письмо отправлено: ${email} (${info.messageId})`);
+        return { success: true, messageId: info.messageId };
+    } catch (error) {
+        console.error('❌ Ошибка отправки приветственного письма:', error.message);
+        return { success: false, error: error.message };
     }
 }
 

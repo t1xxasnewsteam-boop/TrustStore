@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+сдубytуeсдегоя <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -1376,6 +1376,62 @@
                 </div>
             </div>
 
+            <!-- Send Newsletter Form -->
+            <div class="glass-card" style="margin-bottom: 24px;">
+                <h2 style="margin: 0 0 20px 0; font-size: 20px; color: var(--text-primary);">
+                    📬 Отправить рассылку всем подписчикам
+                </h2>
+                <form id="newsletterForm" style="display: grid; gap: 16px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-secondary);">
+                            Заголовок письма
+                        </label>
+                        <input 
+                            type="text" 
+                            id="newsletterTitle" 
+                            class="form-input" 
+                            placeholder="Например: Специальное предложение только для вас!"
+                            required
+                            style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-primary); font-size: 15px;"
+                        >
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-secondary);">
+                            Текст письма (поддерживает HTML)
+                        </label>
+                        <textarea 
+                            id="newsletterContent" 
+                            class="form-input" 
+                            rows="6"
+                            placeholder="Введите текст рассылки... Можно использовать HTML: <b>жирный</b>, <i>курсив</i>, <a href='...'>ссылка</a>"
+                            required
+                            style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-primary); font-size: 15px; resize: vertical; font-family: inherit;"
+                        ></textarea>
+                        <div style="margin-top: 8px; font-size: 13px; color: var(--text-secondary);">
+                            💡 Подсказка: Используйте HTML-теги для форматирования текста
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <button 
+                            type="submit" 
+                            class="btn btn-primary" 
+                            id="sendNewsletterBtn"
+                            style="flex: 1;"
+                        >
+                            <span>📧</span> Отправить всем подписчикам
+                        </button>
+                        <button 
+                            type="button" 
+                            class="btn btn-secondary" 
+                            onclick="document.getElementById('newsletterForm').reset()"
+                        >
+                            Очистить
+                        </button>
+                    </div>
+                    <div id="newsletterSendResult" style="display: none; padding: 12px; border-radius: 8px; font-size: 14px;"></div>
+                </form>
+            </div>
+            
             <div class="glass-card">
                 <div class="stats-grid" style="margin-bottom: 24px;">
                     <div class="stat-card">
@@ -2824,6 +2880,81 @@
                     a.click();
                 });
         }
+        
+        // Send Newsletter to All Subscribers
+        document.addEventListener('DOMContentLoaded', () => {
+            const newsletterForm = document.getElementById('newsletterForm');
+            
+            if (newsletterForm) {
+                newsletterForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const title = document.getElementById('newsletterTitle').value.trim();
+                    const content = document.getElementById('newsletterContent').value.trim();
+                    const resultDiv = document.getElementById('newsletterSendResult');
+                    const sendBtn = document.getElementById('sendNewsletterBtn');
+                    
+                    if (!title || !content) {
+                        resultDiv.style.display = 'block';
+                        resultDiv.style.background = 'rgba(255, 59, 48, 0.2)';
+                        resultDiv.style.color = '#ff3b30';
+                        resultDiv.innerHTML = '❌ Заполните все поля';
+                        return;
+                    }
+                    
+                    // Подтверждение
+                    if (!confirm(`Вы уверены, что хотите отправить рассылку всем подписчикам?\n\nЗаголовок: ${title}`)) {
+                        return;
+                    }
+                    
+                    // Отключаем кнопку
+                    sendBtn.disabled = true;
+                    sendBtn.innerHTML = '<span>⏳</span> Отправка...';
+                    
+                    try {
+                        const response = await fetch('/api/admin/newsletter/send-bulk', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({ title, content })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (response.ok && data.success) {
+                            resultDiv.style.display = 'block';
+                            resultDiv.style.background = 'rgba(52, 199, 89, 0.2)';
+                            resultDiv.style.color = '#34c759';
+                            resultDiv.innerHTML = `✅ ${data.message}<br>
+                                <small>Отправлено: ${data.sent} | Ошибок: ${data.failed} | Всего: ${data.total}</small>`;
+                            
+                            // Очищаем форму
+                            newsletterForm.reset();
+                            
+                            // Скрываем результат через 10 секунд
+                            setTimeout(() => {
+                                resultDiv.style.display = 'none';
+                            }, 10000);
+                        } else {
+                            resultDiv.style.display = 'block';
+                            resultDiv.style.background = 'rgba(255, 59, 48, 0.2)';
+                            resultDiv.style.color = '#ff3b30';
+                            resultDiv.innerHTML = `❌ ${data.error || 'Ошибка отправки'}`;
+                        }
+                    } catch (error) {
+                        console.error('Error sending newsletter:', error);
+                        resultDiv.style.display = 'block';
+                        resultDiv.style.background = 'rgba(255, 59, 48, 0.2)';
+                        resultDiv.style.color = '#ff3b30';
+                        resultDiv.innerHTML = '❌ Ошибка соединения с сервером';
+                    } finally {
+                        // Включаем кнопку обратно
+                        sendBtn.disabled = false;
+                        sendBtn.innerHTML = '<span>📧</span> Отправить всем подписчикам';
+                    }
+                });
+            }
+        });
 
         // Auto-refresh every 30 seconds
         setInterval(() => {
