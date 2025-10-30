@@ -2285,12 +2285,12 @@ function createOrderEmailHTML(data) {
               <div style="background:#f8f9ff;border:1px solid rgba(102,126,234,0.15);border-radius:12px;padding:20px 24px;margin:0 0 24px 0;">
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                   <tr>
-                    <td style="font-size:14px;color:#1a1a1a;width:100px;vertical-align:middle;">Товар</td>
-                    <td style="font-size:16px;color:#667eea;font-weight:700;vertical-align:middle;">
+                    <td style="font-size:14px;color:#1a1a1a;width:100px;vertical-align:middle;">Товар:</td>
+                    <td style="font-size:16px;color:#1a1a1a;font-weight:700;vertical-align:middle;">
                       ${productName}
                     </td>
                     ${productImage ? `<td style="text-align:right;vertical-align:middle;width:100px;">
-                      <img src="https://truststore.ru/${productImage}" alt="${productName}" style="max-width:80px;max-height:80px;width:auto;height:auto;object-fit:contain;display:block;margin-left:auto;">
+                      <img src="https://truststore.ru/${productImage}" alt="${productName}" style="max-width:100px;max-height:100px;width:auto;height:auto;object-fit:contain;display:block;margin-left:auto;">
                     </td>` : ''}
                   </tr>
                 </table>
