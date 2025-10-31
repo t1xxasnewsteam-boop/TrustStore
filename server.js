@@ -1500,19 +1500,16 @@ app.post('/api/create-order', (req, res) => {
             }
             
             // Формируем URL для редиректа на Heleket
+            // Всегда используем базовый домен heleket.com (не API домен)
             let baseUrl = 'https://heleket.com';
             
-            // Если HELEKET_API_URL указан, извлекаем базовый домен
-            if (HELEKET_API_URL) {
-                // Убираем /api если есть
-                baseUrl = HELEKET_API_URL.replace('/api', '').replace('api.', '').replace('/api/v1', '').replace('/v1', '');
-                // Если получилось что-то странное, используем дефолт
-                if (!baseUrl.includes('heleket.com') && !baseUrl.includes('heleket')) {
-                    baseUrl = 'https://heleket.com';
-                }
-                // Убираем завершающий слэш
-                baseUrl = baseUrl.replace(/\/$/, '');
+            // Если HELEKET_API_URL указан, проверяем его, но всё равно используем базовый домен
+            if (HELEKET_API_URL && HELEKET_API_URL.includes('heleket')) {
+                console.log('📋 HELEKET_API_URL:', HELEKET_API_URL);
             }
+            
+            // ВАЖНО: Для редиректа используем всегда https://heleket.com (не api.heleket.com)
+            // API URL используется только для API запросов, а для редиректа нужен основной домен
             
             const host = req.get('host');
             const protocol = req.protocol;
