@@ -479,6 +479,8 @@
         
         .payment-method-info {
             flex: 1;
+            min-width: 0;
+            overflow: visible;
         }
         
         .payment-method-name {
@@ -486,11 +488,14 @@
             font-weight: 600;
             color: #1a1a1a;
             margin-bottom: 3px;
+            word-wrap: break-word;
         }
         
         .payment-method-desc {
             font-size: 13px;
             color: #666;
+            word-wrap: break-word;
+            margin-bottom: 4px;
         }
         
         .btn-pay {
@@ -738,7 +743,11 @@
             
             .payment-method {
                 padding: 16px;
+                padding-top: 35px;
+                padding-bottom: 24px;
                 border-radius: 12px;
+                overflow: visible;
+                position: relative;
             }
             
             .payment-method-title {
@@ -747,6 +756,16 @@
             
             .payment-method-subtitle {
                 font-size: 12px;
+            }
+            
+            .payment-method-info {
+                padding-right: 0;
+                margin-bottom: 8px;
+            }
+            
+            .payment-method-desc {
+                margin-bottom: 6px;
+                line-height: 1.4;
             }
             
             .btn-submit {
@@ -758,13 +777,15 @@
             
             .crypto-rate-info {
                 font-size: 11px;
-                padding: 8px 12px;
-                margin-top: 8px;
-                margin-bottom: 30px;
-                line-height: 1.6;
+                padding: 10px 0;
+                margin-top: 6px;
+                margin-bottom: 0;
+                line-height: 1.5;
                 word-wrap: break-word;
                 display: block;
-                min-height: 40px;
+                min-height: auto;
+                white-space: normal;
+                overflow: visible;
             }
             
             #checkout-form {
@@ -985,8 +1006,8 @@
                     <div class="form-section">
                         <h3>Способ оплаты</h3>
                         <div class="payment-methods" style="display: grid !important; grid-template-columns: 1fr !important; gap: 15px !important;">
-                            <div class="payment-method selected" data-method="yoomoney" style="position: relative; display: flex !important;">
-                                <div style="position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; pointer-events: none; z-index: 1;">
+                            <div class="payment-method selected" data-method="yoomoney" style="position: relative; display: flex !important; padding-top: 35px;">
+                                <div style="position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; pointer-events: none; z-index: 10;">
                                     🔥 Популярно
                                 </div>
                                 <div class="payment-method-icon">
