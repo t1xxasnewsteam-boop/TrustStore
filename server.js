@@ -31,6 +31,157 @@ const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '6185074849';
 const YOOMONEY_SECRET = process.env.YOOMONEY_SECRET || ''; // Секретный ключ из YooMoney
 const YOOMONEY_WALLET = process.env.YOOMONEY_WALLET || ''; // Номер кошелька
 
+// Heleket настройки
+const HELEKET_API_KEY = process.env.HELEKET_API_KEY || 'fVzVPxZlpbUGVZap77b2qvBklv9BhBprbUvkCTWXgyRK3rpoIBHKPvM6ZkWEPZAuwYcjPnWEedKD8IpSxmuswbYZxy0RfHRvsrzWWwlkAxB4IfVy6DFXfnHTc9AQ5jOt'; // API ключ для приема платежей
+const HELEKET_MERCHANT_ID = process.env.HELEKET_MERCHANT_ID || '987c3430-d898-43bb-999a-310e3b659cfa'; // Merchant ID
+const HELEKET_WEBHOOK_SECRET = process.env.HELEKET_WEBHOOK_SECRET || ''; // Секретный ключ для проверки webhook
+const HELEKET_API_URL = process.env.HELEKET_API_URL || 'https://api.heleket.com'; // API URL
+
+// Кэш для курса валют (обновляется каждые 5 минут)
+let currencyCache = {
+    rate: null,
+    lastUpdate: null,
+    CACHE_DURATION: 5 * 60 * 1000 // 5 минут
+};
+
+// Функция получения курса USD/RUB из Google Finance (24/7)
+async function getUSDRate() {
+    try {
+        // Проверяем кэш
+        const now = Date.now();
+        if (currencyCache.rate && currencyCache.lastUpdate && 
+            (now - currencyCache.lastUpdate) < currencyCache.CACHE_DURATION) {
+            console.log('💱 Используем кэшированный курс USD/RUB:', currencyCache.rate);
+            return currencyCache.rate;
+        }
+        
+        // Метод 1: Yahoo Finance (Apple Finance) - основной источник (24/7, обновляется в реальном времени)
+        try {
+            const yahooResponse = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/USDRUB=X?interval=1d&range=1d');
+            if (yahooResponse.ok) {
+                const yahooData = await yahooResponse.json();
+                if (yahooData && yahooData.chart && yahooData.chart.result && yahooData.chart.result[0]) {
+                    const meta = yahooData.chart.result[0].meta;
+                    if (meta && meta.regularMarketPrice) {
+                        const rate = parseFloat(meta.regularMarketPrice);
+                        if (rate > 0 && rate < 200) { // Разумная проверка
+                            currencyCache.rate = rate;
+                            currencyCache.lastUpdate = now;
+                            console.log('✅ Курс USD/RUB получен из Yahoo Finance (Apple Finance):', rate);
+                            return rate;
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.log('⚠️ Yahoo Finance недоступен, пробуем альтернативный метод...');
+        }
+        
+        // Метод 2: exchangerate-api (запасной вариант, обновляется 24/7)
+        try {
+            const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD', {
+                headers: {
+                    'User-Agent': 'TrustStore/1.0'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                
+                if (data && data.rates && data.rates.RUB) {
+                    const rate = parseFloat(data.rates.RUB);
+                    currencyCache.rate = rate;
+                    currencyCache.lastUpdate = now;
+                    console.log('✅ Курс USD/RUB получен из exchangerate-api:', rate);
+                    return rate;
+                }
+            }
+        } catch (error) {
+            console.log('⚠️ exchangerate-api недоступен, пробуем другой метод...');
+        }
+        
+        // Метод 3: Google Finance (запасной вариант)
+        try {
+            const googleResponse = await fetch('https://www.google.com/finance/quote/USD-RUB', {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+            });
+            
+            if (googleResponse.ok) {
+                const html = await googleResponse.text();
+                // Парсим HTML для получения курса
+                const rateMatch = html.match(/"USD\/RUB"[^}]*"l":\s*"([0-9.]+)"/) || 
+                                  html.match(/data-last-price="([0-9.]+)"/) ||
+                                  html.match(/"regularMarketPrice":\s*\{[^}]*"raw":\s*([0-9.]+)/);
+                
+                if (rateMatch && rateMatch[1]) {
+                    const rate = parseFloat(rateMatch[1]);
+                    if (rate > 0 && rate < 200) {
+                        currencyCache.rate = rate;
+                        currencyCache.lastUpdate = now;
+                        console.log('✅ Курс USD/RUB получен из Google Finance:', rate);
+                        return rate;
+                    }
+                }
+            }
+        } catch (error) {
+            console.log('⚠️ Google Finance недоступен...');
+        }
+        
+        // Если ничего не сработало, используем запасной курс (последний известный или дефолтный)
+        if (currencyCache.rate) {
+            console.log('⚠️ Не удалось обновить курс, используем последний известный:', currencyCache.rate);
+            return currencyCache.rate;
+        }
+        
+        // Дефолтный курс (примерно 80 RUB за 1 USD - текущий актуальный)
+        const defaultRate = 80;
+        console.log('⚠️ Используем дефолтный курс USD/RUB:', defaultRate);
+        currencyCache.rate = defaultRate;
+        currencyCache.lastUpdate = now;
+        return defaultRate;
+        
+    } catch (error) {
+        console.error('❌ Ошибка получения курса USD/RUB:', error.message);
+        
+        // Используем кэш или дефолтный курс
+        if (currencyCache.rate) {
+            console.log('💱 Используем последний известный курс из кэша:', currencyCache.rate);
+            return currencyCache.rate;
+        }
+        
+        // Дефолтный курс
+        return 80;
+    }
+}
+
+// Функция конвертации RUB в USD
+async function convertRUBtoUSD(rubAmount) {
+    const rate = await getUSDRate();
+    const usdAmount = rubAmount / rate;
+    // Округляем до 2 знаков после запятой
+    return Math.round(usdAmount * 100) / 100;
+}
+
+// API для проверки текущего курса USD/RUB
+app.get('/api/currency-rate', async (req, res) => {
+    try {
+        const rate = await getUSDRate();
+        const source = currencyCache.rate === rate ? 'Кэш' : 'Yahoo Finance';
+        
+        res.json({
+            success: true,
+            rate: rate,
+            source: source,
+            timestamp: new Date().toISOString(),
+            cached: currencyCache.lastUpdate ? (Date.now() - currencyCache.lastUpdate) / 1000 < currencyCache.CACHE_DURATION / 1000 : false
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка получения курса', message: error.message });
+    }
+});
+
 // ==================== EMAIL CONFIGURATION ====================
 const emailTransporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST || 'smtp.yandex.ru',
@@ -1308,6 +1459,102 @@ app.post('/api/create-order', (req, res) => {
     }
 });
 
+// ==================== HELEKET PAYMENT ====================
+
+// API для создания платежа через Heleket
+app.post('/api/payment/heleket/create', async (req, res) => {
+    try {
+        const { orderId, amount, currency = 'RUB', description, customerEmail, successUrl, cancelUrl } = req.body;
+        
+        if (!HELEKET_API_KEY || !HELEKET_MERCHANT_ID) {
+            return res.status(500).json({ error: 'Heleket не настроен. Добавьте HELEKET_API_KEY и HELEKET_MERCHANT_ID в .env' });
+        }
+        
+        if (!orderId || !amount) {
+            return res.status(400).json({ error: 'orderId и amount обязательны' });
+        }
+        
+        const rubAmount = parseFloat(amount);
+        let finalAmount = rubAmount;
+        let finalCurrency = currency;
+        
+        // Конвертируем RUB в USD по текущему курсу Google
+        if (currency === 'RUB') {
+            try {
+                const usdAmount = await convertRUBtoUSD(rubAmount);
+                finalAmount = usdAmount;
+                finalCurrency = 'USD';
+                console.log(`💱 Конвертация: ${rubAmount} RUB → ${usdAmount} USD (курс обновляется 24/7)`);
+            } catch (error) {
+                console.error('❌ Ошибка конвертации валюты:', error);
+                // Продолжаем с RUB, если конвертация не удалась
+            }
+        }
+        
+        // Формируем данные для создания платежа
+        const paymentData = {
+            merchant_id: HELEKET_MERCHANT_ID,
+            amount: finalAmount,
+            currency: finalCurrency,
+            order_id: orderId,
+            description: description || `Заказ ${orderId}`,
+            customer_email: customerEmail || '',
+            success_url: successUrl || `${req.protocol}://${req.get('host')}/success`,
+            cancel_url: cancelUrl || `${req.protocol}://${req.get('host')}/checkout`,
+            webhook_url: `${req.protocol}://${req.get('host')}/api/payment/heleket`
+        };
+        
+        // Отправляем запрос в Heleket API
+        const response = await fetch(`${HELEKET_API_URL}/v1/payments`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${HELEKET_API_KEY}`
+            },
+            body: JSON.stringify(paymentData)
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            console.error('❌ Ошибка создания платежа в Heleket:', data);
+            return res.status(response.status).json({ 
+                error: data.message || 'Ошибка создания платежа',
+                details: data
+            });
+        }
+        
+        console.log('✅ Платеж создан в Heleket:', data.payment_id);
+        
+        // Возвращаем URL для редиректа клиента с информацией о конвертации
+        const responseData = {
+            success: true,
+            payment_id: data.payment_id,
+            payment_url: data.payment_url || data.checkout_url,
+            order_id: orderId
+        };
+        
+        // Добавляем информацию о конвертации, если она была выполнена
+        if (currency === 'RUB' && finalCurrency === 'USD') {
+            const rate = await getUSDRate();
+            responseData.conversion = {
+                original_amount: rubAmount,
+                original_currency: 'RUB',
+                converted_amount: finalAmount,
+                converted_currency: 'USD',
+                exchange_rate: rate,
+                rate_source: 'Yahoo Finance (Apple Finance) - обновляется 24/7'
+            };
+        }
+        
+        res.json(responseData);
+        
+    } catch (error) {
+        console.error('❌ Ошибка создания платежа Heleket:', error);
+        res.status(500).json({ error: 'Ошибка сервера', message: error.message });
+    }
+});
+
 // ==================== YOOMONEY PAYMENT WEBHOOK ====================
 
 // YooMoney webhook для уведомлений об оплате
@@ -1447,6 +1694,153 @@ app.post('/api/payment/yoomoney', async (req, res) => {
         
     } catch (error) {
         console.error('❌ Ошибка обработки YooMoney webhook:', error);
+        res.status(500).send('Server error');
+    }
+});
+
+// ==================== HELEKET PAYMENT WEBHOOK ====================
+
+// Heleket webhook для уведомлений об оплате
+app.post('/api/payment/heleket', async (req, res) => {
+    try {
+        console.log('📥 Получено уведомление от Heleket:', req.body);
+        
+        const {
+            event,
+            payment_id,
+            order_id,
+            amount,
+            currency,
+            status,
+            signature,
+            customer_email
+        } = req.body;
+        
+        // Проверяем подпись webhook (если настроен секретный ключ)
+        if (HELEKET_WEBHOOK_SECRET && signature) {
+            // Формируем строку для проверки подписи
+            const payloadString = JSON.stringify(req.body);
+            const expectedSignature = crypto
+                .createHmac('sha256', HELEKET_WEBHOOK_SECRET)
+                .update(payloadString)
+                .digest('hex');
+            
+            if (signature !== expectedSignature) {
+                console.error('❌ Неверная подпись от Heleket!');
+                return res.status(400).send('Invalid signature');
+            }
+            console.log('✅ Подпись проверена');
+        }
+        
+        // Обрабатываем только события успешной оплаты
+        if (event !== 'payment.succeeded' && status !== 'paid' && status !== 'completed') {
+            console.log('⚠️ Неподдерживаемый статус платежа:', status, 'или событие:', event);
+            return res.status(200).send('OK'); // Возвращаем OK, но ничего не делаем
+        }
+        
+        // Находим заказ по order_id
+        const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(order_id);
+        
+        if (!order) {
+            console.error('❌ Заказ не найден:', order_id);
+            return res.status(404).send('Order not found');
+        }
+        
+        // Проверяем, не обработан ли уже этот платеж
+        if (order.status === 'paid') {
+            console.log('⚠️ Заказ уже обработан:', order_id);
+            return res.status(200).send('OK');
+        }
+        
+        // Проверяем сумму
+        if (parseFloat(amount) < order.total_amount) {
+            console.error('❌ Неверная сумма платежа:', amount, 'ожидалось:', order.total_amount);
+            return res.status(400).send('Wrong amount');
+        }
+        
+        console.log('💰 Платеж Heleket подтвержден:', order_id, 'Сумма:', amount, currency);
+        
+        // Обновляем статус заказа
+        db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('paid', order_id);
+        
+        // Получаем товары из заказа
+        const products = JSON.parse(order.products);
+        
+        // Обрабатываем каждый товар
+        for (const product of products) {
+            const quantity = product.quantity || 1;
+            
+            // Получаем доступные товары из инвентаря
+            for (let i = 0; i < quantity; i++) {
+                const availableItem = db.prepare(`
+                    SELECT * FROM product_inventory 
+                    WHERE product_name = ? AND status = 'available'
+                    LIMIT 1
+                `).get(product.name);
+                
+                if (availableItem) {
+                    // Помечаем товар как проданный
+                    db.prepare(`
+                        UPDATE product_inventory 
+                        SET status = 'sold', order_id = ?, sold_at = CURRENT_TIMESTAMP
+                        WHERE id = ?
+                    `).run(order_id, availableItem.id);
+                    
+                    // Получаем информацию о товаре из БД
+                    const productInfo = db.prepare('SELECT * FROM products WHERE name = ?').get(product.name);
+                    
+                    // Отправляем email с товаром
+                    try {
+                        await sendOrderEmail({
+                            to: order.customer_email,
+                            orderNumber: order_id,
+                            productName: product.name,
+                            productImage: productInfo ? productInfo.image : null,
+                            productCategory: productInfo ? productInfo.category : null,
+                            productDescription: productInfo ? productInfo.description : null,
+                            login: availableItem.login,
+                            password: availableItem.password,
+                            instructions: availableItem.instructions || 'Используйте эти данные для входа в сервис.'
+                        });
+                        
+                        console.log(`✅ Email отправлен: ${order.customer_email} - ${product.name}`);
+                    } catch (emailError) {
+                        console.error('❌ Ошибка отправки email:', emailError);
+                    }
+                } else {
+                    console.error(`⚠️ Товар не найден в инвентаре: ${product.name}`);
+                    
+                    // Отправляем уведомление админу в Telegram
+                    const notificationText = `⚠️ <b>ВНИМАНИЕ! Товара нет в наличии!</b>\n\n` +
+                        `📦 Товар: ${product.name}\n` +
+                        `🆔 Заказ: ${order_id}\n` +
+                        `👤 Клиент: ${order.customer_name}\n` +
+                        `📧 Email: ${order.customer_email}\n` +
+                        `💰 Сумма: ${order.total_amount} ₽\n\n` +
+                        `⚡ СРОЧНО ДОБАВЬ ТОВАР В ИНВЕНТАРЬ!`;
+                    
+                    sendTelegramNotification(notificationText, false);
+                }
+            }
+        }
+        
+        // Отправляем уведомление об успешной оплате в Telegram
+        const successNotification = `💰 <b>Новый платеж через Heleket!</b>\n\n` +
+            `🆔 Заказ: ${order_id}\n` +
+            `💳 Платеж: ${payment_id}\n` +
+            `👤 Клиент: ${order.customer_name}\n` +
+            `📧 Email: ${order.customer_email}\n` +
+            `💵 Сумма: ${amount} ${currency}\n` +
+            `📦 Товары: ${products.map(p => p.name).join(', ')}\n` +
+            `📅 Дата: ${new Date().toISOString()}\n\n` +
+            `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
+        
+        sendTelegramNotification(successNotification, false);
+        
+        res.status(200).send('OK');
+        
+    } catch (error) {
+        console.error('❌ Ошибка обработки Heleket webhook:', error);
         res.status(500).send('Server error');
     }
 });

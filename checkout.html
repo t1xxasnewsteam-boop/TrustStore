@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Оформление заказа - Trust Store</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="cart-widget.css">
@@ -424,6 +427,13 @@
             margin-bottom: 30px;
         }
         
+        /* Принудительное отображение всех способов оплаты */
+        .payment-methods .payment-method {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
         .payment-method {
             border: 2px solid #e0e0e0;
             border-radius: 15px;
@@ -741,8 +751,8 @@
                     <!-- Payment Method -->
                     <div class="form-section">
                         <h3>Способ оплаты</h3>
-                        <div class="payment-methods">
-                            <div class="payment-method selected" data-method="yoomoney">
+                        <div class="payment-methods" style="display: grid !important; grid-template-columns: 1fr !important; gap: 15px !important;">
+                            <div class="payment-method selected" data-method="yoomoney" style="display: flex !important;">
                                 <div class="payment-method-icon">
                                     <svg width="44" height="28" viewBox="0 0 56 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Банковская карта" role="img">
                                         <defs>
@@ -768,8 +778,40 @@
                                     </svg>
                                 </div>
                                 <div class="payment-method-info">
-                            <div class="payment-method-name">Банковская Карта</div>
+                                    <div class="payment-method-name">Банковская Карта (YooMoney)</div>
                                     <div class="payment-method-desc">Быстрая и безопасная оплата</div>
+                                </div>
+                            </div>
+                            <div class="payment-method" data-method="heleket" style="position: relative; display: flex !important; visibility: visible !important; opacity: 1 !important;">
+                                <div style="position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    🔥 Популярно
+                                </div>
+                                <div class="payment-method-icon">
+                                    <svg width="44" height="28" viewBox="0 0 56 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <defs>
+                                            <linearGradient id="cryptoGrad" x1="0" y1="0" x2="56" y2="40" gradientUnits="userSpaceOnUse">
+                                                <stop offset="0" stop-color="#6366F1"/>
+                                                <stop offset="1" stop-color="#8B5CF6"/>
+                                            </linearGradient>
+                                        </defs>
+                                        <!-- Card body -->
+                                        <rect x="2" y="3" width="52" height="34" rx="8" fill="url(#cryptoGrad)"/>
+                                        <!-- Crypto symbol -->
+                                        <circle cx="28" cy="20" r="8" fill="rgba(255,255,255,0.2)"/>
+                                        <path d="M28 12L28 28M22 20L34 20" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+                                        <!-- Decorative elements -->
+                                        <circle cx="12" cy="30" r="3" fill="rgba(255,255,255,0.3)"/>
+                                        <circle cx="44" cy="30" r="3" fill="rgba(255,255,255,0.3)"/>
+                                        <!-- Border -->
+                                        <rect x="2" y="3" width="52" height="34" rx="8" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+                                    </svg>
+                                </div>
+                                <div class="payment-method-info">
+                                    <div class="payment-method-name">💎 Криптовалюта (Heleket)</div>
+                                    <div class="payment-method-desc">Bitcoin • USDT • Ethereum • и другие</div>
+                                    <div id="crypto-rate-info" style="font-size: 11px; color: #10b981; margin-top: 4px; font-weight: 500;">
+                                        💱 Автоконвертация RUB → USD по текущему курсу
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1464,87 +1506,122 @@
             
             // Сначала сохраняем заказ в базу данных через API
             try {
-                const orderData = {
-                    customerName: name,
-                    customerEmail: email,
-                    customerPhone: phone,
-                    products: orderItems,
-                    totalAmount: currentTotalPrice,
-                    paymentMethod: 'YooMoney',
-                    comment: comment
-                };
-                
-                const response = await fetch('/api/create-order', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(orderData)
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('✅ Заказ создан:', result.orderId);
+                // Определяем выбранный метод оплаты
+                    const selectedPaymentMethod = document.querySelector('.payment-method.selected')?.dataset.method || 'yoomoney';
                     
-                    // Применяем ВСЕ промокоды (увеличиваем счетчик использований)
-                    // Собираем уникальные промокоды из товаров
-                    const usedPromoCodes = new Set();
-                    
-                    // 1. Промокоды из товаров
-                    orderItems.forEach(item => {
-                        if (item.appliedPromo && item.appliedPromo.code) {
-                            usedPromoCodes.add(item.appliedPromo.code);
-                        }
-                    });
-                    
-                    // 2. Промокод, введенный на странице checkout (если есть)
-                    if (promoApplied && currentPromoCode) {
-                        usedPromoCodes.add(currentPromoCode);
-                    }
-                    
-                    // Применяем каждый уникальный промокод
-                    for (const promoCode of usedPromoCodes) {
-                        try {
-                            await fetch('/api/apply-promo', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ code: promoCode })
-                            });
-                            console.log('✅ Промокод применен:', promoCode);
-                        } catch (error) {
-                            console.error('Error applying promo code:', error);
-                        }
-                    }
-                    
-                    // Очищаем корзину и промокод после успешного создания заказа
-                    clearCart();
-                    localStorage.removeItem('appliedPromoCode'); // Удаляем промокод
-                    
-                    // Формируем данные для оплаты
-                    const paymentData = {
-                        receiver: YOOMONEY_CONFIG.receiver,
-                        'quickpay-form': 'small',
-                        targets: `Заказ ${result.orderId}: ${fullDescription}`,
-                        paymentType: 'AC',
-                        sum: currentTotalPrice,
-                        label: result.orderId,
-                        successURL: window.location.origin + '/success'
+                    const orderData = {
+                        customerName: name,
+                        customerEmail: email,
+                        customerPhone: phone,
+                        products: orderItems,
+                        totalAmount: currentTotalPrice,
+                        paymentMethod: selectedPaymentMethod === 'heleket' ? 'Heleket' : 'YooMoney',
+                        comment: comment
                     };
                     
-                    // Создаем форму для отправки в ЮMoney
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = 'https://yoomoney.ru/quickpay/confirm.xml';
+                    const response = await fetch('/api/create-order', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(orderData)
+                    });
                     
-                    // Добавляем поля
-                    for (let key in paymentData) {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = key;
-                        input.value = paymentData[key];
-                        form.appendChild(input);
-                    }
-                    
-                    document.body.appendChild(form);
-                    form.submit();
+                    if (response.ok) {
+                        const result = await response.json();
+                        console.log('✅ Заказ создан:', result.orderId);
+                        
+                        // Применяем ВСЕ промокоды (увеличиваем счетчик использований)
+                        // Собираем уникальные промокоды из товаров
+                        const usedPromoCodes = new Set();
+                        
+                        // 1. Промокоды из товаров
+                        orderItems.forEach(item => {
+                            if (item.appliedPromo && item.appliedPromo.code) {
+                                usedPromoCodes.add(item.appliedPromo.code);
+                            }
+                        });
+                        
+                        // 2. Промокод, введенный на странице checkout (если есть)
+                        if (promoApplied && currentPromoCode) {
+                            usedPromoCodes.add(currentPromoCode);
+                        }
+                        
+                        // Применяем каждый уникальный промокод
+                        for (const promoCode of usedPromoCodes) {
+                            try {
+                                await fetch('/api/apply-promo', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ code: promoCode })
+                                });
+                                console.log('✅ Промокод применен:', promoCode);
+                            } catch (error) {
+                                console.error('Error applying promo code:', error);
+                            }
+                        }
+                        
+                        // Очищаем корзину и промокод после успешного создания заказа
+                        clearCart();
+                        localStorage.removeItem('appliedPromoCode'); // Удаляем промокод
+                        
+                        // Обработка оплаты в зависимости от выбранного метода
+                        if (selectedPaymentMethod === 'heleket') {
+                            // Оплата через Heleket
+                            try {
+                                const paymentResponse = await fetch('/api/payment/heleket/create', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        orderId: result.orderId,
+                                        amount: currentTotalPrice,
+                                        currency: 'RUB',
+                                        description: fullDescription,
+                                        customerEmail: email,
+                                        successUrl: window.location.origin + '/success',
+                                        cancelUrl: window.location.origin + '/checkout'
+                                    })
+                                });
+                                
+                                const paymentData = await paymentResponse.json();
+                                
+                                if (paymentData.success && paymentData.payment_url) {
+                                    // Редирект на страницу оплаты Heleket
+                                    window.location.href = paymentData.payment_url;
+                                } else {
+                                    throw new Error(paymentData.error || 'Ошибка создания платежа');
+                                }
+                            } catch (error) {
+                                console.error('Ошибка создания платежа Heleket:', error);
+                                alert('❌ Ошибка создания платежа через Heleket. Попробуйте выбрать другой способ оплаты.');
+                            }
+                        } else {
+                            // Оплата через YooMoney (старая логика)
+                            const paymentData = {
+                                receiver: YOOMONEY_CONFIG.receiver,
+                                'quickpay-form': 'small',
+                                targets: `Заказ ${result.orderId}: ${fullDescription}`,
+                                paymentType: 'AC',
+                                sum: currentTotalPrice,
+                                label: result.orderId,
+                                successURL: window.location.origin + '/success'
+                            };
+                            
+                            // Создаем форму для отправки в ЮMoney
+                            const form = document.createElement('form');
+                            form.method = 'POST';
+                            form.action = 'https://yoomoney.ru/quickpay/confirm.xml';
+                            
+                            // Добавляем поля
+                            for (let key in paymentData) {
+                                const input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = key;
+                                input.value = paymentData[key];
+                                form.appendChild(input);
+                            }
+                            
+                            document.body.appendChild(form);
+                            form.submit();
+                        }
                 } else {
                     console.error('Ошибка создания заказа');
                     alert('❌ Ошибка при создании заказа. Попробуйте позже.');
@@ -1578,6 +1655,29 @@
                 form.submit();
             }
         });
+        
+        // Загружаем текущий курс валют для отображения
+        async function loadCurrencyRateForDisplay() {
+            try {
+                const response = await fetch('/api/currency-rate');
+                const data = await response.json();
+                
+                if (data.success && data.rate) {
+                    const rateInfo = document.getElementById('crypto-rate-info');
+                    if (rateInfo) {
+                        rateInfo.innerHTML = `💱 Автоконвертация RUB → USD (курс: 1 USD = ${data.rate.toFixed(2)} RUB)`;
+                    }
+                }
+            } catch (error) {
+                console.log('Не удалось загрузить курс:', error);
+            }
+        }
+        
+        // Загружаем курс при загрузке страницы
+        loadCurrencyRateForDisplay();
+        
+        // Обновляем курс каждую минуту
+        setInterval(loadCurrencyRateForDisplay, 60000);
         
         // Обработка выбора способа оплаты
         document.querySelectorAll('.payment-method').forEach(method => {
