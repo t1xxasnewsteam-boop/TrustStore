@@ -1661,7 +1661,9 @@ app.post('/api/payment/heleket/create', async (req, res) => {
 // YooMoney webhook для уведомлений об оплате
 app.post('/api/payment/yoomoney', async (req, res) => {
     try {
-        console.log('📥 Получено уведомление от YooMoney:', req.body);
+        console.log('📥 Получено уведомление от YooMoney:');
+        console.log('   Headers:', JSON.stringify(req.headers, null, 2));
+        console.log('   Body:', JSON.stringify(req.body, null, 2));
         
         const {
             notification_type,
@@ -1674,6 +1676,13 @@ app.post('/api/payment/yoomoney', async (req, res) => {
             label,
             sha1_hash
         } = req.body;
+        
+        console.log('📋 Парсинг данных YooMoney:');
+        console.log('   notification_type:', notification_type);
+        console.log('   operation_id:', operation_id);
+        console.log('   amount:', amount);
+        console.log('   currency:', currency);
+        console.log('   label (order_id):', label);
         
         // Проверяем, что это уведомление об успешном переводе
         if (notification_type !== 'p2p-incoming') {
@@ -1707,16 +1716,30 @@ app.post('/api/payment/yoomoney', async (req, res) => {
             return res.status(200).send('OK');
         }
         
-        // Проверяем сумму
-        if (parseFloat(amount) < order.total_amount) {
-            console.error('❌ Неверная сумма платежа:', amount, 'ожидалось:', order.total_amount);
+        console.log('📦 Информация о заказе:');
+        console.log('   Статус:', order.status);
+        console.log('   Сумма заказа:', order.total_amount);
+        console.log('   Получено:', amount);
+        
+        // Проверяем сумму (допускаем небольшую разницу из-за округлений)
+        const orderAmount = parseFloat(order.total_amount);
+        const paymentAmount = parseFloat(amount);
+        const difference = Math.abs(orderAmount - paymentAmount);
+        
+        if (paymentAmount < orderAmount - 0.01) { // Допускаем разницу до 1 копейки
+            console.error('❌ Неверная сумма платежа:', paymentAmount, 'ожидалось:', orderAmount, 'разница:', difference);
             return res.status(400).send('Wrong amount');
+        }
+        
+        if (difference > 0.01) {
+            console.log('⚠️ Небольшая разница в сумме:', difference, 'коп.');
         }
         
         console.log('💰 Платеж подтвержден:', label, 'Сумма:', amount);
         
         // Обновляем статус заказа
-        db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('paid', label);
+        const updateResult = db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('paid', label);
+        console.log('✅ Статус заказа обновлен:', { orderId: label, changes: updateResult.changes });
         
         // Получаем товары из заказа
         const products = JSON.parse(order.products);
@@ -1764,8 +1787,10 @@ app.post('/api/payment/yoomoney', async (req, res) => {
         }
         
         // Отправляем уведомление об успешной оплате в Telegram
-        const successNotification = `💰 <b>Новый платеж!</b>\n\n` +
+        console.log('📱 Отправка уведомления в Telegram...');
+        const successNotification = `💰 <b>Новый платеж через YooMoney!</b>\n\n` +
             `🆔 Заказ: ${label}\n` +
+            `💳 Операция: ${operation_id}\n` +
             `👤 Клиент: ${order.customer_name}\n` +
             `📧 Email: ${order.customer_email}\n` +
             `💵 Сумма: ${amount} ${currency}\n` +
@@ -1773,7 +1798,12 @@ app.post('/api/payment/yoomoney', async (req, res) => {
             `📅 Дата: ${datetime}\n\n` +
             `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
         
-        sendTelegramNotification(successNotification, false);
+        try {
+            await sendTelegramNotification(successNotification, false);
+            console.log('   ✅ Telegram уведомление отправлено');
+        } catch (telegramError) {
+            console.error('   ❌ Ошибка отправки Telegram:', telegramError.message);
+        }
         
         res.status(200).send('OK');
         
