@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>О нас | Trust Store</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="logo-wrapper">
+                        <a href="/" style="text-decoration: none;">
+                            <div class="logo">
+                                <img src="logo.png" alt="Trust Store" class="logo-image">
+                                <h1>Trust Store</h1>
+                            </div>
+                        </a>
+                        <span class="logo-subtitle" style="pointer-events: none;">магазин цифровых товаров</span>
+                    </div>
+                </div>
+                <div class="header-center">
+                    <nav class="nav">
+                        <a href="/" class="nav-link">Главная</a>
+                        <a href="/catalog" class="nav-link">Каталог</a>
+                        <a href="/socials" class="nav-link">Мы в соцсетях</a>
+                    </nav>
+                </div>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <button class="btn-icon" onclick="openSearchModal()">🔍</button>
+                        <button class="btn-icon cart-button" onclick="toggleCartWidget()">🛒 <span class="badge cart-count">0</span></button>
+                        <script>(function(){try{var c=JSON.parse(localStorage.getItem('trustStoreCart')||'[]'),t=0;c.forEach(function(i){t+=(i.quantity||1)});var b=document.currentScript.previousElementSibling.querySelector('.cart-count');if(b)b.textContent=t;}catch(e){}})();</script>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- About Page -->
+    <section class="about-page" style="padding: 80px 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: calc(100vh - 200px);">
+        <div class="container">
+            <div style="max-width: 900px; margin: 0 auto; background: white; border-radius: 20px; padding: 60px; box-shadow: 0 20px 60px rgba(0,0,0,0.2);">
+                <h1 style="font-size: 42px; font-weight: 700; color: #1a1a1a; margin-bottom: 20px; text-align: center;">О нас</h1>
+                
+                <div style="text-align: center; margin-bottom: 40px;">
+                    <div style="width: 120px; height: 120px; margin: 0 auto 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 48px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);">
+                        🛍️
+                    </div>
+                </div>
+
+                <div style="color: #666; font-size: 18px; line-height: 1.8; margin-bottom: 40px;">
+                    <p style="margin-bottom: 20px; font-size: 20px; color: #1a1a1a; font-weight: 600;">
+                        Добро пожаловать в Trust Store — ваш надежный магазин цифровых товаров!
+                    </p>
+                    
+                    <p style="margin-bottom: 20px;">
+                        Мы специализируемся на продаже цифровых подписок и сервисов, которые помогут вам работать эффективнее, создавать контент быстрее и получать больше возможностей в цифровом мире.
+                    </p>
+
+                    <p style="margin-bottom: 20px;">
+                        В нашем ассортименте представлены лучшие инструменты для дизайна, разработки, генерации контента и развлечений: ChatGPT Plus, Midjourney, Adobe Creative Cloud, CapCut Pro, Claude Pro, Cursor, Gemini Advanced и многие другие.
+                    </p>
+
+                    <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); padding: 30px; border-radius: 15px; margin: 30px 0;">
+                        <h2 style="font-size: 28px; color: #667eea; margin-bottom: 20px; font-weight: 600;">Почему выбирают нас?</h2>
+                        <ul style="list-style: none; padding: 0; margin: 0;">
+                            <li style="margin-bottom: 15px; padding-left: 30px; position: relative;">
+                                <span style="position: absolute; left: 0; color: #667eea; font-size: 20px;">✅</span>
+                                <strong>Моментальная активация</strong> — получайте доступ к сервисам сразу после оплаты
+                            </li>
+                            <li style="margin-bottom: 15px; padding-left: 30px; position: relative;">
+                                <span style="position: absolute; left: 0; color: #667eea; font-size: 20px;">✅</span>
+                                <strong>Официальные подписки</strong> — работаем только с проверенными поставщиками
+                            </li>
+                            <li style="margin-bottom: 15px; padding-left: 30px; position: relative;">
+                                <span style="position: absolute; left: 0; color: #667eea; font-size: 20px;">✅</span>
+                                <strong>Круглосуточная поддержка</strong> — мы всегда на связи в Telegram
+                            </li>
+                            <li style="margin-bottom: 15px; padding-left: 30px; position: relative;">
+                                <span style="position: absolute; left: 0; color: #667eea; font-size: 20px;">✅</span>
+                                <strong>Безопасные платежи</strong> — принимаем карты и криптовалюту
+                            </li>
+                        </ul>
+                    </div>
+
+                    <p style="margin-bottom: 20px;">
+                        Мы постоянно расширяем ассортимент и добавляем новые популярные сервисы. Если вы не нашли нужный товар — напишите нам, и мы постараемся добавить его в каталог!
+                    </p>
+
+                    <div style="text-align: center; margin-top: 40px;">
+                        <a href="/" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 40px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                            Вернуться на главную
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Trust Store</h3>
+                    <p>Ваш надежный магазин цифровых товаров</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Компания</h4>
+                    <a href="/about">О нас</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Помощь</h4>
+                    <a href="#">FAQ</a>
+                    <a href="#">Доставка</a>
+                    <a href="#">Возврат</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Связь</h4>
+                    <span>Email: orders@truststore.ru</span>
+                    <span style="color: white; white-space: nowrap;">Telegram: <a href="https://t.me/truststore_admin" target="_blank" style="color: white; text-decoration: underline;">@truststore_admin</a> (кликабельно)</span>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Trust Store. Все права защищены. ИНН: 523802785027</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+    <script src="cart-widget.js"></script>
+    <script src="search.js"></script>
+</body>
+</html>
+
