@@ -1465,98 +1465,8 @@ app.post('/api/create-order', (req, res) => {
 
 // ==================== HELEKET PAYMENT ====================
 
-// API для создания платежа через Heleket
-    // Оплата через Heleket - простой редирект (как YooMoney)
-    app.get('/api/payment/heleket/redirect', async (req, res) => {
-        try {
-            const { orderId, amount, currency, description, customerEmail } = req.query;
-            
-            console.log('📥 Запрос на редирект Heleket:', { orderId, amount, currency, description, customerEmail });
-            
-            if (!orderId || !amount) {
-                console.error('❌ Отсутствуют обязательные параметры:', { orderId, amount });
-                return res.status(400).json({ error: 'Необходимы orderId и amount' });
-            }
-            
-            if (!HELEKET_MERCHANT_ID) {
-                console.error('❌ HELEKET_MERCHANT_ID не настроен');
-                return res.status(500).json({ error: 'Heleket не настроен. Проверьте конфигурацию.' });
-            }
-            
-            // Конвертируем RUB в USD если нужно
-            let finalAmount = parseFloat(amount);
-            let finalCurrency = currency || 'RUB';
-            
-            if (currency === 'RUB') {
-                try {
-                    const rate = await getUSDRate();
-                    finalAmount = parseFloat((parseFloat(amount) / rate).toFixed(2));
-                    finalCurrency = 'USD';
-                    console.log(`💱 Конвертация: ${amount} RUB → ${finalAmount} USD (курс: ${rate})`);
-                } catch (error) {
-                    console.error('❌ Ошибка конвертации:', error);
-                    // Продолжаем с RUB
-                }
-            }
-            
-            // Формируем URL для редиректа на Heleket
-            // Всегда используем базовый домен heleket.com (не API домен)
-            let baseUrl = 'https://heleket.com';
-            
-            // Если HELEKET_API_URL указан, проверяем его, но всё равно используем базовый домен
-            if (HELEKET_API_URL && HELEKET_API_URL.includes('heleket')) {
-                console.log('📋 HELEKET_API_URL:', HELEKET_API_URL);
-            }
-            
-            // ВАЖНО: Для редиректа используем всегда https://heleket.com (не api.heleket.com)
-            // API URL используется только для API запросов, а для редиректа нужен основной домен
-            
-            const host = req.get('host');
-            const protocol = req.protocol;
-            
-            const paymentUrl = `${baseUrl}/pay?` + new URLSearchParams({
-                merchant_id: HELEKET_MERCHANT_ID,
-                amount: finalAmount.toString(),
-                currency: finalCurrency,
-                order_id: orderId,
-                description: description || `Заказ ${orderId}`,
-                customer_email: customerEmail || '',
-                success_url: `${protocol}://${host}/success`,
-                cancel_url: `${protocol}://${host}/checkout`,
-                webhook_url: `${protocol}://${host}/api/payment/heleket`
-            }).toString();
-            
-            console.log('🔗 Редирект на Heleket:', paymentUrl);
-            console.log('📋 Параметры:', {
-                merchant_id: HELEKET_MERCHANT_ID,
-                amount: finalAmount,
-                currency: finalCurrency,
-                order_id: orderId
-            });
-            
-            // Проверяем, что URL правильный
-            if (!paymentUrl.startsWith('http://') && !paymentUrl.startsWith('https://')) {
-                console.error('❌ Некорректный URL:', paymentUrl);
-                return res.status(500).json({ 
-                    error: 'Ошибка формирования URL',
-                    generated_url: paymentUrl
-                });
-            }
-            
-            // Редиректим сразу с помощью HTTP 302
-            res.status(302).location(paymentUrl).end();
-        } catch (error) {
-            console.error('❌ Критическая ошибка в /api/payment/heleket/redirect:', error);
-            res.status(500).json({ 
-                error: 'Ошибка создания платежа',
-                message: error.message,
-                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-            });
-        }
-    });
-    
-    // Оплата через Heleket (старый API метод - оставляем для совместимости)
-    app.post('/api/payment/heleket/create', async (req, res) => {
+// API для создания платежа через Heleket (как bot-t: POST /v1/payment)
+app.post('/api/payment/heleket/create', async (req, res) => {
     try {
         const { orderId, amount, currency = 'RUB', description, customerEmail, successUrl, cancelUrl } = req.body;
         
@@ -1601,22 +1511,24 @@ app.post('/api/create-order', (req, res) => {
             expires_in: 7200 // Срок действия в секундах (2 часа = 7200)
         };
         
-        // Пробуем разные варианты endpoint'ов для создания invoice
-        const possibleEndpoints = [
-            `${HELEKET_API_URL}/api/invoices`,
-            `${HELEKET_API_URL}/api/v1/invoices`,
-            `${HELEKET_API_URL}/v1/invoices`,
-            `${HELEKET_API_URL}/api/payment-links`,
-            `${HELEKET_API_URL}/merchant/${HELEKET_MERCHANT_ID}/invoices`
-        ];
+        // Используем правильный endpoint как в bot-t: POST /v1/payment
+        const apiEndpoint = `${HELEKET_API_URL.replace('/api', '')}/v1/payment`;
         
-        // Используем первый вариант
-        const apiEndpoint = possibleEndpoints[0];
+        // Формируем данные в формате bot-t
+        const paymentData = {
+            amount: finalAmount,
+            currency: finalCurrency,
+            order_id: orderId,
+            url_callback: `${req.protocol}://${req.get('host')}/api/payment/heleket`,
+            url_success: `${req.protocol}://${req.get('host')}/success`,
+            url_return: `${req.protocol}://${req.get('host')}/checkout`,
+            description: description || `Заказ ${orderId}`,
+            customerEmail: customerEmail || ''
+        };
         
-        console.log('📤 Отправка запроса в Heleket API для создания платежной ссылки:', {
+        console.log('📤 Отправка запроса в Heleket API (формат bot-t):', {
             url: apiEndpoint,
             merchant_id: HELEKET_MERCHANT_ID,
-            type: 'invoice',
             amount: finalAmount,
             currency: finalCurrency,
             order_id: orderId
@@ -1629,7 +1541,7 @@ app.post('/api/create-order', (req, res) => {
                 'Authorization': `Bearer ${HELEKET_API_KEY}`,
                 'Accept': 'application/json'
             },
-            body: JSON.stringify(invoiceData)
+            body: JSON.stringify(paymentData)
         });
         
         // Проверяем тип ответа

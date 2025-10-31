@@ -1486,9 +1486,28 @@
             const phone = document.getElementById('customer-phone')?.value || '';
             const comment = document.getElementById('customer-comment')?.value || '';
             
-            // Проверка заполнения обязательных полей
-            if (!name || !email) {
-                alert('❌ Пожалуйста, заполните все обязательные поля');
+            // Проверка заполнения обязательных полей с конкретными сообщениями
+            if (!name && !email) {
+                alert('❌ Введите имя и почту');
+                if (!name) document.getElementById('customer-name').focus();
+                return;
+            }
+            if (!name) {
+                alert('❌ Введите имя');
+                document.getElementById('customer-name').focus();
+                return;
+            }
+            if (!email) {
+                alert('❌ Введите почту');
+                document.getElementById('customer-email').focus();
+                return;
+            }
+            
+            // Проверка формата email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('❌ Введите корректный адрес почты');
+                document.getElementById('customer-email').focus();
                 return;
             }
             
