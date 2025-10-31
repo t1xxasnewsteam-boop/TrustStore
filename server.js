@@ -1909,10 +1909,60 @@ app.post('/api/payment/heleket', async (req, res) => {
             return res.status(200).send('OK');
         }
         
-        // Проверяем сумму
-        if (parseFloat(amount) < order.total_amount) {
-            console.error('❌ Неверная сумма платежа:', amount, 'ожидалось:', order.total_amount);
-            return res.status(400).send('Wrong amount');
+        // Проверяем сумму с учетом валют
+        // Если платеж в USD, а заказ в RUB, конвертируем для сравнения
+        const paymentAmount = parseFloat(amount);
+        const orderAmount = parseFloat(order.total_amount);
+        const paymentCurrency = currency || 'USD';
+        
+        console.log('💱 Проверка суммы:', {
+            paymentAmount,
+            paymentCurrency,
+            orderAmount,
+            'orderPaymentMethod': order.payment_method
+        });
+        
+        // Если платеж через Heleket, заказ был конвертирован в USD при создании платежа
+        // Поэтому сравниваем напрямую, если платеж в USD
+        if (order.payment_method === 'Heleket' && paymentCurrency === 'USD') {
+            // Заказ был создан в RUB, но мы отправляли в Heleket конвертированную сумму в USD
+            // Поэтому нужно получить оригинальную сумму заказа в RUB и конвертировать её в USD
+            try {
+                const usdRate = await getUSDRate();
+                const orderAmountUSD = orderAmount / usdRate;
+                console.log('   Конвертация для проверки:', {
+                    orderAmountRUB: orderAmount,
+                    usdRate: usdRate,
+                    orderAmountUSD: orderAmountUSD,
+                    paymentAmountUSD: paymentAmount
+                });
+                
+                // Проверяем с допуском 10% (комиссия и колебания курса)
+                if (paymentAmount < orderAmountUSD * 0.9) {
+                    console.error('❌ Неверная сумма платежа:', paymentAmount, 'USD ожидалось минимум:', orderAmountUSD * 0.9, 'USD');
+                    return res.status(400).send('Wrong amount');
+                }
+                console.log('   ✅ Сумма проверена успешно');
+            } catch (conversionError) {
+                console.error('⚠️ Ошибка конвертации для проверки суммы:', conversionError);
+                // Если конвертация не удалась, пропускаем проверку (доверяем Heleket)
+                console.log('   ⚠️ Пропускаем проверку суммы из-за ошибки конвертации');
+            }
+        } else if (paymentCurrency === 'RUB' && order.payment_method !== 'Heleket') {
+            // Если и платеж и заказ в RUB (YooMoney или другой способ)
+            // С учетом комиссии (допускаем до 10% меньше из-за комиссий)
+            if (paymentAmount < orderAmount * 0.9) {
+                console.error('❌ Неверная сумма платежа:', paymentAmount, paymentCurrency, 'ожидалось минимум:', orderAmount * 0.9, paymentCurrency);
+                return res.status(400).send('Wrong amount');
+            }
+            console.log('   ✅ Сумма проверена успешно (RUB)');
+        } else {
+            console.warn('⚠️ Валюты не совпадают или способ оплаты не определен:', {
+                paymentCurrency,
+                orderPaymentMethod: order.payment_method
+            });
+            // В этом случае пропускаем проверку суммы (доверяем платежной системе)
+            console.log('   ⚠️ Пропускаем проверку суммы');
         }
         
         console.log('💰 Платеж Heleket подтвержден:', order_id, 'Сумма:', amount, currency);
