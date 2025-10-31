@@ -258,7 +258,7 @@ async function sendTelegramNotification(message, silent = false) {
     try {
         if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
             console.log('⚠️ Telegram токен или chat_id не настроены, пропускаем уведомление');
-            return;
+            return false;
         }
         
         const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
@@ -277,15 +277,19 @@ async function sendTelegramNotification(message, silent = false) {
             const data = await response.json();
             if (data.ok) {
                 console.log('✅ Telegram уведомление отправлено успешно');
+                return true;
             } else {
                 console.error('❌ Telegram API вернул ошибку:', data.description || 'Unknown error');
+                return false;
             }
         } else {
-            const errorText = await response.text();
+            const errorText = await response.text().catch(() => 'Unknown error');
             console.error('❌ Ошибка HTTP при отправке в Telegram:', response.status, errorText);
+            return false;
         }
     } catch (error) {
         console.error('❌ Ошибка отправки Telegram уведомления:', error.message || error);
+        return false;
     }
 }
 
