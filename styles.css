@@ -998,10 +998,16 @@ body {
 }
 
 /* Специальная настройка для всех фото новостей (1280x512) */
-.news-image[style*="welcome-image"],
+.news-image[style*="welcome-image"] {
+    background-size: 100% 100% !important;
+    background-position: center center !important;
+    height: 240px !important;
+}
+
+/* Увеличенный зум для Atlas и Sora 2 */
 .news-image[style*="atlas-image"],
 .news-image[style*="sora2-image"] {
-    background-size: 100% 100% !important;
+    background-size: 115% auto !important;
     background-position: center center !important;
     height: 240px !important;
 }
