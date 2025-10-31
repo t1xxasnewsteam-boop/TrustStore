@@ -620,10 +620,11 @@
             }
             
             .order-item {
-                padding: 12px;
-                gap: 10px;
+                padding: 14px;
+                gap: 12px;
                 flex-wrap: wrap;
                 position: relative;
+                align-items: flex-start;
             }
             
             .order-item-image {
@@ -637,6 +638,7 @@
                 flex: 1;
                 min-width: 0;
                 padding-right: 8px;
+                margin-bottom: 0;
             }
             
             .order-item-name {
@@ -644,49 +646,54 @@
                 line-height: 1.4;
                 word-wrap: break-word;
                 margin-bottom: 4px;
+                padding-right: 40px;
             }
             
             .order-item-duration {
                 font-size: 11px;
-                margin-bottom: 8px;
+                margin-bottom: 10px;
+                color: #666;
             }
             
             .order-item-price {
-                font-size: 15px;
-                margin: 0;
-                width: auto;
+                font-size: 16px;
+                font-weight: 700;
+                color: #667eea;
+                margin: 0 0 10px 0;
                 text-align: left;
-                margin-bottom: 8px;
-                display: inline-block;
+                display: block;
+                white-space: normal;
             }
             
             .quantity-controls {
                 width: auto;
                 justify-content: flex-start;
-                margin-top: 0;
-                margin-bottom: 0;
+                margin: 0;
                 align-self: flex-start;
+                flex-wrap: nowrap;
             }
             
             .order-item-right {
                 display: flex;
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
-                gap: 12px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
                 width: 100%;
-                margin-top: 8px;
-                padding-top: 8px;
-                border-top: 1px solid rgba(102, 126, 234, 0.1);
+                margin-top: 0;
+                padding-top: 10px;
+                border-top: 1px solid rgba(102, 126, 234, 0.15);
+                flex: 1 1 100%;
             }
             
             .btn-remove-item {
                 position: absolute;
-                top: 8px;
-                right: 8px;
-                padding: 6px;
+                top: 10px;
+                right: 10px;
+                padding: 6px 8px;
                 font-size: 12px;
                 z-index: 10;
+                background: rgba(255, 255, 255, 0.9);
+                border-radius: 6px;
             }
             
             .promo-input-wrapper {
@@ -787,6 +794,7 @@
             
             .order-item {
                 padding: 12px;
+                gap: 10px;
             }
             
             .order-item-image {
@@ -795,6 +803,31 @@
             }
             
             .order-item-name {
+                font-size: 13px;
+                padding-right: 35px;
+            }
+            
+            .order-item-right {
+                gap: 8px;
+                padding-top: 8px;
+            }
+            
+            .order-item-price {
+                font-size: 15px;
+            }
+            
+            .quantity-controls {
+                gap: 3px;
+            }
+            
+            .quantity-btn {
+                width: 22px;
+                height: 22px;
+                font-size: 12px;
+            }
+            
+            .quantity-input {
+                width: 30px;
                 font-size: 13px;
             }
             
