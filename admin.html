@@ -3667,10 +3667,23 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    alert('✅ Ответ отправлен!');
+                    const message = data.warning 
+                        ? `⚠️ ${data.message}\n\nОшибка: ${data.warning}` 
+                        : `✅ ${data.message || 'Ответ отправлен!'}`;
+                    alert(message);
                     document.getElementById('reply-body').value = '';
-                    closeEmailModal();
-                    loadEmails();
+                    
+                    // Обновляем список писем и открываем модалку заново чтобы увидеть ответ
+                    await loadEmails();
+                    
+                    // Если модалка закрыта - открываем письмо снова чтобы увидеть ответ
+                    if (currentEmailId) {
+                        setTimeout(() => {
+                            openEmailModal(currentEmailId);
+                        }, 500);
+                    } else {
+                        closeEmailModal();
+                    }
                 } else {
                     alert('❌ Ошибка отправки: ' + (data.error || 'Неизвестная ошибка'));
                 }

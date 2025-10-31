@@ -2954,11 +2954,14 @@ app.post('/api/admin/emails/:id/reply', authMiddleware, async (req, res) => {
         // Адрес получателя - это тот, кто отправил письмо (from_email)
         const recipientEmail = originalEmail.from_email;
         
-        console.log(`📧 Отправка ответа на письмо #${id}`);
+        console.log(`📧 === ОТПРАВКА ОТВЕТА НА ПИСЬМО #${id} ===`);
         console.log(`   Получатель (from_email): ${recipientEmail}`);
-        console.log(`   От (EMAIL_USER): ${process.env.EMAIL_USER}`);
+        console.log(`   От (EMAIL_USER): ${process.env.EMAIL_USER || 'orders@truststore.ru'}`);
+        console.log(`   Тема ответа: ${subject}`);
+        console.log(`   Длина текста: ${body.length} символов`);
         
         if (!recipientEmail || recipientEmail === 'unknown@example.com') {
+            console.error(`❌ Ошибка: неверный адрес получателя: ${recipientEmail}`);
             return res.status(400).json({ error: 'Невозможно отправить ответ: адрес получателя не указан' });
         }
         
@@ -2989,30 +2992,55 @@ app.post('/api/admin/emails/:id/reply', authMiddleware, async (req, res) => {
             text: `Ответ на письмо от ${originalEmail.from_name || originalEmail.from_email}:\n\n${originalEmail.body_text || ''}\n\n---\n\n${body}`
         };
         
+        // СНАЧАЛА сохраняем ответ в БД (даже если отправка email не удастся)
         try {
-            await emailTransporter.sendMail(mailOptions);
-            
-            // Сохраняем ответ в БД
             db.prepare(`
                 INSERT INTO email_replies (original_message_id, reply_subject, reply_body)
                 VALUES (?, ?, ?)
             `).run(id, subject, body);
+            console.log(`✅ Ответ сохранен в БД для письма #${id}`);
+        } catch (dbError) {
+            console.error(`❌ Ошибка сохранения ответа в БД:`, dbError.message);
+            return res.status(500).json({ error: 'Ошибка сохранения ответа в БД', details: dbError.message });
+        }
+        
+        // Затем пытаемся отправить email
+        try {
+            console.log(`📤 Попытка отправить email через SMTP...`);
+            await emailTransporter.sendMail(mailOptions);
+            console.log(`✅ Email успешно отправлен на ${recipientEmail}`);
             
             // Помечаем письмо как прочитанное
             db.prepare('UPDATE email_messages SET is_read = 1 WHERE id = ?').run(id);
             
-            console.log(`✅ Ответ отправлен:`);
+            console.log(`✅ Ответ полностью обработан:`);
             console.log(`   От: ${process.env.EMAIL_USER || 'orders@truststore.ru'}`);
             console.log(`   Кому: ${recipientEmail}`);
             console.log(`   Тема: ${mailOptions.subject}`);
             
             // Отправляем уведомление в Telegram
-            sendTelegramNotification(`📧 Ответ отправлен на письмо от ${originalEmail.from_email}`, true);
+            const telegramMsg = `📧 Ответ отправлен на письмо\n\nОт: ${process.env.EMAIL_USER || 'orders@truststore.ru'}\nКому: ${recipientEmail}\nТема: ${mailOptions.subject}`;
+            sendTelegramNotification(telegramMsg, false).catch(err => {
+                console.error(`⚠️ Не удалось отправить Telegram уведомление:`, err.message);
+            });
             
-            res.json({ success: true, message: 'Ответ отправлен' });
+            res.json({ success: true, message: 'Ответ отправлен и сохранен' });
         } catch (emailError) {
-            console.error('Ошибка отправки ответа:', emailError);
-            res.status(500).json({ error: 'Ошибка отправки письма', details: emailError.message });
+            console.error(`❌ Ошибка отправки email:`, emailError.message);
+            console.error(`   Стек ошибки:`, emailError.stack);
+            
+            // Ответ уже сохранен в БД, но email не отправился
+            // Все равно возвращаем успех, но с предупреждением
+            const telegramMsg = `⚠️ Ответ сохранен, но email не отправлен\n\nОшибка: ${emailError.message}\nКому: ${recipientEmail}\nТема: ${mailOptions.subject}`;
+            sendTelegramNotification(telegramMsg, false).catch(err => {
+                console.error(`⚠️ Не удалось отправить Telegram уведомление об ошибке:`, err.message);
+            });
+            
+            res.json({ 
+                success: true, 
+                message: 'Ответ сохранен, но не удалось отправить email',
+                warning: emailError.message 
+            });
         }
     } catch (error) {
         console.error('Ошибка отправки ответа:', error);
