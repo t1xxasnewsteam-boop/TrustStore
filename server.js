@@ -1537,8 +1537,17 @@ app.post('/api/create-order', (req, res) => {
                 order_id: orderId
             });
             
-            // Редиректим сразу
-            res.redirect(302, paymentUrl);
+            // Проверяем, что URL правильный
+            if (!paymentUrl.startsWith('http://') && !paymentUrl.startsWith('https://')) {
+                console.error('❌ Некорректный URL:', paymentUrl);
+                return res.status(500).json({ 
+                    error: 'Ошибка формирования URL',
+                    generated_url: paymentUrl
+                });
+            }
+            
+            // Редиректим сразу с помощью HTTP 302
+            res.status(302).location(paymentUrl).end();
         } catch (error) {
             console.error('❌ Критическая ошибка в /api/payment/heleket/redirect:', error);
             res.status(500).json({ 
