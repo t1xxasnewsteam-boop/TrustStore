@@ -3660,6 +3660,73 @@
             currentEmailId = null;
         }
         
+        let replyImageUrl = null;
+        
+        function handleReplyImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Проверяем тип файла
+            const isImage = file.type.startsWith('image/');
+            const isPDF = file.name.toLowerCase().endsWith('.pdf');
+            
+            if (!isImage && !isPDF) {
+                alert('⚠️ Можно загрузить только изображения или PDF');
+                return;
+            }
+            
+            // Создаем FormData для загрузки
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            // Загружаем файл
+            fetch('/api/admin/emails/reply/upload-image', {
+                method: 'POST',
+                credentials: 'include',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    replyImageUrl = data.imageUrl;
+                    
+                    // Показываем превью
+                    const previewDiv = document.getElementById('reply-image-preview');
+                    const previewImg = document.getElementById('reply-image-preview-img');
+                    const imageName = document.getElementById('reply-image-name');
+                    
+                    previewDiv.style.display = 'block';
+                    imageName.textContent = file.name;
+                    
+                    if (isImage) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            previewImg.src = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        previewImg.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23666"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/></svg>';
+                        previewImg.style.padding = '20px';
+                        previewImg.style.background = 'rgba(255,255,255,0.1)';
+                    }
+                } else {
+                    alert('❌ Ошибка загрузки фото: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки фото:', error);
+                alert('❌ Ошибка загрузки фото');
+            });
+        }
+        
+        function removeReplyImage() {
+            replyImageUrl = null;
+            const input = document.getElementById('reply-image-input');
+            if (input) input.value = '';
+            const preview = document.getElementById('reply-image-preview');
+            if (preview) preview.style.display = 'none';
+        }
+        
         async function sendEmailReply() {
             if (!currentEmailId) return;
             
@@ -3678,7 +3745,7 @@
                         'Content-Type': 'application/json'
                     },
                     credentials: 'include',
-                    body: JSON.stringify({ subject, body })
+                    body: JSON.stringify({ subject, body, imageUrl: replyImageUrl })
                 });
                 
                 const data = await response.json();

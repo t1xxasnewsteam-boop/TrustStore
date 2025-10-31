@@ -3018,6 +3018,7 @@ app.post('/api/admin/emails/:id/reply', authMiddleware, async (req, res) => {
                         <div style="color: #333; font-size: 13px; white-space: pre-wrap;">${originalEmail.body_text || originalEmail.body_html || ''}</div>
                     </div>
                     <div style="color: #333; white-space: pre-wrap;">${body.replace(/\n/g, '<br>')}</div>
+                    ${imageUrl ? `<div style="margin: 20px 0;"><img src="https://truststore.ru${imageUrl}" alt="Изображение" style="max-width: 100%; border-radius: 8px;"></div>` : ''}
                     <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
                     <div style="color: #999; font-size: 12px;">
                         Trust Store<br>
@@ -3025,7 +3026,11 @@ app.post('/api/admin/emails/:id/reply', authMiddleware, async (req, res) => {
                     </div>
                 </div>
             `,
-            text: `Ответ на письмо от ${originalEmail.from_name || originalEmail.from_email}:\n\n${originalEmail.body_text || ''}\n\n---\n\n${body}`
+            text: `Ответ на письмо от ${originalEmail.from_name || originalEmail.from_email}:\n\n${originalEmail.body_text || ''}\n\n---\n\n${body}${imageUrl ? '\n\n[Изображение прикреплено]' : ''}`,
+            attachments: imageUrl ? [{
+                filename: path.basename(imageUrl),
+                path: path.join(__dirname, imageUrl)
+            }] : []
         };
         
         // СНАЧАЛА сохраняем ответ в БД (даже если отправка email не удастся)
@@ -3064,9 +3069,52 @@ app.post('/api/admin/emails/:id/reply', authMiddleware, async (req, res) => {
             // Отправляем уведомление в Telegram с фото (если есть)
             const telegramMsg = `📧 Ответ отправлен на письмо\n\nОт: ${process.env.EMAIL_USER || 'orders@truststore.ru'}\nКому: ${recipientEmail}\nТема: ${mailOptions.subject}`;
             
-            if (attachments.length > 0) {
-                // Отправляем первое фото с текстом
-                console.log(`📸 Отправка ${attachments.length} фото в Telegram...`);
+            // Проверяем есть ли фото в ответе (загруженное админом)
+            const hasReplyImage = imageUrl && imageUrl.trim() !== '';
+            
+            // Сначала отправляем фото из ответа (если есть)
+            if (hasReplyImage) {
+                console.log(`📸 Отправка фото из ответа в Telegram: ${imageUrl}`);
+                sendTelegramPhoto(imageUrl, telegramMsg, false).then(() => {
+                    console.log(`✅ Telegram фото из ответа отправлено`);
+                    
+                    // Затем отправляем фото из оригинального письма
+                    if (attachments.length > 0) {
+                        console.log(`📸 Отправка ${attachments.length} фото из письма...`);
+                        setTimeout(() => {
+                            const firstAttachment = attachments[0];
+                            sendTelegramPhoto(firstAttachment.file_path, `Фото из письма: ${firstAttachment.filename}`, false).then(() => {
+                                for (let i = 1; i < attachments.length; i++) {
+                                    setTimeout(() => {
+                                        sendTelegramPhoto(attachments[i].file_path, `${recipientEmail}: ${attachments[i].filename}`, false).catch(err => {
+                                            console.error(`❌ Ошибка отправки фото #${i + 1}:`, err.message);
+                                        });
+                                    }, i * 1000);
+                                }
+                            }).catch(err => {
+                                console.error(`❌ Ошибка отправки фото из письма:`, err.message);
+                            });
+                        }, 1500);
+                    }
+                }).catch(err => {
+                    console.error(`❌ Ошибка отправки Telegram фото из ответа:`, err.message);
+                    // Если фото из ответа не отправилось - отправляем текст или фото из письма
+                    if (attachments.length > 0) {
+                        const firstAttachment = attachments[0];
+                        sendTelegramPhoto(firstAttachment.file_path, telegramMsg, false).catch(e => {
+                            sendTelegramNotification(telegramMsg, false).catch(e2 => {
+                                console.error(`❌ Не удалось отправить Telegram текст:`, e2.message);
+                            });
+                        });
+                    } else {
+                        sendTelegramNotification(telegramMsg, false).catch(e => {
+                            console.error(`❌ Не удалось отправить Telegram текст:`, e.message);
+                        });
+                    }
+                });
+            } else if (attachments.length > 0) {
+                // Нет фото в ответе, но есть фото в письме
+                console.log(`📸 Отправка ${attachments.length} фото из письма...`);
                 const firstAttachment = attachments[0];
                 sendTelegramPhoto(firstAttachment.file_path, telegramMsg, false).then(() => {
                     console.log(`✅ Telegram фото отправлено: ${firstAttachment.filename}`);
