@@ -1011,6 +1011,15 @@ body {
     height: 240px;
 }
 
+/* Универсальная настройка для всех изображений новостей (1280x512) */
+.news-image[style*="atlas-image"],
+.news-image[style*="sora2-image"],
+.news-image[style*="welcome-image"] {
+    background-size: 100% 100%;
+    background-position: center center;
+    height: 240px;
+}
+
 .news-icon {
     font-size: 64px;
     filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
