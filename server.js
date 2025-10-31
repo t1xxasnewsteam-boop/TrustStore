@@ -1684,11 +1684,13 @@ app.post('/api/payment/yoomoney', async (req, res) => {
         console.log('   currency:', currency);
         console.log('   label (order_id):', label);
         
-        // Проверяем, что это уведомление об успешном переводе
-        if (notification_type !== 'p2p-incoming') {
+        // Проверяем, что это уведомление об успешном переводе (p2p-incoming для переводов между кошельками, card-incoming для карт)
+        if (notification_type !== 'p2p-incoming' && notification_type !== 'card-incoming') {
             console.log('⚠️ Неподдерживаемый тип уведомления:', notification_type);
             return res.status(400).send('Wrong notification type');
         }
+        
+        console.log('✅ Тип уведомления поддерживается:', notification_type);
         
         // Проверяем подпись (если есть секретный ключ)
         if (YOOMONEY_SECRET) {
