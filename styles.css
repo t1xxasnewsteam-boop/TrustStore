@@ -749,17 +749,17 @@ body {
 }
 
 .product-title {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     color: #1a1a1a;
 }
 
 .product-description {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 500;
     color: #666;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
     line-height: 1.4;
 }
 
