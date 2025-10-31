@@ -599,13 +599,15 @@
         
         @media (max-width: 768px) {
             .checkout-page {
-                padding: 16px 0 80px;
+                padding: 16px 0 100px;
+                padding-bottom: 100px !important;
             }
             
             .checkout-container {
                 grid-template-columns: 1fr;
                 gap: 20px;
                 padding: 0 16px;
+                padding-bottom: 20px;
             }
             
             .checkout-header h1 {
@@ -616,6 +618,7 @@
             
             .order-summary, #checkout-form {
                 padding: 20px;
+                padding-bottom: 40px;
                 border-radius: 16px;
             }
             
@@ -756,12 +759,20 @@
                 font-size: 11px;
                 padding: 8px 12px;
                 margin-top: 8px;
-                margin-bottom: 12px;
-                line-height: 1.4;
+                margin-bottom: 20px;
+                line-height: 1.5;
+                word-wrap: break-word;
+                display: block;
+                min-height: 32px;
             }
             
             #checkout-form {
-                padding-bottom: 30px;
+                padding-bottom: 60px !important;
+                margin-bottom: 40px;
+            }
+            
+            .payment-method-info {
+                margin-bottom: 10px;
             }
             
             .summary-section {
@@ -780,7 +791,12 @@
         
         @media (max-width: 480px) {
             .checkout-page {
-                padding: 12px 0 24px;
+                padding: 12px 0 100px;
+                padding-bottom: 100px !important;
+            }
+            
+            #checkout-form {
+                padding-bottom: 70px !important;
             }
             
             .checkout-container {
