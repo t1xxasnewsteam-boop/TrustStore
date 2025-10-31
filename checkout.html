@@ -1242,13 +1242,15 @@
                             <div class="order-item-name">${item.name}</div>
                             <div class="order-item-duration">${item.duration}</div>
                         </div>
-                        ${priceHTML}
-                        <div class="quantity-controls">
-                            <button class="quantity-btn" onclick="decreaseQuantity(${index})">−</button>
-                            <input type="text" class="quantity-input" value="${item.quantity}" 
-                                   onchange="updateQuantityManual(${index}, this.value)"
-                                   onkeypress="return handleQuantityKeypress(event)">
-                            <button class="quantity-btn" onclick="increaseQuantity(${index})">+</button>
+                        <div class="order-item-right">
+                            ${priceHTML}
+                            <div class="quantity-controls">
+                                <button class="quantity-btn" onclick="decreaseQuantity(${index})">−</button>
+                                <input type="text" class="quantity-input" value="${item.quantity}" 
+                                       onchange="updateQuantityManual(${index}, this.value)"
+                                       onkeypress="return handleQuantityKeypress(event)">
+                                <button class="quantity-btn" onclick="increaseQuantity(${index})">+</button>
+                            </div>
                         </div>
                         <button class="btn-remove-item" onclick="removeOrderItem(${index})" title="Удалить товар">×</button>
                     </div>
