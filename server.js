@@ -1519,7 +1519,8 @@ app.post('/api/payment/heleket/create', async (req, res) => {
         
         const jsonBody = JSON.stringify(bodyObj);
         const base64Body = Buffer.from(jsonBody, 'utf8').toString('base64');
-        const sign = require('crypto').createHash('md5').update(base64Body + HELEKET_API_KEY).digest('hex');
+        // Подпись: sign = md5(base64_encode(JSON_BODY) + API_KEY)
+        const sign = crypto.createHash('md5').update(base64Body + HELEKET_API_KEY).digest('hex');
         
         console.log('📤 Создание платежа Heleket:', {
             url: 'https://api.heleket.com/v1/payment',
