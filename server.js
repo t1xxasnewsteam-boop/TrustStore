@@ -1850,10 +1850,10 @@ app.post('/api/payment/heleket', async (req, res) => {
             console.log('⚠️ Проверка подписи пропущена (нет HELEKET_WEBHOOK_SECRET или signature)');
         }
         
-        // Обрабатываем только события успешной оплаты
+        // Обрабатываем только ФИНАЛЬНЫЕ и успешные платежи
         // Проверяем разные варианты статусов
         const isPaid = (
-            status === 'paid' || 
+            (status === 'paid' || 
             status === 'completed' || 
             status === 'success' ||
             status === 'successful' ||
@@ -1861,15 +1861,17 @@ app.post('/api/payment/heleket', async (req, res) => {
             event === 'invoice.paid' ||
             event === 'payment.completed' ||
             body.state === 0 || // Heleket может возвращать state: 0 для успеха
-            body.result?.status === 'paid'
+            body.result?.status === 'paid') &&
+            (body.is_final === true || body.is_final === undefined) // Обрабатываем только финальные платежи
         );
         
         if (!isPaid) {
-            console.log('⚠️ Неподдерживаемый статус платежа:', {
+            console.log('⚠️ Неподдерживаемый статус платежа или промежуточный webhook:', {
                 status: status,
                 event: event,
                 state: body.state,
-                result: body.result
+                result: body.result,
+                is_final: body.is_final
             });
             return res.status(200).send('OK'); // Возвращаем OK, но ничего не делаем
         }
