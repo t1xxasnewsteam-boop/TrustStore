@@ -320,6 +320,22 @@ cleanOldFiles();
 // Запуск очистки каждый час
 setInterval(cleanOldFiles, 60 * 60 * 1000); // 1 час
 
+// Настройка multer для загрузки фото в ответах на email
+const emailReplyStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadDir = path.join(__dirname, 'uploads', 'email-reply-images');
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const uploadEmailReply = multer({ storage: emailReplyStorage });
+
 const upload = multer({
     storage: storage,
     limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
