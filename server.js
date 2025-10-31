@@ -2000,15 +2000,26 @@ app.post('/api/payment/heleket', async (req, res) => {
                     `).run(order_id, availableItem.id);
                     
                     // Получаем информацию о товаре из БД
-                    const productInfo = db.prepare('SELECT * FROM products WHERE name = ?').get(product.name);
+                    // Используем название из инвентаря для поиска в products
+                    const productInfo = db.prepare('SELECT * FROM products WHERE name = ?').get(availableItem.product_name);
+                    if (!productInfo) {
+                        // Пробуем найти по базовому названию
+                        const baseName = availableItem.product_name.split('(')[0].split('-')[0].split('|')[0].trim();
+                        const productInfoAlt = db.prepare('SELECT * FROM products WHERE name LIKE ?').get(baseName + '%');
+                        if (productInfoAlt) {
+                            console.log(`   ℹ️ Товар найден по базовому названию: ${baseName}`);
+                        }
+                    }
+                    
+                    console.log(`   ✅ Товар найден в инвентаре: ${availableItem.product_name}, логин: ${availableItem.login ? 'есть' : 'нет'}`);
                     
                     // Отправляем email с товаром
                     try {
                         await sendOrderEmail({
                             to: order.customer_email,
                             orderNumber: order_id,
-                            productName: product.name,
-                            productImage: productInfo ? productInfo.image : null,
+                            productName: availableItem.product_name || productName, // Используем название из инвентаря
+                            productImage: productInfo ? productInfo.image : (product.image || null),
                             productCategory: productInfo ? productInfo.category : null,
                             productDescription: productInfo ? productInfo.description : null,
                             login: availableItem.login,
@@ -2016,7 +2027,7 @@ app.post('/api/payment/heleket', async (req, res) => {
                             instructions: availableItem.instructions || 'Используйте эти данные для входа в сервис.'
                         });
                         
-                        console.log(`✅ Email отправлен: ${order.customer_email} - ${product.name}`);
+                        console.log(`✅ Email отправлен: ${order.customer_email} - ${availableItem.product_name || productName}`);
                     } catch (emailError) {
                         console.error('❌ Ошибка отправки email:', emailError);
                     }
