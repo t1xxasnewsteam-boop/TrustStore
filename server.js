@@ -2924,18 +2924,22 @@ function createOrderEmailHTML(data) {
       .email-container { width: 100% !important; max-width: 100% !important; }
       .email-padding { padding: 20px 16px !important; }
       .header-padding { padding: 20px 16px !important; }
-      .header-table tr { display: block !important; }
-      .header-left { display: block !important; width: 100% !important; margin-bottom: 12px !important; }
-      .header-right { display: block !important; width: 100% !important; text-align: left !important; padding-left: 0 !important; padding-top: 8px !important; }
-      .product-table tr { display: block !important; }
-      .product-label { display: block !important; width: 100% !important; margin-bottom: 8px !important; }
-      .product-name { display: block !important; width: 100% !important; padding-right: 0 !important; margin-bottom: 12px !important; }
-      .product-image { display: block !important; width: 100% !important; text-align: center !important; margin-top: 12px !important; }
-      .product-image img { margin: 0 auto !important; }
+      .header-table { width: 100% !important; }
+      .header-table tr { display: block !important; width: 100% !important; }
+      .header-left { display: block !important; width: 100% !important; margin-bottom: 16px !important; padding-right: 0 !important; }
+      .header-right { display: block !important; width: 100% !important; text-align: left !important; padding-left: 0 !important; padding-top: 12px !important; border-top: 1px solid rgba(255,255,255,0.2) !important; font-size: 13px !important; }
+      .product-table { width: 100% !important; }
+      .product-table tr { display: flex !important; flex-direction: column !important; width: 100% !important; }
+      .product-label { display: block !important; width: 100% !important; margin-bottom: 8px !important; font-weight: 600 !important; }
+      .product-name { display: block !important; width: 100% !important; padding-right: 0 !important; margin-bottom: 16px !important; font-size: 17px !important; }
+      .product-image { display: block !important; width: 100% !important; text-align: center !important; margin-top: 0 !important; margin-bottom: 16px !important; padding-top: 12px !important; border-top: 1px solid rgba(102,126,234,0.15) !important; }
+      .product-image img { margin: 0 auto !important; max-width: 120px !important; max-height: 120px !important; }
       .telegram-card { padding: 20px 16px !important; }
       .telegram-text { font-size: 14px !important; line-height: 1.5 !important; }
       .button-cell { padding: 10px 18px !important; }
       .button-text { font-size: 13px !important; }
+      h1 { font-size: 20px !important; }
+      .product-info-box { padding: 16px 18px !important; }
     }
   </style>
 </head>
@@ -2970,17 +2974,19 @@ function createOrderEmailHTML(data) {
             <td class="email-padding" style="padding:32px;color:#1a1a1a;">
               <h1 style="margin:0 0 12px 0;font-size:22px;line-height:1.3;color:#1a1a1a;text-align:center;">Спасибо за покупку!</h1>
               <p style="margin:0 0 24px 0;font-size:14px;color:#666;text-align:center;">Ниже — данные для доступа и краткая информация по заказу.</p>
-              <div style="background:#f8f9ff;border:1px solid rgba(102,126,234,0.15);border-radius:12px;padding:20px 24px;margin:0 0 24px 0;">
+              <div class="product-info-box" style="background:#f8f9ff;border:1px solid rgba(102,126,234,0.15);border-radius:12px;padding:20px 24px;margin:0 0 24px 0;">
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" class="product-table" style="table-layout:fixed;">
                   <tr>
                     <td class="product-label" style="font-size:14px;color:#1a1a1a;width:80px;vertical-align:middle;white-space:nowrap;">Товар:</td>
                     <td class="product-name" style="font-size:16px;color:#1a1a1a;font-weight:700;vertical-align:middle;word-wrap:break-word;word-break:break-word;padding-right:16px;">
                       ${productName}
                     </td>
-                    ${productImage ? `<td class="product-image" style="text-align:right;vertical-align:middle;width:120px;white-space:nowrap;">
-                      <img src="https://truststore.ru/${productImage}" alt="${productName}" style="max-width:100px;max-height:100px;width:auto;height:auto;object-fit:contain;display:block;margin-left:auto;">
-                    </td>` : ''}
                   </tr>
+                  ${productImage ? `<tr>
+                    <td class="product-image" colspan="2" style="text-align:center;vertical-align:middle;width:100%;padding-top:16px;border-top:1px solid rgba(102,126,234,0.15);margin-top:16px;">
+                      <img src="https://truststore.ru/${productImage}" alt="${productName}" style="max-width:120px;max-height:120px;width:auto;height:auto;object-fit:contain;display:block;margin:0 auto;">
+                    </td>
+                  </tr>` : ''}
                 </table>
               </div>
               <div style="margin:18px 0 22px 0;">
