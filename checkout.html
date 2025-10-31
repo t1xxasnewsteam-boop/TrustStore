@@ -951,7 +951,10 @@
                     <div class="form-section">
                         <h3>Способ оплаты</h3>
                         <div class="payment-methods" style="display: grid !important; grid-template-columns: 1fr !important; gap: 15px !important;">
-                            <div class="payment-method selected" data-method="yoomoney" style="display: flex !important;">
+                            <div class="payment-method selected" data-method="yoomoney" style="position: relative; display: flex !important;">
+                                <div style="position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; pointer-events: none; z-index: 1;">
+                                    🔥 Популярно
+                                </div>
                                 <div class="payment-method-icon">
                                     <svg width="44" height="28" viewBox="0 0 56 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Банковская карта" role="img">
                                         <defs>
@@ -977,14 +980,11 @@
                                     </svg>
                                 </div>
                                 <div class="payment-method-info">
-                                    <div class="payment-method-name">Банковская Карта (YooMoney)</div>
+                                    <div class="payment-method-name">Банковская Карта</div>
                                     <div class="payment-method-desc">Быстрая и безопасная оплата</div>
                                 </div>
                             </div>
                             <div class="payment-method" data-method="heleket" style="position: relative; display: flex !important; visibility: visible !important; opacity: 1 !important; cursor: pointer;">
-                                <div style="position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; pointer-events: none; z-index: 1;">
-                                    🔥 Популярно
-                                </div>
                                 <div class="payment-method-icon">
                                     <svg width="44" height="28" viewBox="0 0 56 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <defs>
@@ -1006,7 +1006,7 @@
                                     </svg>
                                 </div>
                                 <div class="payment-method-info">
-                                    <div class="payment-method-name">💎 Криптовалюта (Heleket)</div>
+                                    <div class="payment-method-name">Криптовалюта</div>
                                     <div class="payment-method-desc">Bitcoin • USDT • Ethereum • и другие</div>
                                     <div id="crypto-rate-info" style="font-size: 11px; color: #10b981; margin-top: 4px; font-weight: 500;">
                                         💱 Автоконвертация RUB → USD по текущему курсу
