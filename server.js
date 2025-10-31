@@ -137,26 +137,47 @@ async function sendTelegramNotification(message, silent = false) {
 // Функция отправки изображения в Telegram
 async function sendTelegramPhoto(imageUrl, caption, silent = false) {
     try {
+        if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+            console.log('⚠️ Telegram токен или chat_id не настроены, пропускаем отправку фото');
+            return;
+        }
+        
         const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`;
         const fullImageUrl = `https://truststore.ru${imageUrl}`;
+        
+        // Экранируем email адреса - убираем parse_mode если есть @
+        const hasEmail = caption && caption.includes('@');
+        const telegramOptions = {
+            chat_id: TELEGRAM_CHAT_ID,
+            photo: fullImageUrl,
+            caption: caption,
+            disable_notification: silent
+        };
+        
+        // Добавляем parse_mode только если нет email адресов
+        if (!hasEmail) {
+            telegramOptions.parse_mode = 'HTML';
+        }
         
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: TELEGRAM_CHAT_ID,
-                photo: fullImageUrl,
-                caption: caption,
-                parse_mode: 'HTML',
-                disable_notification: silent
-            })
+            body: JSON.stringify(telegramOptions)
         });
         
+        const responseData = await response.json();
+        
         if (response.ok) {
-            console.log('✅ Telegram фото отправлено');
+            console.log('✅ Telegram фото отправлено успешно');
+            return responseData;
+        } else {
+            console.error('❌ Ошибка HTTP при отправке Telegram фото:', response.status);
+            console.error('   Ответ API:', JSON.stringify(responseData));
+            throw new Error(responseData.description || `HTTP ${response.status}`);
         }
     } catch (error) {
-        console.error('❌ Ошибка отправки Telegram фото:', error);
+        console.error('❌ Ошибка отправки Telegram фото:', error.message || error);
+        throw error;
     }
 }
 
@@ -3018,11 +3039,44 @@ app.post('/api/admin/emails/:id/reply', authMiddleware, async (req, res) => {
             console.log(`   Кому: ${recipientEmail}`);
             console.log(`   Тема: ${mailOptions.subject}`);
             
-            // Отправляем уведомление в Telegram
+            // Получаем вложения из оригинального письма (фото)
+            const attachments = db.prepare(`
+                SELECT * FROM email_attachments 
+                WHERE email_message_id = ? AND content_type LIKE 'image/%'
+                ORDER BY created_at ASC
+            `).all(id);
+            
+            // Отправляем уведомление в Telegram с фото (если есть)
             const telegramMsg = `📧 Ответ отправлен на письмо\n\nОт: ${process.env.EMAIL_USER || 'orders@truststore.ru'}\nКому: ${recipientEmail}\nТема: ${mailOptions.subject}`;
-            sendTelegramNotification(telegramMsg, false).catch(err => {
-                console.error(`⚠️ Не удалось отправить Telegram уведомление:`, err.message);
-            });
+            
+            if (attachments.length > 0) {
+                // Отправляем первое фото с текстом
+                console.log(`📸 Отправка ${attachments.length} фото в Telegram...`);
+                const firstAttachment = attachments[0];
+                sendTelegramPhoto(firstAttachment.file_path, telegramMsg, false).then(() => {
+                    console.log(`✅ Telegram фото отправлено: ${firstAttachment.filename}`);
+                    
+                    // Отправляем остальные фото (если есть)
+                    for (let i = 1; i < attachments.length; i++) {
+                        setTimeout(() => {
+                            sendTelegramPhoto(attachments[i].file_path, `${recipientEmail}: ${attachments[i].filename}`, false).catch(err => {
+                                console.error(`❌ Ошибка отправки фото #${i + 1}:`, err.message);
+                            });
+                        }, i * 1000);
+                    }
+                }).catch(err => {
+                    console.error(`❌ Ошибка отправки Telegram фото:`, err.message);
+                    // Если фото не отправилось - отправляем текст
+                    sendTelegramNotification(telegramMsg, false).catch(e => {
+                        console.error(`❌ Не удалось отправить Telegram текст:`, e.message);
+                    });
+                });
+            } else {
+                // Нет фото - отправляем только текст
+                sendTelegramNotification(telegramMsg, false).catch(err => {
+                    console.error(`⚠️ Не удалось отправить Telegram уведомление:`, err.message);
+                });
+            }
             
             res.json({ success: true, message: 'Ответ отправлен и сохранен' });
         } catch (emailError) {
@@ -3259,10 +3313,11 @@ async function saveNewEmail(parsed, folderName) {
             sendTelegramPhoto(firstImage.path, telegramMessage, false).then(() => {
                 console.log(`✅ Telegram фото отправлено: ${firstImage.filename}`);
                 
-                // Отправляем остальные фото без текста (если есть)
+                // Отправляем остальные фото с простым текстом (если есть)
                 for (let i = 1; i < imageAttachments.length; i++) {
                     setTimeout(() => {
-                        sendTelegramPhoto(imageAttachments[i].path, `${fromEmail}: ${imageAttachments[i].filename}`, false).catch(err => {
+                        const simpleCaption = `Фото ${i + 1} из письма: ${imageAttachments[i].filename}`;
+                        sendTelegramPhoto(imageAttachments[i].path, simpleCaption, false).catch(err => {
                             console.error(`❌ Ошибка отправки фото #${i + 1}:`, err.message);
                         });
                     }, i * 1000); // Задержка 1 секунда между фото
