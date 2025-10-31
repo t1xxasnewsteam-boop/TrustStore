@@ -1746,28 +1746,36 @@ app.post('/api/payment/yoomoney', async (req, res) => {
         console.log('📦 Товары в заказе:', JSON.stringify(products, null, 2));
         
         // Обрабатываем каждый товар - ТОВАР ВСЕГДА В НАЛИЧИИ, ОТПРАВЛЯЕМ ПИСЬМО СРАЗУ
+        console.log('📧 Начинаем отправку emails клиенту...');
+        let emailsSent = 0;
+        let emailsFailed = 0;
+        
         for (const product of products) {
             const quantity = product.quantity || 1;
             
             // Получаем название товара
             const productName = product.name || product.productName || product.product_name;
-            console.log(`   ✅ Обработка товара: "${productName}", количество: ${quantity}`);
+            console.log(`   📦 Обработка товара: "${productName}", количество: ${quantity}`);
             
             // Получаем информацию о товаре из БД products
-            const productInfo = db.prepare('SELECT * FROM products WHERE name = ?').get(productName);
+            let productInfo = db.prepare('SELECT * FROM products WHERE name = ?').get(productName);
             if (!productInfo) {
                 // Пробуем найти по базовому названию (убираем скобки и дополнительную информацию)
                 const baseName = productName.split('(')[0].split('-')[0].split('|')[0].split('[')[0].trim();
-                const productInfoAlt = db.prepare('SELECT * FROM products WHERE name LIKE ?').get(baseName + '%');
-                if (productInfoAlt) {
+                productInfo = db.prepare('SELECT * FROM products WHERE name LIKE ?').get(baseName + '%');
+                if (productInfo) {
                     console.log(`   ℹ️ Товар найден по базовому названию: ${baseName}`);
+                } else {
+                    console.log(`   ⚠️ Товар "${productName}" не найден в БД, используем данные из заказа`);
                 }
             }
             
             // Отправляем email для каждого товара в количестве
             for (let i = 0; i < quantity; i++) {
                 try {
-                    await sendOrderEmail({
+                    console.log(`   📧 Отправка email ${i + 1}/${quantity} для "${productName}" на ${order.customer_email}...`);
+                    
+                    const emailData = {
                         to: order.customer_email,
                         orderNumber: label,
                         productName: productName,
@@ -1777,14 +1785,26 @@ app.post('/api/payment/yoomoney', async (req, res) => {
                         login: null, // Не используем инвентарь
                         password: null, // Не используем инвентарь
                         instructions: productInfo ? productInfo.description : 'Спасибо за покупку! Инструкции по использованию товара будут отправлены отдельно.'
-                    });
+                    };
                     
-                    console.log(`✅ Email отправлен: ${order.customer_email} - ${productName}`);
+                    console.log(`   📋 Данные email:`, JSON.stringify({
+                        to: emailData.to,
+                        orderNumber: emailData.orderNumber,
+                        productName: emailData.productName
+                    }, null, 2));
+                    
+                    await sendOrderEmail(emailData);
+                    emailsSent++;
+                    console.log(`   ✅ Email ${i + 1}/${quantity} отправлен успешно: ${order.customer_email} - ${productName}`);
                 } catch (emailError) {
-                    console.error('❌ Ошибка отправки email:', emailError);
+                    emailsFailed++;
+                    console.error(`   ❌ Ошибка отправки email ${i + 1}/${quantity}:`, emailError.message || emailError);
+                    console.error(`   ❌ Stack trace:`, emailError.stack);
                 }
             }
         }
+        
+        console.log(`📊 Итого emails: отправлено ${emailsSent}, ошибок ${emailsFailed}`);
         
         // Отправляем уведомление об успешной оплате в Telegram
         console.log('📱 Отправка уведомления в Telegram...');
@@ -1796,13 +1816,15 @@ app.post('/api/payment/yoomoney', async (req, res) => {
             `💵 Сумма: ${amount} ${currency}\n` +
             `📦 Товары: ${products.map(p => p.name).join(', ')}\n` +
             `📅 Дата: ${datetime}\n\n` +
+            `📊 Emails: отправлено ${emailsSent}, ошибок ${emailsFailed}\n\n` +
             `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
         
         try {
-            await sendTelegramNotification(successNotification, false);
+            const telegramResult = await sendTelegramNotification(successNotification, false);
             console.log('   ✅ Telegram уведомление отправлено');
         } catch (telegramError) {
-            console.error('   ❌ Ошибка отправки Telegram:', telegramError.message);
+            console.error('   ❌ Ошибка отправки Telegram:', telegramError.message || telegramError);
+            console.error('   ❌ Stack trace:', telegramError.stack);
         }
         
         res.status(200).send('OK');
