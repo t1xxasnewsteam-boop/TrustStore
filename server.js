@@ -4364,18 +4364,36 @@ app.listen(PORT, () => {
 });
 
 // ==================== MANUAL ORDER PROCESSING ====================
-// Endpoint для ручной отправки последнего оплаченного заказа
+// Endpoint для ручной отправки последнего оплаченного заказа (или конкретного заказа)
 app.post('/api/manual-send-last-order', async (req, res) => {
     try {
-        console.log('🔧 Ручная отправка последнего заказа...');
+        console.log('🔧 Ручная отправка заказа...');
         
-        // Находим последний оплаченный заказ
-        const lastOrder = db.prepare(`
-            SELECT * FROM orders 
-            WHERE status = 'paid'
-            ORDER BY created_at DESC 
-            LIMIT 1
-        `).get();
+        const orderId = req.body.orderId || req.query.orderId;
+        
+        let lastOrder;
+        if (orderId) {
+            // Ищем конкретный заказ
+            console.log('   Поиск заказа:', orderId);
+            lastOrder = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(orderId);
+            if (!lastOrder) {
+                return res.status(404).json({ success: false, error: `Заказ ${orderId} не найден` });
+            }
+            // Обновляем статус на paid, если он еще не оплачен
+            if (lastOrder.status !== 'paid') {
+                console.log('   Обновление статуса на "paid"...');
+                db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('paid', orderId);
+                lastOrder.status = 'paid';
+            }
+        } else {
+            // Находим последний оплаченный заказ
+            lastOrder = db.prepare(`
+                SELECT * FROM orders 
+                WHERE status = 'paid'
+                ORDER BY created_at DESC 
+                LIMIT 1
+            `).get();
+        }
         
         if (!lastOrder) {
             return res.status(404).json({ success: false, error: 'Не найден оплаченный заказ' });
