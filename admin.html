@@ -1292,7 +1292,21 @@
                             <input type="text" id="reply-subject" placeholder="Тема ответа (автоматически добавится Re:)" style="width: 100%; padding: 12px; border: 2px solid var(--border-color); border-radius: 10px; font-size: 14px; background: var(--bg-secondary); color: var(--text-primary);">
                         </div>
                         <textarea id="reply-body" placeholder="Введите ваш ответ..." style="width: 100%; padding: 15px; border: 2px solid var(--border-color); border-radius: 10px; font-size: 14px; font-family: inherit; min-height: 100px; resize: vertical; background: var(--bg-secondary); color: var(--text-primary);"></textarea>
+                        
+                        <!-- Загрузка фото -->
+                        <input type="file" id="reply-image-input" accept="image/*,.pdf" style="display: none;" onchange="handleReplyImageSelect(event)">
+                        <div id="reply-image-preview" style="display: none; margin-top: 15px; padding: 15px; background: var(--bg-secondary); border-radius: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <img id="reply-image-preview-img" src="" alt="Preview" style="max-width: 100px; max-height: 100px; border-radius: 8px;">
+                                <div style="flex: 1;">
+                                    <div style="font-size: 13px; color: var(--text-primary); margin-bottom: 5px;" id="reply-image-name"></div>
+                                    <button onclick="removeReplyImage()" style="background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">Удалить</button>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="btn btn-secondary" onclick="document.getElementById('reply-image-input').click()" style="white-space: nowrap;">📷 Прикрепить фото</button>
                             <button class="btn btn-primary" onclick="sendEmailReply()">✉️ Отправить ответ</button>
                             <button class="btn btn-secondary" id="email-read-btn" onclick="toggleEmailRead()">Пометить как прочитанное</button>
                         </div>
@@ -3620,6 +3634,9 @@
                     document.getElementById('reply-subject').value = email.subject.startsWith('Re:') ? email.subject : `Re: ${email.subject}`;
                     document.getElementById('reply-body').value = '';
                     
+                    // Очищаем фото при открытии письма
+                    removeReplyImage();
+                    
                     // Кнопка статуса
                     const readBtn = document.getElementById('email-read-btn');
                     if (email.is_read === 0) {
@@ -3672,6 +3689,9 @@
                         : `✅ ${data.message || 'Ответ отправлен!'}`;
                     alert(message);
                     document.getElementById('reply-body').value = '';
+                    
+                    // Очищаем фото после отправки
+                    removeReplyImage();
                     
                     // Обновляем список писем и открываем модалку заново чтобы увидеть ответ
                     await loadEmails();

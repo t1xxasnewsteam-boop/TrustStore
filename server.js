@@ -2954,11 +2954,26 @@ app.get('/api/admin/emails/:id', authMiddleware, (req, res) => {
     }
 });
 
+// Endpoint для загрузки фото для ответа на email
+app.post('/api/admin/emails/reply/upload-image', authMiddleware, uploadEmailReply.single('image'), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'Файл не загружен' });
+        }
+        
+        const imageUrl = `/uploads/email-reply-images/${req.file.filename}`;
+        res.json({ success: true, imageUrl: imageUrl });
+    } catch (error) {
+        console.error('Ошибка загрузки фото для ответа:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
 // Отправить ответ на письмо
 app.post('/api/admin/emails/:id/reply', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
-        const { subject, body } = req.body;
+        const { subject, body, imageUrl } = req.body;
         
         if (!subject || !body) {
             return res.status(400).json({ error: 'Укажите тему и текст ответа' });
