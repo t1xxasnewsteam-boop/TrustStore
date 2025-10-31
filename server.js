@@ -2772,22 +2772,33 @@ app.post('/api/newsletter/subscribe', (req, res) => {
         
         console.log('📧 Новый подписчик:', email);
         
-        // Отправляем приветственное письмо (асинхронно)
+        // Отправляем приветственное письмо (асинхронно, но с обработкой ошибок)
         sendWelcomeEmail(email).then(result => {
-            if (result.success) {
+            if (result && result.success) {
                 console.log(`✅ Приветственное письмо доставлено: ${email}`);
             } else {
-                console.error(`❌ Не удалось отправить приветственное письмо: ${email}`);
+                console.error(`❌ Не удалось отправить приветственное письмо: ${email}`, result?.error || 'Unknown error');
             }
+        }).catch(error => {
+            console.error(`❌ Ошибка отправки приветственного письма: ${email}`, error.message || error);
         });
         
-        // Отправляем беззвучное уведомление в Telegram
+        // Отправляем уведомление в Telegram
+        console.log('📱 Отправка уведомления в Telegram...');
         const notificationText = `📧 <b>Новая подписка на новости!</b>\n\n` +
             `📬 Email: ${email}\n` +
             `📅 Дата: ${new Date().toLocaleString('ru-RU')}\n\n` +
             `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
         
-        sendTelegramNotification(notificationText, true);
+        sendTelegramNotification(notificationText, true).then(success => {
+            if (success) {
+                console.log(`✅ Telegram уведомление отправлено для: ${email}`);
+            } else {
+                console.error(`❌ Telegram уведомление НЕ отправлено для: ${email}`);
+            }
+        }).catch(error => {
+            console.error(`❌ Ошибка отправки Telegram уведомления: ${email}`, error.message || error);
+        });
         
         res.json({ success: true, message: 'Спасибо за подписку! Проверьте почту 📬' });
     } catch (error) {
@@ -3276,6 +3287,8 @@ function createWelcomeEmailHTML() {
 // Функция отправки приветственного письма
 async function sendWelcomeEmail(email) {
     try {
+        console.log(`📧 Отправка приветственного письма на: ${email}`);
+        
         const mailOptions = {
             from: process.env.EMAIL_FROM || '"Trust Store" <orders@truststore.ru>',
             to: email,
@@ -3290,12 +3303,40 @@ async function sendWelcomeEmail(email) {
             ]
         };
 
+        // Пробуем отправить через SendGrid, если настроен
+        if (process.env.SENDGRID_API_KEY && sgMail) {
+            try {
+                console.log(`   Попытка отправки через SendGrid...`);
+                await sgMail.send({
+                    to: email,
+                    from: process.env.EMAIL_USER || process.env.EMAIL_FROM || 'orders@truststore.ru',
+                    subject: '🎉 Спасибо за подписку на новости Trust Store!',
+                    html: createWelcomeEmailHTML(),
+                    attachments: [
+                        {
+                            filename: 'logo.png',
+                            content: fs.readFileSync(path.join(__dirname, 'logo.png')).toString('base64'),
+                            type: 'image/png',
+                            disposition: 'inline',
+                            contentId: 'logo'
+                        }
+                    ]
+                });
+                console.log(`✅ Приветственное письмо отправлено через SendGrid: ${email}`);
+                return { success: true, method: 'SendGrid' };
+            } catch (sgError) {
+                console.error(`   ❌ Ошибка SendGrid: ${sgError.message}, пробуем SMTP...`);
+            }
+        }
+
+        // Отправляем через SMTP
         const info = await emailTransporter.sendMail(mailOptions);
-        console.log(`✅ Приветственное письмо отправлено: ${email} (${info.messageId})`);
-        return { success: true, messageId: info.messageId };
+        console.log(`✅ Приветственное письмо отправлено через SMTP: ${email} (${info.messageId})`);
+        return { success: true, messageId: info.messageId, method: 'SMTP' };
     } catch (error) {
-        console.error('❌ Ошибка отправки приветственного письма:', error.message);
-        return { success: false, error: error.message };
+        console.error('❌ Ошибка отправки приветственного письма:', error.message || error);
+        console.error('   Stack:', error.stack);
+        return { success: false, error: error.message || 'Unknown error' };
     }
 }
 
