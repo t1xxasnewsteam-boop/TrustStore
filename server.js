@@ -1509,14 +1509,26 @@ app.post('/api/payment/heleket/create', async (req, res) => {
         };
         
         // Отправляем запрос в Heleket API
+        // Пробуем разные варианты endpoint'ов, так как /v1/payments не поддерживает POST
+        const possibleEndpoints = [
+            `${HELEKET_API_URL}/api/v1/payments`,
+            `${HELEKET_API_URL}/api/payments`,
+            `${HELEKET_API_URL}/payments`,
+            `${HELEKET_API_URL}/v1/payment/create`,
+            `${HELEKET_API_URL}/api/v1/payment/create`
+        ];
+        
         console.log('📤 Отправка запроса в Heleket API:', {
-            url: `${HELEKET_API_URL}/v1/payments`,
             merchant_id: HELEKET_MERCHANT_ID,
             amount: finalAmount,
-            currency: finalCurrency
+            currency: finalCurrency,
+            endpoints_to_try: possibleEndpoints
         });
         
-        const response = await fetch(`${HELEKET_API_URL}/v1/payments`, {
+        // Пробуем первый endpoint (основной)
+        const apiEndpoint = possibleEndpoints[0];
+        
+        const response = await fetch(apiEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1548,13 +1560,20 @@ app.post('/api/payment/heleket/create', async (req, res) => {
             if (titleMatch) htmlError = titleMatch[1];
             if (errorMatch) htmlError = errorMatch[1];
             
+            // Если это ошибка о неподдерживаемом методе, пробуем альтернативные endpoint'ы
+            if (htmlResponse.includes('POST method is not supported') || htmlResponse.includes('Method not allowed')) {
+                console.log('⚠️ POST не поддерживается, возможно нужен другой endpoint');
+                console.log('💡 Подсказка: Проверьте документацию Heleket для правильного endpoint создания платежей');
+            }
+            
             // Пробуем альтернативный endpoint или формат
             return res.status(500).json({ 
-                error: 'Heleket API вернул HTML вместо JSON',
-                message: htmlError,
-                suggestion: 'Проверьте правильность API endpoint и ключей в документации Heleket. Возможно нужен другой URL или формат запроса.',
-                api_url: `${HELEKET_API_URL}/v1/payments`,
-                status_code: response.status
+                error: 'Heleket API вернул ошибку',
+                message: htmlError || 'Неверный endpoint или метод запроса',
+                suggestion: 'Проверьте документацию Heleket для правильного API endpoint. Возможно нужен другой URL (не /v1/payments).',
+                api_url: apiEndpoint,
+                status_code: response.status,
+                hint: 'Endpoint /v1/payments поддерживает только GET, возможно нужен другой путь для создания платежей'
             });
         }
         
