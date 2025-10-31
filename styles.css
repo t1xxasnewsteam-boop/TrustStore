@@ -38,16 +38,16 @@ body {
 .header-content {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     padding: 20px 0;
     position: relative;
+    min-height: 80px;
 }
 
 .header-left {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     height: 100%;
-    padding-bottom: 4px;
 }
 
 .header-right {
@@ -63,12 +63,14 @@ body {
     gap: 0px;
     align-items: flex-end;
     text-align: right;
+    justify-content: center;
 }
 
 .logo {
     display: flex;
     align-items: center;
     gap: 12px;
+    justify-content: flex-end;
 }
 
 .logo-image {
