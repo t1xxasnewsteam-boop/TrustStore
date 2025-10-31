@@ -268,8 +268,8 @@ async function sendTelegramNotification(message, silent = false) {
             body: JSON.stringify({
                 chat_id: TELEGRAM_CHAT_ID,
                 text: message,
+                parse_mode: 'HTML', // Включаем HTML форматирование
                 disable_notification: silent
-                // Убрали parse_mode: 'HTML' чтобы избежать ошибок с email адресами
             })
         });
         
@@ -1898,7 +1898,7 @@ app.post('/api/payment/heleket', async (req, res) => {
         // Отправляем уведомление об успешной оплате в Telegram
         const successNotification = `💰 <b>Новый платеж через Heleket!</b>\n\n` +
             `🆔 Заказ: ${order_id}\n` +
-            `💳 Платеж: ${payment_id}\n` +
+            `💳 Платеж: ${payment_id || 'N/A'}\n` +
             `👤 Клиент: ${order.customer_name}\n` +
             `📧 Email: ${order.customer_email}\n` +
             `💵 Сумма: ${amount} ${currency}\n` +
@@ -1907,6 +1907,96 @@ app.post('/api/payment/heleket', async (req, res) => {
             `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
         
         sendTelegramNotification(successNotification, false);
+        
+        // Отправляем email администратору о новом заказе
+        try {
+            const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'orders@truststore.ru';
+            const adminEmailSubject = `💰 Новый заказ #${order_id} через Heleket`;
+            const adminEmailHTML = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+                        .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
+                        .info-row { margin: 10px 0; padding: 10px; background: white; border-radius: 4px; }
+                        .label { font-weight: bold; color: #667eea; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h2>💰 Новый заказ через Heleket</h2>
+                        </div>
+                        <div class="content">
+                            <div class="info-row">
+                                <span class="label">🆔 Заказ:</span> ${order_id}
+                            </div>
+                            <div class="info-row">
+                                <span class="label">💳 Платеж:</span> ${payment_id || 'N/A'}
+                            </div>
+                            <div class="info-row">
+                                <span class="label">👤 Клиент:</span> ${order.customer_name}
+                            </div>
+                            <div class="info-row">
+                                <span class="label">📧 Email:</span> ${order.customer_email}
+                            </div>
+                            <div class="info-row">
+                                <span class="label">💵 Сумма:</span> ${amount} ${currency}
+                            </div>
+                            <div class="info-row">
+                                <span class="label">📦 Товары:</span> ${products.map(p => `${p.name} x${p.quantity || 1}`).join(', ')}
+                            </div>
+                            <div class="info-row">
+                                <span class="label">📅 Дата:</span> ${new Date().toLocaleString('ru-RU')}
+                            </div>
+                            <div style="margin-top: 20px; text-align: center;">
+                                <a href="https://truststore.ru/t1xxas" style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Открыть админку</a>
+                            </div>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            // Отправка через SendGrid (если настроен)
+            if (process.env.SENDGRID_API_KEY) {
+                try {
+                    await sgMail.send({
+                        to: adminEmail,
+                        from: process.env.EMAIL_USER || 'orders@truststore.ru',
+                        subject: adminEmailSubject,
+                        html: adminEmailHTML
+                    });
+                    console.log(`✅ Email админу отправлен через SendGrid: ${adminEmail}`);
+                } catch (sgError) {
+                    console.error('❌ Ошибка SendGrid для админа:', sgError.message);
+                    // Продолжаем попытку через SMTP
+                }
+            }
+            
+            // Отправка через SMTP
+            if (!process.env.SENDGRID_API_KEY || process.env.SENDGRID_API_KEY === '') {
+                try {
+                    const adminMailOptions = {
+                        from: process.env.EMAIL_FROM || '"Trust Store" <orders@truststore.ru>',
+                        to: adminEmail,
+                        subject: adminEmailSubject,
+                        html: adminEmailHTML
+                    };
+                    
+                    await emailTransporter.sendMail(adminMailOptions);
+                    console.log(`✅ Email админу отправлен через SMTP: ${adminEmail}`);
+                } catch (smtpError) {
+                    console.error('❌ Ошибка отправки email админу (SMTP):', smtpError.message);
+                }
+            }
+        } catch (adminEmailError) {
+            console.error('❌ Ошибка отправки email администратору:', adminEmailError.message);
+        }
         
         res.status(200).send('OK');
         
