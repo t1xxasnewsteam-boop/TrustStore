@@ -1978,18 +1978,72 @@ app.post('/api/payment/heleket', async (req, res) => {
         
         // Получаем товары из заказа
         const products = JSON.parse(order.products);
+        console.log('📦 Товары в заказе:', JSON.stringify(products, null, 2));
         
         // Обрабатываем каждый товар
         for (const product of products) {
             const quantity = product.quantity || 1;
             
+            // Получаем базовое название товара (без учета промокода и дополнительной информации)
+            const productName = product.name || product.productName || product.product_name;
+            console.log(`   🔍 Обработка товара: "${productName}", количество: ${quantity}`);
+            
+            // Очищаем название от лишней информации (скобки, дефисы и т.д.)
+            const cleanName = productName ? productName.split('(')[0].split('-')[0].split('|')[0].split('[')[0].trim() : null;
+            console.log(`   🔍 Очищенное название: "${cleanName}"`);
+            
             // Получаем доступные товары из инвентаря
             for (let i = 0; i < quantity; i++) {
-                const availableItem = db.prepare(`
-                    SELECT * FROM product_inventory 
-                    WHERE product_name = ? AND status = 'available'
-                    LIMIT 1
-                `).get(product.name);
+                let availableItem = null;
+                
+                // Вариант 1: Точное совпадение по полному названию
+                if (productName) {
+                    availableItem = db.prepare(`
+                        SELECT * FROM product_inventory 
+                        WHERE product_name = ? AND status = 'available'
+                        LIMIT 1
+                    `).get(productName);
+                }
+                
+                // Вариант 2: Точное совпадение по очищенному названию
+                if (!availableItem && cleanName) {
+                    availableItem = db.prepare(`
+                        SELECT * FROM product_inventory 
+                        WHERE product_name = ? AND status = 'available'
+                        LIMIT 1
+                    `).get(cleanName);
+                }
+                
+                // Вариант 3: Поиск по началу названия (LIKE)
+                if (!availableItem && cleanName) {
+                    availableItem = db.prepare(`
+                        SELECT * FROM product_inventory 
+                        WHERE product_name LIKE ? AND status = 'available'
+                        LIMIT 1
+                    `).get(cleanName + '%');
+                }
+                
+                // Вариант 4: Поиск по названию, содержащему ключевое слово
+                if (!availableItem && cleanName) {
+                    availableItem = db.prepare(`
+                        SELECT * FROM product_inventory 
+                        WHERE product_name LIKE ? AND status = 'available'
+                        LIMIT 1
+                    `).get('%' + cleanName + '%');
+                }
+                
+                // Если всё еще не найдено, выводим список доступных товаров для отладки
+                if (!availableItem) {
+                    console.log(`   ⚠️ Товар "${productName}" (очищенное: "${cleanName}") не найден в инвентаре.`);
+                    if (i === 0) { // Выводим список только один раз
+                        const allAvailable = db.prepare(`
+                            SELECT product_name, COUNT(*) as count 
+                            FROM product_inventory 
+                            WHERE status = 'available'
+                            GROUP BY product_name
+                        `).all();
+                        console.log('   📋 Доступные товары в инвентаре:', allAvailable.map(p => `${p.product_name} (${p.count} шт.)`).join(', '));
+                    }
                 
                 if (availableItem) {
                     // Помечаем товар как проданный
