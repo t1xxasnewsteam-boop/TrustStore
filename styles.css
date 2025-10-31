@@ -1586,13 +1586,12 @@ body {
         order: 1;
         width: auto;
         margin-left: auto;
-        margin-top: 0;
+        margin-top: -8px;
         margin-bottom: 0;
         align-self: flex-start;
         align-items: flex-start;
         padding-top: 0;
         position: relative;
-        top: 0;
     }
     
     .header-actions {
@@ -1606,10 +1605,10 @@ body {
     }
     
     .btn-icon {
-        width: 44px;
-        height: 44px;
+        width: 50px;
+        height: 50px;
         padding: 0;
-        font-size: 20px;
+        font-size: 24px;
         border-radius: 12px;
         display: flex;
         align-items: center;
@@ -1617,6 +1616,13 @@ body {
         margin-top: 0;
         align-self: flex-start;
         flex-shrink: 0;
+    }
+    
+    /* Увеличиваем иконку поиска */
+    .btn-icon:first-child {
+        font-size: 26px;
+        width: 52px;
+        height: 52px;
     }
     
     .nav {
