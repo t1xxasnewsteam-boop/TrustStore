@@ -509,6 +509,11 @@
         }
 
         /* Badge */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
         .badge {
             display: inline-flex;
             align-items: center;
@@ -2753,6 +2758,8 @@
                         break;
                     case 'emails':
                         loadEmails();
+                        startAutoRefresh(); // Запускаем автообновление при открытии вкладки
+                        updateLastSyncTime(); // Показываем текущее время
                         break;
                     case 'suggestions':
                         loadSuggestions();
