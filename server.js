@@ -1495,30 +1495,38 @@ app.post('/api/payment/heleket/create', async (req, res) => {
             }
         }
         
-        // Формируем данные для создания платежа
-        const paymentData = {
+        // Формируем данные для создания платежной ссылки (invoice)
+        // Согласно форме Heleket нужно создать "платежную ссылку", а не прямой платеж
+        const invoiceData = {
             merchant_id: HELEKET_MERCHANT_ID,
-            amount: finalAmount,
-            currency: finalCurrency,
-            order_id: orderId,
+            type: 'invoice', // Тип: счет/инвойс
+            order_id: orderId, // Идентификатор заказа
+            amount: finalAmount, // Сумма к оплате
+            currency: finalCurrency, // Валюта (USD после конвертации)
             description: description || `Заказ ${orderId}`,
             customer_email: customerEmail || '',
             success_url: successUrl || `${req.protocol}://${req.get('host')}/success`,
             cancel_url: cancelUrl || `${req.protocol}://${req.get('host')}/checkout`,
-            webhook_url: `${req.protocol}://${req.get('host')}/api/payment/heleket`
+            webhook_url: `${req.protocol}://${req.get('host')}/api/payment/heleket`,
+            expires_in: 7200 // Срок действия в секундах (2 часа = 7200)
         };
         
-        // Отправляем запрос в Heleket API
-        // ⚠️ ВАЖНО: Нужен правильный endpoint для создания платежа
-        // Попробуем разные варианты из документации Heleket:
-        // - /api/invoices (создание счета/инвойса)
-        // - /api/payments/create
-        // - /v1/invoices
-        const apiEndpoint = `${HELEKET_API_URL}/api/invoices`; // Попробуем invoices вместо payments
+        // Пробуем разные варианты endpoint'ов для создания invoice
+        const possibleEndpoints = [
+            `${HELEKET_API_URL}/api/invoices`,
+            `${HELEKET_API_URL}/api/v1/invoices`,
+            `${HELEKET_API_URL}/v1/invoices`,
+            `${HELEKET_API_URL}/api/payment-links`,
+            `${HELEKET_API_URL}/merchant/${HELEKET_MERCHANT_ID}/invoices`
+        ];
         
-        console.log('📤 Отправка запроса в Heleket API:', {
+        // Используем первый вариант
+        const apiEndpoint = possibleEndpoints[0];
+        
+        console.log('📤 Отправка запроса в Heleket API для создания платежной ссылки:', {
             url: apiEndpoint,
             merchant_id: HELEKET_MERCHANT_ID,
+            type: 'invoice',
             amount: finalAmount,
             currency: finalCurrency,
             order_id: orderId
@@ -1531,7 +1539,7 @@ app.post('/api/payment/heleket/create', async (req, res) => {
                 'Authorization': `Bearer ${HELEKET_API_KEY}`,
                 'Accept': 'application/json'
             },
-            body: JSON.stringify(paymentData)
+            body: JSON.stringify(invoiceData)
         });
         
         // Проверяем тип ответа
@@ -1581,13 +1589,25 @@ app.post('/api/payment/heleket/create', async (req, res) => {
             });
         }
         
-        console.log('✅ Платеж создан в Heleket:', data.payment_id);
+        console.log('✅ Платежная ссылка создана в Heleket:', data);
+        
+        // Возвращаем URL для редиректа клиента
+        // Heleket может вернуть поле payment_url, invoice_url, link, или checkout_url
+        const paymentUrl = data.payment_url || data.invoice_url || data.link || data.checkout_url || data.url;
+        
+        if (!paymentUrl) {
+            console.error('❌ Heleket не вернул URL платежной ссылки:', data);
+            return res.status(500).json({
+                error: 'Heleket не вернул URL платежной ссылки',
+                response: data
+            });
+        }
         
         // Возвращаем URL для редиректа клиента с информацией о конвертации
         const responseData = {
             success: true,
-            payment_id: data.payment_id,
-            payment_url: data.payment_url || data.checkout_url,
+            payment_id: data.payment_id || data.invoice_id || data.id,
+            payment_url: paymentUrl,
             order_id: orderId
         };
         
