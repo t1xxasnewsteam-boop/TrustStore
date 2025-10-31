@@ -1481,6 +1481,12 @@ body {
     transition: color 0.3s ease;
 }
 
+/* Telegram ссылка в одну строку */
+.footer-section span a {
+    display: inline !important;
+    margin-bottom: 0 !important;
+}
+
 .footer-section a:hover {
     color: #667eea;
 }
