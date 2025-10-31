@@ -2549,6 +2549,10 @@ app.get('/socials', (req, res) => {
     res.sendFile(path.join(__dirname, 'socials.html'));
 });
 
+app.get('/about', (req, res) => {
+    res.sendFile(path.join(__dirname, 'about.html'));
+});
+
 // API для получения отзывов из Telegram
 app.get('/api/telegram-reviews', (req, res) => {
     try {
