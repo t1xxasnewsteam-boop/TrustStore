@@ -1478,55 +1478,89 @@
         */
         
         // Обработка формы
-        document.getElementById('checkout-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('customer-name').value;
-            const email = document.getElementById('customer-email').value;
-            const phone = document.getElementById('customer-phone')?.value || '';
-            const comment = document.getElementById('customer-comment')?.value || '';
-            
-            // Проверка заполнения обязательных полей
-            if (!name || !email) {
-                alert('❌ Пожалуйста, заполните все обязательные поля');
-                return;
-            }
-            
-            // Формируем описание товаров с количеством
-            const orderDescription = orderItems.map(item => 
-                item.quantity > 1 
-                    ? `${item.name} (${item.duration}) x${item.quantity}`
-                    : `${item.name} (${item.duration})`
-            ).join(', ');
-            
-            // Добавляем информацию о промокоде в описание
-            const fullDescription = promoApplied 
-                ? `${orderDescription} | Промокод ${currentPromoCode} (-${promoDiscount}%)`
-                : orderDescription;
-            
-            // Сначала сохраняем заказ в базу данных через API
-            try {
-                // ⚠️ ВАЖНО: Определяем выбранный метод оплаты ПРЯМО СЕЙЧАС, а не из кэша!
-                const selectedPaymentMethodElement = document.querySelector('.payment-method.selected');
-                const selectedPaymentMethod = selectedPaymentMethodElement?.dataset.method || 'yoomoney';
+        const checkoutForm = document.getElementById('checkout-form');
+        if (!checkoutForm) {
+            console.error('❌ Форма checkout-form не найдена!');
+        } else {
+            console.log('✅ Форма checkout-form найдена, добавляем обработчик...');
+            checkoutForm.addEventListener('submit', async function(e) {
+                console.log('🚀 Кнопка нажата! Обработка отправки формы...');
+                e.preventDefault();
                 
-                console.log('💳 Выбранный метод оплаты:', selectedPaymentMethod);
-                console.log('📋 Элемент:', selectedPaymentMethodElement);
-                
-                if (!selectedPaymentMethod || selectedPaymentMethod !== 'heleket' && selectedPaymentMethod !== 'yoomoney') {
-                    console.error('❌ Неизвестный метод оплаты:', selectedPaymentMethod);
+                // Получаем кнопку и отключаем её, чтобы предотвратить двойной клик
+                const submitButton = document.querySelector('.btn-pay');
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.textContent = '⏳ Обработка...';
+                    console.log('🔒 Кнопка отключена');
                 }
+                
+                try {
+                    const name = document.getElementById('customer-name')?.value || '';
+                    const email = document.getElementById('customer-email')?.value || '';
+                    const phone = document.getElementById('customer-phone')?.value || '';
+                    const comment = document.getElementById('customer-comment')?.value || '';
                     
-                const orderData = {
-                    customerName: name,
-                    customerEmail: email,
-                    customerPhone: phone,
-                    products: orderItems,
-                    totalAmount: currentTotalPrice,
-                    paymentMethod: selectedPaymentMethod === 'heleket' ? 'Heleket' : 'YooMoney',
-                    comment: comment
-                };
+                    console.log('📝 Данные формы:', { name, email, phone: phone || 'не указан' });
                     
+                    // Проверка заполнения обязательных полей
+                    if (!name || !email) {
+                        console.error('❌ Не заполнены обязательные поля');
+                        alert('❌ Пожалуйста, заполните все обязательные поля');
+                        if (submitButton) {
+                            submitButton.disabled = false;
+                            submitButton.textContent = '🚀 Перейти к оплате';
+                        }
+                        return;
+                    }
+                    
+                    // Проверка наличия товаров
+                    if (!orderItems || orderItems.length === 0) {
+                        console.error('❌ Нет товаров в заказе');
+                        alert('❌ Корзина пуста! Добавьте товары для оформления заказа.');
+                        if (submitButton) {
+                            submitButton.disabled = false;
+                            submitButton.textContent = '🚀 Перейти к оплате';
+                        }
+                        return;
+                    }
+                    
+                    console.log('✅ Валидация пройдена, товаров в заказе:', orderItems.length);
+                    
+                    // Формируем описание товаров с количеством
+                    const orderDescription = orderItems.map(item => 
+                        item.quantity > 1 
+                            ? `${item.name} (${item.duration}) x${item.quantity}`
+                            : `${item.name} (${item.duration})`
+                    ).join(', ');
+                    
+                    // Добавляем информацию о промокоде в описание
+                    const fullDescription = promoApplied 
+                        ? `${orderDescription} | Промокод ${currentPromoCode} (-${promoDiscount}%)`
+                        : orderDescription;
+                    
+                    // Сначала сохраняем заказ в базу данных через API
+                    // ⚠️ ВАЖНО: Определяем выбранный метод оплаты ПРЯМО СЕЙЧАС, а не из кэша!
+                    const selectedPaymentMethodElement = document.querySelector('.payment-method.selected');
+                    const selectedPaymentMethod = selectedPaymentMethodElement?.dataset.method || 'yoomoney';
+                    
+                    console.log('💳 Выбранный метод оплаты:', selectedPaymentMethod);
+                    console.log('📋 Элемент:', selectedPaymentMethodElement);
+                    
+                    if (!selectedPaymentMethod || selectedPaymentMethod !== 'heleket' && selectedPaymentMethod !== 'yoomoney') {
+                        console.error('❌ Неизвестный метод оплаты:', selectedPaymentMethod);
+                    }
+                        
+                    const orderData = {
+                        customerName: name,
+                        customerEmail: email,
+                        customerPhone: phone,
+                        products: orderItems,
+                        totalAmount: currentTotalPrice,
+                        paymentMethod: selectedPaymentMethod === 'heleket' ? 'Heleket' : 'YooMoney',
+                        comment: comment
+                    };
+                        
                     const response = await fetch('/api/create-order', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -1534,6 +1568,12 @@
                     });
                     
                     if (response.ok) {
+                // ⚠️ ВАЖНО: Определяем выбранный метод оплаты ПРЯМО СЕЙЧАС, а не из кэша!
+                const selectedPaymentMethodElement = document.querySelector('.payment-method.selected');
+                const selectedPaymentMethod = selectedPaymentMethodElement?.dataset.method || 'yoomoney';
+                
+<｜tool▁call▁end｜><｜tool▁call▁begin｜>
+read_lints
                         const result = await response.json();
                         console.log('✅ Заказ создан:', result.orderId);
                         
@@ -1696,6 +1736,38 @@
                 
                 document.body.appendChild(form);
                 form.submit();
+            }
+            } catch (error) {
+                console.error('❌ Критическая ошибка в обработчике формы:', error);
+                alert('❌ Произошла ошибка: ' + error.message);
+                
+                // Включаем кнопку обратно
+                const submitButton = document.querySelector('.btn-pay');
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = '🚀 Перейти к оплате';
+                }
+            }
+        });
+        }
+        
+        // Дополнительная проверка готовности формы
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('📄 DOM загружен');
+            const form = document.getElementById('checkout-form');
+            const submitButton = document.querySelector('.btn-pay');
+            console.log('📋 Форма найдена:', !!form);
+            console.log('📋 Кнопка найдена:', !!submitButton);
+            
+            if (form && submitButton) {
+                // Тестовый обработчик клика на кнопку (для отладки)
+                submitButton.addEventListener('click', function(e) {
+                    console.log('🖱️ Клик по кнопке!', {
+                        disabled: this.disabled,
+                        form: this.form,
+                        type: this.type
+                    });
+                }, { capture: true });
             }
         });
         
