@@ -978,6 +978,13 @@ body {
     z-index: 0;
 }
 
+/* Убираем затемнение для изображений новостей */
+.news-image[style*="welcome-image"]::before,
+.news-image[style*="atlas-image"]::before,
+.news-image[style*="sora2-image"]::before {
+    display: none;
+}
+
 .news-image-1 {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
@@ -990,34 +997,13 @@ body {
     background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 }
 
-/* Специальная настройка для фото Atlas (1280x512) */
-.news-image-2[style*="atlas-image"] {
-    background-size: 100% 100%;
-    background-position: center center;
-    height: 240px;
-}
-
-/* Специальная настройка для фото Sora 2 (1280x512) */
-.news-image-3[style*="sora2-image"] {
-    background-size: 100% 100%;
-    background-position: center center;
-    height: 240px;
-}
-
-/* Специальная настройка для фото Welcome (1280x512) */
-.news-image-1[style*="welcome-image"] {
-    background-size: 100% 100%;
-    background-position: center center;
-    height: 240px;
-}
-
-/* Универсальная настройка для всех изображений новостей (1280x512) */
+/* Специальная настройка для всех фото новостей (1280x512) */
+.news-image[style*="welcome-image"],
 .news-image[style*="atlas-image"],
-.news-image[style*="sora2-image"],
-.news-image[style*="welcome-image"] {
-    background-size: 100% 100%;
-    background-position: center center;
-    height: 240px;
+.news-image[style*="sora2-image"] {
+    background-size: 100% 100% !important;
+    background-position: center center !important;
+    height: 240px !important;
 }
 
 .news-icon {
