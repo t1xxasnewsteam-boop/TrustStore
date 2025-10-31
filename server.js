@@ -36,6 +36,10 @@ const HELEKET_API_KEY = process.env.HELEKET_API_KEY || 'fVzVPxZlpbUGVZap77b2qvBk
 const HELEKET_MERCHANT_ID = process.env.HELEKET_MERCHANT_ID || '987c3430-d898-43bb-999a-310e3b659cfa'; // Merchant ID
 const HELEKET_WEBHOOK_SECRET = process.env.HELEKET_WEBHOOK_SECRET || ''; // Секретный ключ для проверки webhook
 const HELEKET_API_URL = process.env.HELEKET_API_URL || 'https://api.heleket.com'; // API URL
+// Примечание: Если API возвращает HTML, возможно нужен другой endpoint:
+// Попробуйте: https://heleket.com/api/v1/payments
+// Или: https://merchant.heleket.com/api/payments
+// Проверьте документацию Heleket для правильного URL
 
 // Кэш для курса валют (обновляется каждые 5 минут)
 let currencyCache = {
@@ -1505,21 +1509,46 @@ app.post('/api/payment/heleket/create', async (req, res) => {
         };
         
         // Отправляем запрос в Heleket API
+        console.log('📤 Отправка запроса в Heleket API:', {
+            url: `${HELEKET_API_URL}/v1/payments`,
+            merchant_id: HELEKET_MERCHANT_ID,
+            amount: finalAmount,
+            currency: finalCurrency
+        });
+        
         const response = await fetch(`${HELEKET_API_URL}/v1/payments`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${HELEKET_API_KEY}`
+                'Authorization': `Bearer ${HELEKET_API_KEY}`,
+                'Accept': 'application/json'
             },
             body: JSON.stringify(paymentData)
         });
         
-        const data = await response.json();
+        // Проверяем тип ответа
+        const contentType = response.headers.get('content-type');
+        let data;
+        
+        if (contentType && contentType.includes('application/json')) {
+            data = await response.json();
+        } else {
+            // Если пришел HTML вместо JSON - значит ошибка
+            const htmlResponse = await response.text();
+            console.error('❌ Heleket API вернул HTML вместо JSON:', htmlResponse.substring(0, 500));
+            
+            // Пробуем альтернативный endpoint или формат
+            return res.status(500).json({ 
+                error: 'Heleket API недоступен или возвращает ошибку',
+                message: 'Проверьте правильность API endpoint и ключей. Возможно, нужен другой формат запроса.',
+                suggestion: 'Проверьте документацию Heleket API или обратитесь в поддержку'
+            });
+        }
         
         if (!response.ok) {
             console.error('❌ Ошибка создания платежа в Heleket:', data);
             return res.status(response.status).json({ 
-                error: data.message || 'Ошибка создания платежа',
+                error: data.message || data.error || 'Ошибка создания платежа',
                 details: data
             });
         }
@@ -1551,7 +1580,27 @@ app.post('/api/payment/heleket/create', async (req, res) => {
         
     } catch (error) {
         console.error('❌ Ошибка создания платежа Heleket:', error);
-        res.status(500).json({ error: 'Ошибка сервера', message: error.message });
+        
+        // Более детальная обработка ошибок
+        let errorMessage = 'Ошибка создания платежа';
+        let errorDetails = {};
+        
+        if (error.type === 'invalid-json') {
+            errorMessage = 'Heleket API вернул неверный формат данных';
+            errorDetails = {
+                hint: 'Возможно, API endpoint неправильный или требует другой формат запроса',
+                api_url: HELEKET_API_URL
+            };
+        } else if (error.message) {
+            errorMessage = error.message;
+            errorDetails = { original_error: error.message };
+        }
+        
+        res.status(500).json({ 
+            error: errorMessage,
+            message: errorDetails.hint || 'Проверьте настройки Heleket API',
+            details: errorDetails
+        });
     }
 });
 
