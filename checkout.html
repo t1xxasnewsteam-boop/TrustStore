@@ -1578,63 +1578,18 @@
                         
                         if (currentSelectedMethod === 'heleket') {
                             console.log('💎 Переход на оплату через HELEKET');
-                            // Оплата через Heleket
-                            try {
-                                const paymentResponse = await fetch('/api/payment/heleket/create', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        orderId: result.orderId,
-                                        amount: currentTotalPrice,
-                                        currency: 'RUB',
-                                        description: fullDescription,
-                                        customerEmail: email,
-                                        successUrl: window.location.origin + '/success',
-                                        cancelUrl: window.location.origin + '/checkout'
-                                    })
-                                });
-                                
-                                if (!paymentResponse.ok) {
-                                    const errorData = await paymentResponse.json();
-                                    throw new Error(errorData.error || `HTTP ${paymentResponse.status}`);
-                                }
-                                
-                                const paymentData = await paymentResponse.json();
-                                console.log('✅ Ответ Heleket API:', paymentData);
-                                
-                                if (paymentData.success && paymentData.payment_url) {
-                                    console.log('🚀 Редирект на Heleket:', paymentData.payment_url);
-                                    // Редирект на страницу оплаты Heleket
-                                    window.location.href = paymentData.payment_url;
-                                    return; // Важно! Прекращаем выполнение
-                                } else {
-                                    throw new Error(paymentData.error || 'Ошибка создания платежа');
-                                }
-                            } catch (error) {
-                                console.error('❌ Ошибка создания платежа Heleket:', error);
-                                
-                                let errorMsg = '❌ Ошибка создания платежа через Heleket.';
-                                
-                                try {
-                                    const errorData = error.response ? await error.response.json() : null;
-                                    if (errorData && errorData.error) {
-                                        errorMsg += '\n\n' + errorData.error;
-                                        if (errorData.message) {
-                                            errorMsg += '\n' + errorData.message;
-                                        }
-                                        if (errorData.suggestion) {
-                                            errorMsg += '\n\n💡 ' + errorData.suggestion;
-                                        }
-                                    } else {
-                                        errorMsg += '\n\n' + error.message;
-                                    }
-                                } catch (e) {
-                                    errorMsg += '\n\n' + error.message;
-                                }
-                                
-                                alert(errorMsg);
-                                return; // Прекращаем выполнение, не переходим на YooMoney
-                            }
+                            // Оплата через Heleket - простой редирект (как YooMoney)
+                            const heleketParams = new URLSearchParams({
+                                orderId: result.orderId,
+                                amount: currentTotalPrice.toString(),
+                                currency: 'RUB',
+                                description: fullDescription,
+                                customerEmail: email || ''
+                            });
+                            
+                            // Редирект на серверный endpoint, который сформирует URL и редиректнет на Heleket
+                            window.location.href = `/api/payment/heleket/redirect?${heleketParams.toString()}`;
+                            return; // Важно! Прекращаем выполнение
                         } else {
                             console.log('💳 Переход на оплату через YOOMONEY');
                             // Оплата через YooMoney (старая логика)
