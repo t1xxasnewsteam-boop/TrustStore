@@ -2553,6 +2553,10 @@ app.get('/about', (req, res) => {
     res.sendFile(path.join(__dirname, 'about.html'));
 });
 
+app.get('/faq', (req, res) => {
+    res.sendFile(path.join(__dirname, 'faq.html'));
+});
+
 // API для получения отзывов из Telegram
 app.get('/api/telegram-reviews', (req, res) => {
     try {
