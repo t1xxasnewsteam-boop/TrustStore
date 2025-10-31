@@ -1495,22 +1495,6 @@ app.post('/api/payment/heleket/create', async (req, res) => {
             }
         }
         
-        // Формируем данные для создания платежной ссылки (invoice)
-        // Согласно форме Heleket нужно создать "платежную ссылку", а не прямой платеж
-        const invoiceData = {
-            merchant_id: HELEKET_MERCHANT_ID,
-            type: 'invoice', // Тип: счет/инвойс
-            order_id: orderId, // Идентификатор заказа
-            amount: finalAmount, // Сумма к оплате
-            currency: finalCurrency, // Валюта (USD после конвертации)
-            description: description || `Заказ ${orderId}`,
-            customer_email: customerEmail || '',
-            success_url: successUrl || `${req.protocol}://${req.get('host')}/success`,
-            cancel_url: cancelUrl || `${req.protocol}://${req.get('host')}/checkout`,
-            webhook_url: `${req.protocol}://${req.get('host')}/api/payment/heleket`,
-            expires_in: 7200 // Срок действия в секундах (2 часа = 7200)
-        };
-        
         // Используем правильный endpoint как в bot-t: POST /v1/payment
         const apiEndpoint = `${HELEKET_API_URL.replace('/api', '')}/v1/payment`;
         
