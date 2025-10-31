@@ -1666,7 +1666,7 @@ body {
     .logo-image {
         width: 45px;
         height: 45px;
-        margin-top: 0;
+        margin-top: 4px;
         align-self: flex-start;
         flex-shrink: 0;
     }
