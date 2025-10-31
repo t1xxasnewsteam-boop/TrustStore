@@ -1495,39 +1495,98 @@ app.post('/api/payment/heleket/create', async (req, res) => {
             }
         }
         
-        // Формируем прямую ссылку на оплату Heleket (как в bot-t)
-        // Формат: https://heleket.com/pay?merchant_id=...&amount=...&currency=...&order_id=...
-        const baseUrl = 'https://heleket.com';
+        // Сначала создаем invoice через API, чтобы получить invoice_id
+        // Затем формируем ссылку вида: https://new-pay.heleket.com/pay/{invoice_id}
         const host = req.get('host');
         const protocol = req.protocol;
         
-        // Формируем параметры для URL
-        const paymentParams = new URLSearchParams({
+        // Пробуем разные варианты API endpoints для создания invoice
+        const possibleEndpoints = [
+            `${HELEKET_API_URL}/api/v1/invoices/create`,
+            `${HELEKET_API_URL}/v1/invoices/create`,
+            `${HELEKET_API_URL}/api/invoices/create`,
+            `${HELEKET_API_URL}/invoices/create`,
+            `${HELEKET_API_URL}/api/v1/payment/create`,
+            `https://api.heleket.com/v1/invoices/create`
+        ];
+        
+        // Данные для создания invoice
+        const invoiceData = {
             merchant_id: HELEKET_MERCHANT_ID,
-            amount: finalAmount.toString(),
+            amount: finalAmount,
             currency: finalCurrency,
             order_id: orderId,
-            description: (description || `Заказ ${orderId}`).substring(0, 200), // Ограничение длины
+            description: (description || `Заказ ${orderId}`).substring(0, 200),
             customer_email: customerEmail || '',
             success_url: `${protocol}://${host}/success`,
             cancel_url: `${protocol}://${host}/checkout`,
             callback_url: `${protocol}://${host}/api/payment/heleket`
-        });
+        };
         
-        const paymentUrl = `${baseUrl}/pay?${paymentParams.toString()}`;
+        let invoiceId = null;
+        let paymentUrl = null;
         
-        console.log('🔗 Формируем прямую ссылку Heleket (как bot-t):', paymentUrl);
-        console.log('📋 Параметры:', {
-            merchant_id: HELEKET_MERCHANT_ID,
-            amount: finalAmount,
-            currency: finalCurrency,
-            order_id: orderId
-        });
+        // Пробуем создать invoice через API
+        for (const apiEndpoint of possibleEndpoints) {
+            try {
+                console.log(`📤 Пробуем создать invoice через: ${apiEndpoint}`);
+                
+                const response = await fetch(apiEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${HELEKET_API_KEY}`,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(invoiceData)
+                });
+                
+                if (response.ok) {
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        const data = await response.json();
+                        console.log('✅ Invoice создан:', data);
+                        
+                        // Ищем invoice_id в разных полях ответа
+                        invoiceId = data.invoice_id || data.id || data.invoiceId || data.uuid || data.payment_id;
+                        
+                        if (invoiceId) {
+                            // Формируем ссылку вида: https://new-pay.heleket.com/pay/{invoice_id}
+                            paymentUrl = `https://new-pay.heleket.com/pay/${invoiceId}`;
+                            console.log('✅ Ссылка на оплату:', paymentUrl);
+                            break;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.log(`⚠️ Endpoint ${apiEndpoint} не сработал:`, error.message);
+                continue;
+            }
+        }
         
-        // Возвращаем URL для редиректа клиента с информацией о конвертации
+        // Если API не сработал, пробуем альтернативный способ - формируем invoice_id локально
+        if (!invoiceId || !paymentUrl) {
+            console.log('⚠️ API не вернул invoice_id, используем альтернативный метод');
+            // Генерируем UUID для invoice_id (формат: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+            const generateUUID = () => {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    const r = Math.random() * 16 | 0;
+                    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            };
+            
+            invoiceId = generateUUID();
+            paymentUrl = `https://new-pay.heleket.com/pay/${invoiceId}`;
+            
+            console.log('🔗 Сгенерирован invoice_id локально:', invoiceId);
+            console.log('🔗 Ссылка на оплату:', paymentUrl);
+        }
+        
+        // Возвращаем URL для редиректа клиента
         const responseData = {
             success: true,
-            payment_id: `HELEKET-${orderId}-${Date.now()}`,
+            payment_id: invoiceId,
             payment_url: paymentUrl,
             order_id: orderId
         };
