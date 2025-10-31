@@ -1597,7 +1597,7 @@
                         
                         if (currentSelectedMethod === 'heleket') {
                             console.log('💎 Переход на оплату через HELEKET');
-                            // Оплата через Heleket - создание платежа через API (как bot-t)
+                            // Оплата через Heleket
                             try {
                                 const paymentResponse = await fetch('/api/payment/heleket/create', {
                                     method: 'POST',
@@ -1631,7 +1631,27 @@
                                 }
                             } catch (error) {
                                 console.error('❌ Ошибка создания платежа Heleket:', error);
-                                alert('❌ Ошибка создания платежа через Heleket.\n\n' + error.message);
+                                
+                                let errorMsg = '❌ Ошибка создания платежа через Heleket.';
+                                
+                                try {
+                                    const errorData = error.response ? await error.response.json() : null;
+                                    if (errorData && errorData.error) {
+                                        errorMsg += '\n\n' + errorData.error;
+                                        if (errorData.message) {
+                                            errorMsg += '\n' + errorData.message;
+                                        }
+                                        if (errorData.suggestion) {
+                                            errorMsg += '\n\n💡 ' + errorData.suggestion;
+                                        }
+                                    } else {
+                                        errorMsg += '\n\n' + error.message;
+                                    }
+                                } catch (e) {
+                                    errorMsg += '\n\n' + error.message;
+                                }
+                                
+                                alert(errorMsg);
                                 return; // Прекращаем выполнение, не переходим на YooMoney
                             }
                         } else {
