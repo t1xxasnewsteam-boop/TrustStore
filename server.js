@@ -1535,13 +1535,26 @@ app.post('/api/payment/heleket/create', async (req, res) => {
         } else {
             // Если пришел HTML вместо JSON - значит ошибка
             const htmlResponse = await response.text();
-            console.error('❌ Heleket API вернул HTML вместо JSON:', htmlResponse.substring(0, 500));
+            console.error('❌ Heleket API вернул HTML вместо JSON');
+            console.error('📄 Первые 1000 символов HTML:', htmlResponse.substring(0, 1000));
+            console.error('🌐 Status:', response.status, response.statusText);
+            console.error('📋 Headers:', JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2));
+            
+            // Пробуем извлечь полезную информацию из HTML
+            let htmlError = 'Неизвестная ошибка API';
+            const titleMatch = htmlResponse.match(/<title>([^<]+)<\/title>/i);
+            const errorMatch = htmlResponse.match(/error[^>]*>([^<]+)/i) || htmlResponse.match(/Ошибка[^>]*>([^<]+)/i);
+            
+            if (titleMatch) htmlError = titleMatch[1];
+            if (errorMatch) htmlError = errorMatch[1];
             
             // Пробуем альтернативный endpoint или формат
             return res.status(500).json({ 
-                error: 'Heleket API недоступен или возвращает ошибку',
-                message: 'Проверьте правильность API endpoint и ключей. Возможно, нужен другой формат запроса.',
-                suggestion: 'Проверьте документацию Heleket API или обратитесь в поддержку'
+                error: 'Heleket API вернул HTML вместо JSON',
+                message: htmlError,
+                suggestion: 'Проверьте правильность API endpoint и ключей в документации Heleket. Возможно нужен другой URL или формат запроса.',
+                api_url: `${HELEKET_API_URL}/v1/payments`,
+                status_code: response.status
             });
         }
         
