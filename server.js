@@ -1774,18 +1774,31 @@ app.post('/api/payment/yoomoney', async (req, res) => {
 // Heleket webhook для уведомлений об оплате
 app.post('/api/payment/heleket', async (req, res) => {
     try {
-        console.log('📥 Получено уведомление от Heleket:', req.body);
+        console.log('📥 Получено уведомление от Heleket:');
+        console.log('   Headers:', JSON.stringify(req.headers, null, 2));
+        console.log('   Body:', JSON.stringify(req.body, null, 2));
+        console.log('   Raw body:', req.body);
         
-        const {
-            event,
-            payment_id,
-            order_id,
-            amount,
-            currency,
-            status,
-            signature,
-            customer_email
-        } = req.body;
+        // Heleket может присылать данные в разных форматах, проверим разные варианты
+        const body = req.body;
+        const event = body.event || body.type || body.status;
+        const payment_id = body.payment_id || body.id || body.paymentId || body.invoice_id || body.invoiceId;
+        const order_id = body.order_id || body.orderId || body.order || body.label;
+        const amount = body.amount || body.sum || body.total;
+        const currency = body.currency || 'RUB';
+        const status = body.status || body.state || body.payment_status;
+        const signature = body.signature || body.sign || body.hash;
+        const customer_email = body.customer_email || body.email || body.customerEmail;
+        
+        console.log('📋 Парсинг данных:');
+        console.log('   event:', event);
+        console.log('   payment_id:', payment_id);
+        console.log('   order_id:', order_id);
+        console.log('   amount:', amount);
+        console.log('   currency:', currency);
+        console.log('   status:', status);
+        console.log('   signature:', signature ? signature.substring(0, 10) + '...' : 'нет');
+        console.log('   customer_email:', customer_email);
         
         // Проверяем подпись webhook (если настроен секретный ключ)
         if (HELEKET_WEBHOOK_SECRET && signature) {
@@ -1798,24 +1811,65 @@ app.post('/api/payment/heleket', async (req, res) => {
             
             if (signature !== expectedSignature) {
                 console.error('❌ Неверная подпись от Heleket!');
+                console.error('   Ожидалось:', expectedSignature.substring(0, 20) + '...');
+                console.error('   Получено:', signature.substring(0, 20) + '...');
                 return res.status(400).send('Invalid signature');
             }
             console.log('✅ Подпись проверена');
+        } else {
+            console.log('⚠️ Проверка подписи пропущена (нет HELEKET_WEBHOOK_SECRET или signature)');
         }
         
         // Обрабатываем только события успешной оплаты
-        if (event !== 'payment.succeeded' && status !== 'paid' && status !== 'completed') {
-            console.log('⚠️ Неподдерживаемый статус платежа:', status, 'или событие:', event);
+        // Проверяем разные варианты статусов
+        const isPaid = (
+            status === 'paid' || 
+            status === 'completed' || 
+            status === 'success' ||
+            status === 'successful' ||
+            event === 'payment.succeeded' ||
+            event === 'invoice.paid' ||
+            event === 'payment.completed' ||
+            body.state === 0 || // Heleket может возвращать state: 0 для успеха
+            body.result?.status === 'paid'
+        );
+        
+        if (!isPaid) {
+            console.log('⚠️ Неподдерживаемый статус платежа:', {
+                status: status,
+                event: event,
+                state: body.state,
+                result: body.result
+            });
             return res.status(200).send('OK'); // Возвращаем OK, но ничего не делаем
         }
         
+        if (!order_id) {
+            console.error('❌ order_id не найден в запросе!');
+            console.error('   Полный body:', JSON.stringify(body, null, 2));
+            return res.status(400).send('Missing order_id');
+        }
+        
         // Находим заказ по order_id
+        console.log('🔍 Ищем заказ в БД по order_id:', order_id);
         const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(order_id);
         
         if (!order) {
-            console.error('❌ Заказ не найден:', order_id);
+            console.error('❌ Заказ не найден в БД:', order_id);
+            console.error('   Проверяем все заказы в БД...');
+            const allOrders = db.prepare('SELECT order_id, status, created_at FROM orders ORDER BY created_at DESC LIMIT 10').all();
+            console.error('   Последние 10 заказов:', allOrders);
             return res.status(404).send('Order not found');
         }
+        
+        console.log('✅ Заказ найден:', {
+            order_id: order.order_id,
+            status: order.status,
+            customer_name: order.customer_name,
+            customer_email: order.customer_email,
+            total_amount: order.total_amount,
+            created_at: order.created_at
+        });
         
         // Проверяем, не обработан ли уже этот платеж
         if (order.status === 'paid') {
@@ -1830,9 +1884,15 @@ app.post('/api/payment/heleket', async (req, res) => {
         }
         
         console.log('💰 Платеж Heleket подтвержден:', order_id, 'Сумма:', amount, currency);
+        console.log('   Статус заказа до обновления:', order.status);
         
         // Обновляем статус заказа
-        db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('paid', order_id);
+        const updateResult = db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('paid', order_id);
+        console.log('   ✅ Статус заказа обновлен на "paid" (изменено строк:', updateResult.changes, ')');
+        
+        // Проверяем, что обновление прошло
+        const updatedOrder = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(order_id);
+        console.log('   Проверка после обновления - статус:', updatedOrder.status);
         
         // Получаем товары из заказа
         const products = JSON.parse(order.products);
@@ -1906,96 +1966,12 @@ app.post('/api/payment/heleket', async (req, res) => {
             `📅 Дата: ${new Date().toISOString()}\n\n` +
             `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
         
-        sendTelegramNotification(successNotification, false);
-        
-        // Отправляем email администратору о новом заказе
+        console.log('📱 Отправка уведомления в Telegram...');
         try {
-            const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'orders@truststore.ru';
-            const adminEmailSubject = `💰 Новый заказ #${order_id} через Heleket`;
-            const adminEmailHTML = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <style>
-                        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; }
-                        .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
-                        .info-row { margin: 10px 0; padding: 10px; background: white; border-radius: 4px; }
-                        .label { font-weight: bold; color: #667eea; }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <div class="header">
-                            <h2>💰 Новый заказ через Heleket</h2>
-                        </div>
-                        <div class="content">
-                            <div class="info-row">
-                                <span class="label">🆔 Заказ:</span> ${order_id}
-                            </div>
-                            <div class="info-row">
-                                <span class="label">💳 Платеж:</span> ${payment_id || 'N/A'}
-                            </div>
-                            <div class="info-row">
-                                <span class="label">👤 Клиент:</span> ${order.customer_name}
-                            </div>
-                            <div class="info-row">
-                                <span class="label">📧 Email:</span> ${order.customer_email}
-                            </div>
-                            <div class="info-row">
-                                <span class="label">💵 Сумма:</span> ${amount} ${currency}
-                            </div>
-                            <div class="info-row">
-                                <span class="label">📦 Товары:</span> ${products.map(p => `${p.name} x${p.quantity || 1}`).join(', ')}
-                            </div>
-                            <div class="info-row">
-                                <span class="label">📅 Дата:</span> ${new Date().toLocaleString('ru-RU')}
-                            </div>
-                            <div style="margin-top: 20px; text-align: center;">
-                                <a href="https://truststore.ru/t1xxas" style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Открыть админку</a>
-                            </div>
-                        </div>
-                    </div>
-                </body>
-                </html>
-            `;
-            
-            // Отправка через SendGrid (если настроен)
-            if (process.env.SENDGRID_API_KEY) {
-                try {
-                    await sgMail.send({
-                        to: adminEmail,
-                        from: process.env.EMAIL_USER || 'orders@truststore.ru',
-                        subject: adminEmailSubject,
-                        html: adminEmailHTML
-                    });
-                    console.log(`✅ Email админу отправлен через SendGrid: ${adminEmail}`);
-                } catch (sgError) {
-                    console.error('❌ Ошибка SendGrid для админа:', sgError.message);
-                    // Продолжаем попытку через SMTP
-                }
-            }
-            
-            // Отправка через SMTP
-            if (!process.env.SENDGRID_API_KEY || process.env.SENDGRID_API_KEY === '') {
-                try {
-                    const adminMailOptions = {
-                        from: process.env.EMAIL_FROM || '"Trust Store" <orders@truststore.ru>',
-                        to: adminEmail,
-                        subject: adminEmailSubject,
-                        html: adminEmailHTML
-                    };
-                    
-                    await emailTransporter.sendMail(adminMailOptions);
-                    console.log(`✅ Email админу отправлен через SMTP: ${adminEmail}`);
-                } catch (smtpError) {
-                    console.error('❌ Ошибка отправки email админу (SMTP):', smtpError.message);
-                }
-            }
-        } catch (adminEmailError) {
-            console.error('❌ Ошибка отправки email администратору:', adminEmailError.message);
+            await sendTelegramNotification(successNotification, false);
+            console.log('   ✅ Telegram уведомление отправлено');
+        } catch (telegramError) {
+            console.error('   ❌ Ошибка отправки Telegram:', telegramError.message);
         }
         
         res.status(200).send('OK');
