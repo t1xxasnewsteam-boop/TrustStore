@@ -1468,58 +1468,85 @@ app.post('/api/create-order', (req, res) => {
 // API для создания платежа через Heleket
     // Оплата через Heleket - простой редирект (как YooMoney)
     app.get('/api/payment/heleket/redirect', async (req, res) => {
-        const { orderId, amount, currency, description, customerEmail } = req.query;
-        
-        if (!orderId || !amount) {
-            return res.status(400).json({ error: 'Необходимы orderId и amount' });
-        }
-        
-        // Конвертируем RUB в USD если нужно
-        let finalAmount = parseFloat(amount);
-        let finalCurrency = currency || 'RUB';
-        
-        if (currency === 'RUB') {
-            try {
-                const rate = await getUSDRate();
-                finalAmount = parseFloat((parseFloat(amount) / rate).toFixed(2));
-                finalCurrency = 'USD';
-            } catch (error) {
-                console.error('Ошибка конвертации:', error);
+        try {
+            const { orderId, amount, currency, description, customerEmail } = req.query;
+            
+            console.log('📥 Запрос на редирект Heleket:', { orderId, amount, currency, description, customerEmail });
+            
+            if (!orderId || !amount) {
+                console.error('❌ Отсутствуют обязательные параметры:', { orderId, amount });
+                return res.status(400).json({ error: 'Необходимы orderId и amount' });
             }
-        }
-        
-        // Формируем URL для редиректа на Heleket
-        // Используем базовый URL Heleket с параметрами GET
-        let baseUrl = 'https://heleket.com';
-        
-        // Если HELEKET_API_URL указан, извлекаем базовый домен
-        if (HELEKET_API_URL) {
-            // Убираем /api если есть
-            baseUrl = HELEKET_API_URL.replace('/api', '').replace('api.', '').replace('/api/v1', '').replace('/v1', '');
-            // Если получилось что-то странное, используем дефолт
-            if (!baseUrl.includes('heleket.com') && !baseUrl.includes('heleket')) {
-                baseUrl = 'https://heleket.com';
+            
+            if (!HELEKET_MERCHANT_ID) {
+                console.error('❌ HELEKET_MERCHANT_ID не настроен');
+                return res.status(500).json({ error: 'Heleket не настроен. Проверьте конфигурацию.' });
             }
-            // Убираем завершающий слэш
-            baseUrl = baseUrl.replace(/\/$/, '');
+            
+            // Конвертируем RUB в USD если нужно
+            let finalAmount = parseFloat(amount);
+            let finalCurrency = currency || 'RUB';
+            
+            if (currency === 'RUB') {
+                try {
+                    const rate = await getUSDRate();
+                    finalAmount = parseFloat((parseFloat(amount) / rate).toFixed(2));
+                    finalCurrency = 'USD';
+                    console.log(`💱 Конвертация: ${amount} RUB → ${finalAmount} USD (курс: ${rate})`);
+                } catch (error) {
+                    console.error('❌ Ошибка конвертации:', error);
+                    // Продолжаем с RUB
+                }
+            }
+            
+            // Формируем URL для редиректа на Heleket
+            let baseUrl = 'https://heleket.com';
+            
+            // Если HELEKET_API_URL указан, извлекаем базовый домен
+            if (HELEKET_API_URL) {
+                // Убираем /api если есть
+                baseUrl = HELEKET_API_URL.replace('/api', '').replace('api.', '').replace('/api/v1', '').replace('/v1', '');
+                // Если получилось что-то странное, используем дефолт
+                if (!baseUrl.includes('heleket.com') && !baseUrl.includes('heleket')) {
+                    baseUrl = 'https://heleket.com';
+                }
+                // Убираем завершающий слэш
+                baseUrl = baseUrl.replace(/\/$/, '');
+            }
+            
+            const host = req.get('host');
+            const protocol = req.protocol;
+            
+            const paymentUrl = `${baseUrl}/pay?` + new URLSearchParams({
+                merchant_id: HELEKET_MERCHANT_ID,
+                amount: finalAmount.toString(),
+                currency: finalCurrency,
+                order_id: orderId,
+                description: description || `Заказ ${orderId}`,
+                customer_email: customerEmail || '',
+                success_url: `${protocol}://${host}/success`,
+                cancel_url: `${protocol}://${host}/checkout`,
+                webhook_url: `${protocol}://${host}/api/payment/heleket`
+            }).toString();
+            
+            console.log('🔗 Редирект на Heleket:', paymentUrl);
+            console.log('📋 Параметры:', {
+                merchant_id: HELEKET_MERCHANT_ID,
+                amount: finalAmount,
+                currency: finalCurrency,
+                order_id: orderId
+            });
+            
+            // Редиректим сразу
+            res.redirect(302, paymentUrl);
+        } catch (error) {
+            console.error('❌ Критическая ошибка в /api/payment/heleket/redirect:', error);
+            res.status(500).json({ 
+                error: 'Ошибка создания платежа',
+                message: error.message,
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            });
         }
-        
-        const paymentUrl = `${baseUrl}/pay?` + new URLSearchParams({
-            merchant_id: HELEKET_MERCHANT_ID,
-            amount: finalAmount.toString(),
-            currency: finalCurrency,
-            order_id: orderId,
-            description: description || `Заказ ${orderId}`,
-            customer_email: customerEmail || '',
-            success_url: `${req.protocol}://${req.get('host')}/success`,
-            cancel_url: `${req.protocol}://${req.get('host')}/checkout`,
-            webhook_url: `${req.protocol}://${req.get('host')}/api/payment/heleket`
-        }).toString();
-        
-        console.log('🔗 Редирект на Heleket:', paymentUrl);
-        
-        // Редиректим сразу
-        res.redirect(302, paymentUrl);
     });
     
     // Оплата через Heleket (старый API метод - оставляем для совместимости)
