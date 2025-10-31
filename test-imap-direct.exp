@@ -1,0 +1,95 @@
+#!/usr/bin/expect -f
+
+set timeout 20
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Создаем тестовый скрипт для проверки IMAP с разными настройками
+send "cat > /tmp/test-imap-full.js << 'EOFSCRIPT'
+const Imap = require('imap');
+const { simpleParser } = require('mailparser');
+
+const config = {
+    user: 'orders@truststore.ru',
+    password: 'Gaga007231',
+    host: 'imap.yandex.ru',
+    port: 993,
+    tls: true,
+    tlsOptions: { rejectUnauthorized: false },
+    connTimeout: 15000
+};
+
+console.log('🔍 Тестирование IMAP подключения...');
+console.log('📧 Email:', config.user);
+console.log('🌐 Host:', config.host);
+
+const imap = new Imap(config);
+
+imap.once('ready', () => {
+    console.log('✅ IMAP подключен успешно!');
+    
+    // Пробуем открыть разные папки
+    const folders = ['INBOX', 'Spam', 'Спам'];
+    let opened = 0;
+    
+    folders.forEach((folder, index) => {
+        imap.openBox(folder, false, (err, box) => {
+            opened++;
+            if (err) {
+                console.log(\`⚠️ Папка \${folder} не доступна: \${err.message}\`);
+            } else {
+                console.log(\`✅ Папка \${folder}: \${box.messages.total} писем\`);
+            }
+            
+            if (opened === folders.length) {
+                imap.end();
+                process.exit(0);
+            }
+        });
+    });
+});
+
+imap.once('error', (err) => {
+    console.error('❌ Ошибка:', err.message);
+    console.error('📋 Детали:', JSON.stringify(err, null, 2));
+    
+    if (err.message && err.message.includes('Invalid login')) {
+        console.log('\\n💡 Возможные решения:');
+        console.log('1. Проверь, что пароль правильный');
+        console.log('2. Для Yandex 360 может нужен пароль приложения: https://id.yandex.ru/security/app-passwords');
+        console.log('3. Проверь, что IMAP включен в настройках: https://360.yandex.ru/');
+    }
+    
+    process.exit(1);
+});
+
+imap.connect();
+
+setTimeout(() => {
+    if (imap.state !== 'closed') {
+        console.log('⏱️ Таймаут подключения');
+        imap.end();
+    }
+    process.exit(0);
+}, 20000);
+EOFSCRIPT
+node /tmp/test-imap-full.js\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
+

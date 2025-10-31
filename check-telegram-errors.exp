@@ -1,0 +1,27 @@
+#!/usr/bin/expect -f
+
+set timeout 20
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Проверяем последние логи на ошибки Telegram
+send "pm2 logs trust-store --lines 200 --nostream | grep -E 'Telegram|telegram|📤|📧|🚨|уведомление|notification|error|Error|ERROR' | tail -40\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
+

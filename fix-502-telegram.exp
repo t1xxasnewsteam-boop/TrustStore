@@ -1,0 +1,38 @@
+#!/usr/bin/expect -f
+
+set timeout 20
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "pm2 status\r"
+expect "# "
+
+# Проверяем ошибки в логах
+send "pm2 logs trust-store --err --lines 50 --nostream | tail -30\r"
+expect "# "
+
+# Перезапускаем
+send "pm2 restart trust-store --update-env\r"
+expect "# "
+
+send "sleep 8 && pm2 status\r"
+expect "# "
+
+# Проверяем последние логи после перезапуска
+send "pm2 logs trust-store --lines 30 --nostream | tail -15\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
+

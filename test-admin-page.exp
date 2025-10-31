@@ -1,0 +1,23 @@
+#!/usr/bin/expect -f
+
+set timeout 5
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore && curl -s http://localhost:3000/t1xxas 2>/dev/null | grep -o 'data-section=\"emails\"' | head -1 || echo 'НЕ НАЙДЕНО'\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
+

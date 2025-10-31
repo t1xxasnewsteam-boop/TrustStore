@@ -1,0 +1,49 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "yes/no" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+# Переходим в директорию проекта
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Pull изменений
+send "git pull origin main\r"
+expect "# "
+
+# Переустанавливаем зависимости (на случай если добавились новые)
+send "npm install\r"
+expect "# "
+
+# Перезапускаем сервер
+send "pm2 restart trust-store\r"
+expect "# "
+
+# Показываем статус
+send "pm2 status\r"
+expect "# "
+
+# Показываем последние логи
+send "pm2 logs trust-store --lines 20 --nostream\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
+

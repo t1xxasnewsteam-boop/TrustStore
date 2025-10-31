@@ -1,0 +1,29 @@
+#!/usr/bin/expect -f
+
+set timeout 15
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+send "cat > check-emails.js << 'EOFSCRIPT'\nconst Database = require('better-sqlite3');\nconst db = new Database('/root/TrustStore/analytics.db');\n\nconst total = db.prepare('SELECT COUNT(*) as c FROM email_messages').get();\nconsole.log('Всего писем:', total.c);\n\nconst spam = db.prepare(\"SELECT COUNT(*) as c FROM email_messages WHERE subject LIKE '%[СПАМ]%'\").get();\nconsole.log('Писем с [СПАМ]:', spam.c);\n\nconst last = db.prepare('SELECT from_email,subject,created_at FROM email_messages ORDER BY created_at DESC LIMIT 10').all();\nconsole.log('\\nПоследние 10 писем:');\nlast.forEach(e => { console.log(e.from_email + ' - ' + e.subject); });\n\ndb.close();\nEOFSCRIPT\n\r"
+expect "# "
+
+send "node check-emails.js\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
+

@@ -1,0 +1,34 @@
+#!/usr/bin/expect -f
+
+set timeout 40
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Создаем скрипт проверки
+send "cat > check-emails-direct.js << 'EOFNODE'\nconst Database = require('better-sqlite3');\nconst path = require('path');\nconst dbPath = path.join(__dirname, 'analytics.db');\nconst db = new Database(dbPath);\nconsole.log('=== Проверка писем в БД ===');\nconst total = db.prepare('SELECT COUNT(*) as c FROM email_messages').get();\nconsole.log('Всего писем:', total.c);\nconst spam = db.prepare(\"SELECT COUNT(*) as c FROM email_messages WHERE subject LIKE '%[СПАМ]%'\").get();\nconsole.log('Писем с [СПАМ]:', spam.c);\nconst last = db.prepare('SELECT from_email, subject, created_at, is_read FROM email_messages ORDER BY created_at DESC LIMIT 10').all();\nconsole.log('\\nПоследние 10:');\nlast.forEach((e, i) => { const d = new Date(e.created_at).toLocaleString('ru-RU'); console.log((i+1) + '. ' + (e.is_read ? '✅' : '❌') + ' ' + e.from_email + ' - ' + e.subject.substring(0, 50) + ' (' + d + ')'); });\ndb.close();\nEOFNODE\n\r"
+expect "# "
+
+send "node check-emails-direct.js\r"
+expect "# "
+
+# Проверяем последние логи синхронизации
+send "pm2 logs trust-store --lines 200 --nostream | grep -E 'Синхронизация завершена|обработано|сохранено|INBOX|Spam|Спам' | tail -20\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
+

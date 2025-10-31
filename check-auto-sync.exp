@@ -1,0 +1,23 @@
+#!/usr/bin/expect -f
+
+set timeout 15
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "sleep 15 && pm2 logs trust-store --lines 50 --nostream | grep -E 'Автосинхронизация|Синхронизация|обработано|сохранено|24/7|каждые|✅|📧|📬' | tail -20\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
+

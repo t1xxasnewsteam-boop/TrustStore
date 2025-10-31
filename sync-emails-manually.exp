@@ -1,0 +1,64 @@
+#!/usr/bin/expect -f
+
+set timeout 15
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Сначала проверяем, может ли подключиться через тестовый скрипт
+send "cat > /tmp/test-imap.js << 'EOF'
+const Imap = require('imap');
+const imap = new Imap({
+    user: 'orders@truststore.ru',
+    password: 'Gaga007231',
+    host: 'imap.yandex.ru',
+    port: 993,
+    tls: true,
+    tlsOptions: { rejectUnauthorized: false },
+    connTimeout: 10000
+});
+
+imap.once('ready', () => {
+    console.log('✅ IMAP подключен успешно!');
+    imap.openBox('INBOX', false, (err, box) => {
+        if (err) {
+            console.error('❌ Ошибка открытия INBOX:', err.message);
+            imap.end();
+            return;
+        }
+        console.log('📬 Всего писем:', box.messages.total);
+        imap.end();
+    });
+});
+
+imap.once('error', (err) => {
+    console.error('❌ Ошибка:', err.message);
+});
+
+imap.connect();
+setTimeout(() => {
+    if (imap.state !== 'closed') {
+        imap.end();
+    }
+    process.exit(0);
+}, 10000);
+EOF
+node /tmp/test-imap.js\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
+
