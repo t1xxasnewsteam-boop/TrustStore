@@ -4353,4 +4353,97 @@ app.listen(PORT, () => {
     `);
 });
 
+// ==================== MANUAL ORDER PROCESSING ====================
+// Endpoint для ручной отправки последнего оплаченного заказа
+app.post('/api/manual-send-last-order', async (req, res) => {
+    try {
+        console.log('🔧 Ручная отправка последнего заказа...');
+        
+        // Находим последний оплаченный заказ
+        const lastOrder = db.prepare(`
+            SELECT * FROM orders 
+            WHERE status = 'paid'
+            ORDER BY created_at DESC 
+            LIMIT 1
+        `).get();
+        
+        if (!lastOrder) {
+            return res.status(404).json({ success: false, error: 'Не найден оплаченный заказ' });
+        }
+        
+        console.log('📦 Найден заказ:', lastOrder.order_id);
+        
+        const products = JSON.parse(lastOrder.products);
+        let emailsSent = 0;
+        let emailsFailed = 0;
+        
+        // Отправляем emails клиенту
+        console.log('📧 Отправка emails клиенту...');
+        for (const product of products) {
+            const quantity = product.quantity || 1;
+            const productName = product.name || product.productName || product.product_name;
+            
+            let productInfo = db.prepare('SELECT * FROM products WHERE name = ?').get(productName);
+            if (!productInfo) {
+                const baseName = productName.split('(')[0].split('-')[0].split('|')[0].split('[')[0].trim();
+                productInfo = db.prepare('SELECT * FROM products WHERE name LIKE ?').get(baseName + '%');
+            }
+            
+            for (let i = 0; i < quantity; i++) {
+                try {
+                    await sendOrderEmail({
+                        to: lastOrder.customer_email,
+                        orderNumber: lastOrder.order_id,
+                        productName: productName,
+                        productImage: productInfo ? productInfo.image : (product.image || null),
+                        productCategory: productInfo ? productInfo.category : null,
+                        productDescription: productInfo ? productInfo.description : null,
+                        login: null,
+                        password: null,
+                        instructions: productInfo ? productInfo.description : 'Спасибо за покупку! Инструкции по использованию товара будут отправлены отдельно.'
+                    });
+                    emailsSent++;
+                    console.log(`   ✅ Email ${i + 1}/${quantity} отправлен: ${lastOrder.customer_email} - ${productName}`);
+                } catch (emailError) {
+                    emailsFailed++;
+                    console.error(`   ❌ Ошибка отправки email:`, emailError.message);
+                }
+            }
+        }
+        
+        // Отправляем уведомление в Telegram
+        console.log('📱 Отправка уведомления в Telegram...');
+        const telegramMsg = `💰 <b>Новый платеж! (ручная отправка)</b>\n\n` +
+            `🆔 Заказ: ${lastOrder.order_id}\n` +
+            `💳 Метод: ${lastOrder.payment_method || 'YooMoney'}\n` +
+            `👤 Клиент: ${lastOrder.customer_name}\n` +
+            `📧 Email: ${lastOrder.customer_email}\n` +
+            `💵 Сумма: ${lastOrder.total_amount} ₽\n` +
+            `📦 Товары: ${products.map(p => p.name || p.productName || p.product_name).join(', ')}\n` +
+            `📅 Дата: ${lastOrder.created_at}\n\n` +
+            `📊 Emails: отправлено ${emailsSent}, ошибок ${emailsFailed}\n\n` +
+            `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
+        
+        try {
+            await sendTelegramNotification(telegramMsg, false);
+            console.log('   ✅ Telegram уведомление отправлено');
+        } catch (telegramError) {
+            console.error('   ❌ Ошибка Telegram:', telegramError.message);
+        }
+        
+        res.json({
+            success: true,
+            orderId: lastOrder.order_id,
+            email: lastOrder.customer_email,
+            emailsSent,
+            emailsFailed,
+            telegramSent: true
+        });
+        
+    } catch (error) {
+        console.error('❌ Ошибка ручной отправки:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 
