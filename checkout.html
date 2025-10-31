@@ -613,33 +613,64 @@
             }
             
             .order-item {
-                padding: 14px;
+                padding: 12px;
                 gap: 10px;
                 flex-wrap: wrap;
+                position: relative;
             }
             
             .order-item-image {
                 width: 60px;
                 height: 60px;
                 border-radius: 10px;
+                flex-shrink: 0;
+            }
+            
+            .order-item-info {
+                flex: 1;
+                min-width: 0;
+                padding-right: 8px;
             }
             
             .order-item-name {
                 font-size: 14px;
                 line-height: 1.4;
+                word-wrap: break-word;
+                margin-bottom: 4px;
+            }
+            
+            .order-item-duration {
+                font-size: 11px;
+                margin-bottom: 8px;
             }
             
             .order-item-price {
-                font-size: 16px;
-                width: 100%;
-                text-align: center;
-                margin: 8px 0 0 0;
+                font-size: 15px;
+                margin: 0;
+                width: auto;
+                text-align: left;
+                margin-bottom: 8px;
+                display: inline-block;
             }
             
             .quantity-controls {
+                width: auto;
+                justify-content: flex-start;
+                margin-top: 0;
+                margin-bottom: 0;
+                align-self: flex-start;
+            }
+            
+            .order-item-right {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
                 width: 100%;
-                justify-content: center;
-                margin-top: 10px;
+                margin-top: 8px;
+                padding-top: 8px;
+                border-top: 1px solid rgba(102, 126, 234, 0.1);
             }
             
             .btn-remove-item {
@@ -648,6 +679,7 @@
                 right: 8px;
                 padding: 6px;
                 font-size: 12px;
+                z-index: 10;
             }
             
             .promo-input-wrapper {
