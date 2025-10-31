@@ -1418,7 +1418,17 @@ app.post('/api/admin/support/system-message', authMiddleware, (req, res) => {
 // API для создания заказа
 app.post('/api/create-order', (req, res) => {
     try {
+        console.log('📝 Создание нового заказа...');
         const { customerName, customerEmail, customerPhone, products, totalAmount, paymentMethod } = req.body;
+        console.log('   Данные заказа:', {
+            customerName,
+            customerEmail,
+            customerPhone: customerPhone ? 'указан' : 'не указан',
+            productsCount: Array.isArray(products) ? products.length : 'не массив',
+            totalAmount,
+            paymentMethod
+        });
+        
         const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
         const cleanIp = ip.replace('::ffff:', '');
         const geo = geoip.lookup(cleanIp);
@@ -1426,12 +1436,27 @@ app.post('/api/create-order', (req, res) => {
         
         // Генерируем ID заказа
         const orderId = 'ORD-' + Date.now();
+        console.log('   🆔 Сгенерирован orderId:', orderId);
         
         // Создаем заказ
-        db.prepare(`
+        const insertResult = db.prepare(`
             INSERT INTO orders (order_id, customer_name, customer_email, customer_phone, products, total_amount, payment_method, ip, country)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(orderId, customerName, customerEmail, customerPhone, JSON.stringify(products), totalAmount, paymentMethod || 'YooMoney', ip, country);
+        
+        console.log('   ✅ Заказ создан в БД:', {
+            orderId,
+            insertedId: insertResult.lastInsertRowid,
+            changes: insertResult.changes
+        });
+        
+        // Проверяем, что заказ действительно в БД
+        const checkOrder = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(orderId);
+        if (checkOrder) {
+            console.log('   ✅ Подтверждение: заказ найден в БД, статус:', checkOrder.status);
+        } else {
+            console.error('   ❌ ОШИБКА: заказ не найден в БД после создания!');
+        }
         
         // Обновляем или создаем клиента
         const existingCustomer = db.prepare('SELECT * FROM customers WHERE email = ?').get(customerEmail);
@@ -1442,11 +1467,13 @@ app.post('/api/create-order', (req, res) => {
                     total_spent = total_spent + ?, last_order = CURRENT_TIMESTAMP
                 WHERE email = ?
             `).run(customerName, customerPhone, totalAmount, customerEmail);
+            console.log('   ✅ Клиент обновлен:', customerEmail);
         } else {
             db.prepare(`
                 INSERT INTO customers (email, name, phone, orders_count, total_spent, first_order, last_order)
                 VALUES (?, ?, ?, 1, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             `).run(customerEmail, customerName, customerPhone, totalAmount);
+            console.log('   ✅ Новый клиент создан:', customerEmail);
         }
         
         // Обновляем счетчик продаж для товаров
@@ -1455,10 +1482,13 @@ app.post('/api/create-order', (req, res) => {
             db.prepare('UPDATE products SET sold_count = sold_count + ? WHERE name = ?')
                 .run(product.quantity || 1, product.name);
         });
+        console.log('   ✅ Счетчики продаж обновлены для', productsList.length, 'товаров');
         
+        console.log('   🎉 Заказ успешно создан:', orderId);
         res.json({ success: true, orderId });
     } catch (error) {
-        console.error('Ошибка создания заказа:', error);
+        console.error('❌ Ошибка создания заказа:', error);
+        console.error('   Stack:', error.stack);
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 });
