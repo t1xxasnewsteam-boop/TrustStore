@@ -2044,6 +2044,7 @@ app.post('/api/payment/heleket', async (req, res) => {
                         `).all();
                         console.log('   📋 Доступные товары в инвентаре:', allAvailable.map(p => `${p.product_name} (${p.count} шт.)`).join(', '));
                     }
+                }
                 
                 if (availableItem) {
                     // Помечаем товар как проданный
