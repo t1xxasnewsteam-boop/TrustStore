@@ -1466,7 +1466,51 @@ app.post('/api/create-order', (req, res) => {
 // ==================== HELEKET PAYMENT ====================
 
 // API для создания платежа через Heleket
-app.post('/api/payment/heleket/create', async (req, res) => {
+    // Оплата через Heleket - простой редирект (как YooMoney)
+    app.get('/api/payment/heleket/redirect', async (req, res) => {
+        const { orderId, amount, currency, description, customerEmail } = req.query;
+        
+        if (!orderId || !amount) {
+            return res.status(400).json({ error: 'Необходимы orderId и amount' });
+        }
+        
+        // Конвертируем RUB в USD если нужно
+        let finalAmount = parseFloat(amount);
+        let finalCurrency = currency || 'RUB';
+        
+        if (currency === 'RUB') {
+            try {
+                const rate = await getUSDRate();
+                finalAmount = parseFloat((parseFloat(amount) / rate).toFixed(2));
+                finalCurrency = 'USD';
+            } catch (error) {
+                console.error('Ошибка конвертации:', error);
+            }
+        }
+        
+        // Формируем URL для редиректа на Heleket
+        // Используем базовый URL Heleket с параметрами GET
+        const baseUrl = HELEKET_API_URL.replace('/api', '') || 'https://heleket.com';
+        const paymentUrl = `${baseUrl}/pay?` + new URLSearchParams({
+            merchant_id: HELEKET_MERCHANT_ID,
+            amount: finalAmount.toString(),
+            currency: finalCurrency,
+            order_id: orderId,
+            description: description || `Заказ ${orderId}`,
+            customer_email: customerEmail || '',
+            success_url: `${req.protocol}://${req.get('host')}/success`,
+            cancel_url: `${req.protocol}://${req.get('host')}/checkout`,
+            webhook_url: `${req.protocol}://${req.get('host')}/api/payment/heleket`
+        }).toString();
+        
+        console.log('🔗 Редирект на Heleket:', paymentUrl);
+        
+        // Редиректим сразу
+        res.redirect(302, paymentUrl);
+    });
+    
+    // Оплата через Heleket (старый API метод - оставляем для совместимости)
+    app.post('/api/payment/heleket/create', async (req, res) => {
     try {
         const { orderId, amount, currency = 'RUB', description, customerEmail, successUrl, cancelUrl } = req.body;
         
