@@ -1980,125 +1980,43 @@ app.post('/api/payment/heleket', async (req, res) => {
         const products = JSON.parse(order.products);
         console.log('📦 Товары в заказе:', JSON.stringify(products, null, 2));
         
-        // Обрабатываем каждый товар
+        // Обрабатываем каждый товар - ТОВАР ВСЕГДА В НАЛИЧИИ, ОТПРАВЛЯЕМ ПИСЬМО СРАЗУ
         for (const product of products) {
             const quantity = product.quantity || 1;
             
-            // Получаем базовое название товара (без учета промокода и дополнительной информации)
+            // Получаем название товара
             const productName = product.name || product.productName || product.product_name;
-            console.log(`   🔍 Обработка товара: "${productName}", количество: ${quantity}`);
+            console.log(`   ✅ Обработка товара: "${productName}", количество: ${quantity}`);
             
-            // Очищаем название от лишней информации (скобки, дефисы и т.д.)
-            const cleanName = productName ? productName.split('(')[0].split('-')[0].split('|')[0].split('[')[0].trim() : null;
-            console.log(`   🔍 Очищенное название: "${cleanName}"`);
+            // Получаем информацию о товаре из БД products
+            const productInfo = db.prepare('SELECT * FROM products WHERE name = ?').get(productName);
+            if (!productInfo) {
+                // Пробуем найти по базовому названию (убираем скобки и дополнительную информацию)
+                const baseName = productName.split('(')[0].split('-')[0].split('|')[0].split('[')[0].trim();
+                const productInfoAlt = db.prepare('SELECT * FROM products WHERE name LIKE ?').get(baseName + '%');
+                if (productInfoAlt) {
+                    console.log(`   ℹ️ Товар найден по базовому названию: ${baseName}`);
+                }
+            }
             
-            // Получаем доступные товары из инвентаря
+            // Отправляем email для каждого товара в количестве
             for (let i = 0; i < quantity; i++) {
-                let availableItem = null;
-                
-                // Вариант 1: Точное совпадение по полному названию
-                if (productName) {
-                    availableItem = db.prepare(`
-                        SELECT * FROM product_inventory 
-                        WHERE product_name = ? AND status = 'available'
-                        LIMIT 1
-                    `).get(productName);
-                }
-                
-                // Вариант 2: Точное совпадение по очищенному названию
-                if (!availableItem && cleanName) {
-                    availableItem = db.prepare(`
-                        SELECT * FROM product_inventory 
-                        WHERE product_name = ? AND status = 'available'
-                        LIMIT 1
-                    `).get(cleanName);
-                }
-                
-                // Вариант 3: Поиск по началу названия (LIKE)
-                if (!availableItem && cleanName) {
-                    availableItem = db.prepare(`
-                        SELECT * FROM product_inventory 
-                        WHERE product_name LIKE ? AND status = 'available'
-                        LIMIT 1
-                    `).get(cleanName + '%');
-                }
-                
-                // Вариант 4: Поиск по названию, содержащему ключевое слово
-                if (!availableItem && cleanName) {
-                    availableItem = db.prepare(`
-                        SELECT * FROM product_inventory 
-                        WHERE product_name LIKE ? AND status = 'available'
-                        LIMIT 1
-                    `).get('%' + cleanName + '%');
-                }
-                
-                // Если всё еще не найдено, выводим список доступных товаров для отладки
-                if (!availableItem) {
-                    console.log(`   ⚠️ Товар "${productName}" (очищенное: "${cleanName}") не найден в инвентаре.`);
-                    if (i === 0) { // Выводим список только один раз
-                        const allAvailable = db.prepare(`
-                            SELECT product_name, COUNT(*) as count 
-                            FROM product_inventory 
-                            WHERE status = 'available'
-                            GROUP BY product_name
-                        `).all();
-                        console.log('   📋 Доступные товары в инвентаре:', allAvailable.map(p => `${p.product_name} (${p.count} шт.)`).join(', '));
-                    }
-                }
-                
-                if (availableItem) {
-                    // Помечаем товар как проданный
-                    db.prepare(`
-                        UPDATE product_inventory 
-                        SET status = 'sold', order_id = ?, sold_at = CURRENT_TIMESTAMP
-                        WHERE id = ?
-                    `).run(order_id, availableItem.id);
+                try {
+                    await sendOrderEmail({
+                        to: order.customer_email,
+                        orderNumber: order_id,
+                        productName: productName,
+                        productImage: productInfo ? productInfo.image : (product.image || null),
+                        productCategory: productInfo ? productInfo.category : null,
+                        productDescription: productInfo ? productInfo.description : null,
+                        login: null, // Не используем инвентарь
+                        password: null, // Не используем инвентарь
+                        instructions: productInfo ? productInfo.description : 'Спасибо за покупку! Инструкции по использованию товара будут отправлены отдельно.'
+                    });
                     
-                    // Получаем информацию о товаре из БД
-                    // Используем название из инвентаря для поиска в products
-                    const productInfo = db.prepare('SELECT * FROM products WHERE name = ?').get(availableItem.product_name);
-                    if (!productInfo) {
-                        // Пробуем найти по базовому названию
-                        const baseName = availableItem.product_name.split('(')[0].split('-')[0].split('|')[0].trim();
-                        const productInfoAlt = db.prepare('SELECT * FROM products WHERE name LIKE ?').get(baseName + '%');
-                        if (productInfoAlt) {
-                            console.log(`   ℹ️ Товар найден по базовому названию: ${baseName}`);
-                        }
-                    }
-                    
-                    console.log(`   ✅ Товар найден в инвентаре: ${availableItem.product_name}, логин: ${availableItem.login ? 'есть' : 'нет'}`);
-                    
-                    // Отправляем email с товаром
-                    try {
-                        await sendOrderEmail({
-                            to: order.customer_email,
-                            orderNumber: order_id,
-                            productName: availableItem.product_name || productName, // Используем название из инвентаря
-                            productImage: productInfo ? productInfo.image : (product.image || null),
-                            productCategory: productInfo ? productInfo.category : null,
-                            productDescription: productInfo ? productInfo.description : null,
-                            login: availableItem.login,
-                            password: availableItem.password,
-                            instructions: availableItem.instructions || 'Используйте эти данные для входа в сервис.'
-                        });
-                        
-                        console.log(`✅ Email отправлен: ${order.customer_email} - ${availableItem.product_name || productName}`);
-                    } catch (emailError) {
-                        console.error('❌ Ошибка отправки email:', emailError);
-                    }
-                } else {
-                    console.error(`⚠️ Товар не найден в инвентаре: ${product.name}`);
-                    
-                    // Отправляем уведомление админу в Telegram
-                    const notificationText = `⚠️ <b>ВНИМАНИЕ! Товара нет в наличии!</b>\n\n` +
-                        `📦 Товар: ${product.name}\n` +
-                        `🆔 Заказ: ${order_id}\n` +
-                        `👤 Клиент: ${order.customer_name}\n` +
-                        `📧 Email: ${order.customer_email}\n` +
-                        `💰 Сумма: ${order.total_amount} ₽\n\n` +
-                        `⚡ СРОЧНО ДОБАВЬ ТОВАР В ИНВЕНТАРЬ!`;
-                    
-                    sendTelegramNotification(notificationText, false);
+                    console.log(`✅ Email отправлен: ${order.customer_email} - ${productName}`);
+                } catch (emailError) {
+                    console.error('❌ Ошибка отправки email:', emailError);
                 }
             }
         }
