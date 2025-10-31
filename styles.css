@@ -962,7 +962,7 @@ body {
     align-items: center;
     justify-content: center;
     position: relative;
-    background-size: cover;
+    background-size: contain;
     background-position: center center;
     background-repeat: no-repeat;
 }
@@ -1000,6 +1000,13 @@ body {
 /* Специальная настройка для фото Sora 2 (1280x512) */
 .news-image-3[style*="sora2-image"] {
     background-size: 100% auto;
+    background-position: center center;
+    height: 220px;
+}
+
+/* Специальная настройка для фото Welcome (1280x512) */
+.news-image-1[style*="welcome-image"] {
+    background-size: contain;
     background-position: center center;
     height: 220px;
 }
