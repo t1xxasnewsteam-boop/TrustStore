@@ -1490,7 +1490,20 @@ app.post('/api/create-order', (req, res) => {
         
         // Формируем URL для редиректа на Heleket
         // Используем базовый URL Heleket с параметрами GET
-        const baseUrl = HELEKET_API_URL.replace('/api', '') || 'https://heleket.com';
+        let baseUrl = 'https://heleket.com';
+        
+        // Если HELEKET_API_URL указан, извлекаем базовый домен
+        if (HELEKET_API_URL) {
+            // Убираем /api если есть
+            baseUrl = HELEKET_API_URL.replace('/api', '').replace('api.', '').replace('/api/v1', '').replace('/v1', '');
+            // Если получилось что-то странное, используем дефолт
+            if (!baseUrl.includes('heleket.com') && !baseUrl.includes('heleket')) {
+                baseUrl = 'https://heleket.com';
+            }
+            // Убираем завершающий слэш
+            baseUrl = baseUrl.replace(/\/$/, '');
+        }
+        
         const paymentUrl = `${baseUrl}/pay?` + new URLSearchParams({
             merchant_id: HELEKET_MERCHANT_ID,
             amount: finalAmount.toString(),
