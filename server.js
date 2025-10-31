@@ -1509,24 +1509,18 @@ app.post('/api/payment/heleket/create', async (req, res) => {
         };
         
         // Отправляем запрос в Heleket API
-        // Пробуем разные варианты endpoint'ов, так как /v1/payments не поддерживает POST
-        const possibleEndpoints = [
-            `${HELEKET_API_URL}/api/v1/payments`,
-            `${HELEKET_API_URL}/api/payments`,
-            `${HELEKET_API_URL}/payments`,
-            `${HELEKET_API_URL}/v1/payment/create`,
-            `${HELEKET_API_URL}/api/v1/payment/create`
-        ];
+        // ⚠️ ВАЖНО: /v1/payments поддерживает только GET!
+        // Нужен другой endpoint для создания платежа
+        // Попробуем варианты из документации Heleket
+        const apiEndpoint = `${HELEKET_API_URL}/api/v1/payment/create`; // Основной вариант
         
         console.log('📤 Отправка запроса в Heleket API:', {
+            url: apiEndpoint,
             merchant_id: HELEKET_MERCHANT_ID,
             amount: finalAmount,
             currency: finalCurrency,
-            endpoints_to_try: possibleEndpoints
+            order_id: orderId
         });
-        
-        // Пробуем первый endpoint (основной)
-        const apiEndpoint = possibleEndpoints[0];
         
         const response = await fetch(apiEndpoint, {
             method: 'POST',
