@@ -1563,8 +1563,8 @@ body {
     .header-content {
         display: flex;
         flex-direction: column;
-        gap: 16px;
-        padding: 16px 0;
+        gap: 12px;
+        padding: 10px 0;
     }
     
     .header-left {
@@ -1579,7 +1579,7 @@ body {
         order: 2;
         width: 100%;
         justify-content: flex-start;
-        margin-top: 4px;
+        margin-top: 0;
     }
     
     .header-right {
@@ -1588,10 +1588,12 @@ body {
         margin-left: auto;
         margin-top: 0;
         margin-bottom: 0;
+        align-self: flex-start;
     }
     
     .header-actions {
-        gap: 12px;
+        gap: 10px;
+        align-items: center;
     }
     
     .btn-icon {
@@ -1603,11 +1605,13 @@ body {
         display: flex;
         align-items: center;
         justify-content: center;
+        margin-top: 0;
     }
     
     .nav {
-        gap: 20px;
+        gap: 16px;
         flex-wrap: wrap;
+        margin-top: 4px;
     }
     
     .nav-link {
@@ -1622,6 +1626,14 @@ body {
     .nav-link:hover {
         background: rgba(102, 126, 234, 0.15);
         transform: translateY(-2px);
+    }
+    
+    .logo-wrapper {
+        margin-top: 0;
+    }
+    
+    .logo {
+        margin-top: 0;
     }
 
     .logo {
