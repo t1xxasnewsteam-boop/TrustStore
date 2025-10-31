@@ -1478,8 +1478,14 @@
         */
         
         // Обработка формы
-        document.getElementById('checkout-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
+        const checkoutForm = document.getElementById('checkout-form');
+        if (!checkoutForm) {
+            console.error('❌ Форма checkout-form не найдена!');
+        } else {
+            console.log('✅ Форма checkout-form найдена, добавляем обработчик submit...');
+            checkoutForm.addEventListener('submit', async function(e) {
+                console.log('🚀 Кнопка "Перейти к оплате" нажата!');
+                e.preventDefault();
             
             const name = document.getElementById('customer-name').value;
             const email = document.getElementById('customer-email').value;
@@ -1715,6 +1721,39 @@
                 
                 document.body.appendChild(form);
                 form.submit();
+            }
+            } catch (error) {
+                console.error('❌ Критическая ошибка в обработчике формы:', error);
+                alert('❌ Произошла ошибка: ' + error.message);
+                
+                // Включаем кнопку обратно
+                const submitButton = document.querySelector('.btn-pay');
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = '🚀 Перейти к оплате';
+                }
+            }
+        });
+        }
+        
+        // Проверка готовности формы при загрузке
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('📄 DOM загружен');
+            const form = document.getElementById('checkout-form');
+            const submitButton = document.querySelector('.btn-pay');
+            console.log('📋 Форма найдена:', !!form);
+            console.log('📋 Кнопка найдена:', !!submitButton);
+            
+            if (submitButton) {
+                // Тестовый обработчик клика для отладки
+                submitButton.addEventListener('click', function(e) {
+                    console.log('🖱️ Клик по кнопке!', {
+                        disabled: this.disabled,
+                        form: this.form,
+                        type: this.type,
+                        tagName: this.tagName
+                    });
+                }, { capture: true });
             }
         });
         
