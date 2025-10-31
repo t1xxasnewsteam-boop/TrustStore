@@ -1799,15 +1799,14 @@ app.post('/api/payment/yoomoney', async (req, res) => {
                         instructions: productInfo ? productInfo.description : 'Спасибо за покупку! Инструкции по использованию товара будут отправлены отдельно.'
                     };
                     
-                    console.log(`   📋 Данные email:`, JSON.stringify({
-                        to: emailData.to,
-                        orderNumber: emailData.orderNumber,
-                        productName: emailData.productName
-                    }, null, 2));
-                    
-                    await sendOrderEmail(emailData);
-                    emailsSent++;
-                    console.log(`   ✅ Email ${i + 1}/${quantity} отправлен успешно: ${order.customer_email} - ${productName}`);
+                    const emailResult = await sendOrderEmail(emailData);
+                    if (emailResult && emailResult.success) {
+                        emailsSent++;
+                        console.log(`   ✅ Email ${i + 1}/${quantity} отправлен успешно: ${order.customer_email} - ${productName}`);
+                    } else {
+                        emailsFailed++;
+                        console.error(`   ❌ Email ${i + 1}/${quantity} НЕ отправлен:`, emailResult?.error || 'Unknown error');
+                    }
                 } catch (emailError) {
                     emailsFailed++;
                     console.error(`   ❌ Ошибка отправки email ${i + 1}/${quantity}:`, emailError.message || emailError);
@@ -1826,19 +1825,21 @@ app.post('/api/payment/yoomoney', async (req, res) => {
             `👤 Клиент: ${order.customer_name}\n` +
             `📧 Email: ${order.customer_email}\n` +
             `💵 Сумма: ${amount} ${currency}\n` +
-            `📦 Товары: ${products.map(p => p.name).join(', ')}\n` +
+            `📦 Товары: ${products.map(p => p.name || p.productName || p.product_name).join(', ')}\n` +
             `📅 Дата: ${datetime}\n\n` +
             `📊 Emails: отправлено ${emailsSent}, ошибок ${emailsFailed}\n\n` +
             `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
         
         try {
-            const telegramResult = await sendTelegramNotification(successNotification, false);
+            await sendTelegramNotification(successNotification, false);
             console.log('   ✅ Telegram уведомление отправлено');
         } catch (telegramError) {
             console.error('   ❌ Ошибка отправки Telegram:', telegramError.message || telegramError);
             console.error('   ❌ Stack trace:', telegramError.stack);
         }
         
+        // ВАЖНО: Всегда возвращаем 200 OK для YooMoney, даже если были ошибки
+        // YooMoney будет повторять запрос, если мы вернем ошибку
         res.status(200).send('OK');
         
     } catch (error) {
