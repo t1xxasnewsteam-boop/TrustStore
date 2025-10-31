@@ -3001,7 +3001,10 @@ app.post('/api/admin/emails/:id/reply', authMiddleware, async (req, res) => {
             // Помечаем письмо как прочитанное
             db.prepare('UPDATE email_messages SET is_read = 1 WHERE id = ?').run(id);
             
-            console.log(`✅ Ответ отправлен: ${originalEmail.from_email}`);
+            console.log(`✅ Ответ отправлен:`);
+            console.log(`   От: ${process.env.EMAIL_USER || 'orders@truststore.ru'}`);
+            console.log(`   Кому: ${recipientEmail}`);
+            console.log(`   Тема: ${mailOptions.subject}`);
             
             // Отправляем уведомление в Telegram
             sendTelegramNotification(`📧 Ответ отправлен на письмо от ${originalEmail.from_email}`, true);
