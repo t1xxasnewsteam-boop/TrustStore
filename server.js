@@ -1720,61 +1720,45 @@ app.post('/api/payment/yoomoney', async (req, res) => {
         
         // Получаем товары из заказа
         const products = JSON.parse(order.products);
+        console.log('📦 Товары в заказе:', JSON.stringify(products, null, 2));
         
-        // Обрабатываем каждый товар
+        // Обрабатываем каждый товар - ТОВАР ВСЕГДА В НАЛИЧИИ, ОТПРАВЛЯЕМ ПИСЬМО СРАЗУ
         for (const product of products) {
             const quantity = product.quantity || 1;
             
-            // Получаем доступные товары из инвентаря
+            // Получаем название товара
+            const productName = product.name || product.productName || product.product_name;
+            console.log(`   ✅ Обработка товара: "${productName}", количество: ${quantity}`);
+            
+            // Получаем информацию о товаре из БД products
+            const productInfo = db.prepare('SELECT * FROM products WHERE name = ?').get(productName);
+            if (!productInfo) {
+                // Пробуем найти по базовому названию (убираем скобки и дополнительную информацию)
+                const baseName = productName.split('(')[0].split('-')[0].split('|')[0].split('[')[0].trim();
+                const productInfoAlt = db.prepare('SELECT * FROM products WHERE name LIKE ?').get(baseName + '%');
+                if (productInfoAlt) {
+                    console.log(`   ℹ️ Товар найден по базовому названию: ${baseName}`);
+                }
+            }
+            
+            // Отправляем email для каждого товара в количестве
             for (let i = 0; i < quantity; i++) {
-                const availableItem = db.prepare(`
-                    SELECT * FROM product_inventory 
-                    WHERE product_name = ? AND status = 'available'
-                    LIMIT 1
-                `).get(product.name);
-                
-                if (availableItem) {
-                    // Помечаем товар как проданный
-                    db.prepare(`
-                        UPDATE product_inventory 
-                        SET status = 'sold', order_id = ?, sold_at = CURRENT_TIMESTAMP
-                        WHERE id = ?
-                    `).run(label, availableItem.id);
+                try {
+                    await sendOrderEmail({
+                        to: order.customer_email,
+                        orderNumber: label,
+                        productName: productName,
+                        productImage: productInfo ? productInfo.image : (product.image || null),
+                        productCategory: productInfo ? productInfo.category : null,
+                        productDescription: productInfo ? productInfo.description : null,
+                        login: null, // Не используем инвентарь
+                        password: null, // Не используем инвентарь
+                        instructions: productInfo ? productInfo.description : 'Спасибо за покупку! Инструкции по использованию товара будут отправлены отдельно.'
+                    });
                     
-                    // Получаем информацию о товаре из БД
-                    const productInfo = db.prepare('SELECT * FROM products WHERE name = ?').get(product.name);
-                    
-                    // Отправляем email с товаром
-                    try {
-                        await sendOrderEmail({
-                            to: order.customer_email,
-                            orderNumber: label,
-                            productName: product.name,
-                            productImage: productInfo ? productInfo.image : null,
-                            productCategory: productInfo ? productInfo.category : null,
-                            productDescription: productInfo ? productInfo.description : null,
-                            login: availableItem.login,
-                            password: availableItem.password,
-                            instructions: availableItem.instructions || 'Используйте эти данные для входа в сервис.'
-                        });
-                        
-                        console.log(`✅ Email отправлен: ${order.customer_email} - ${product.name}`);
-                    } catch (emailError) {
-                        console.error('❌ Ошибка отправки email:', emailError);
-                    }
-                } else {
-                    console.error(`⚠️ Товар не найден в инвентаре: ${product.name}`);
-                    
-                    // Отправляем уведомление админу в Telegram
-                    const notificationText = `⚠️ <b>ВНИМАНИЕ! Товара нет в наличии!</b>\n\n` +
-                        `📦 Товар: ${product.name}\n` +
-                        `🆔 Заказ: ${label}\n` +
-                        `👤 Клиент: ${order.customer_name}\n` +
-                        `📧 Email: ${order.customer_email}\n` +
-                        `💰 Сумма: ${order.total_amount} ₽\n\n` +
-                        `⚡ СРОЧНО ДОБАВЬ ТОВАР В ИНВЕНТАРЬ!`;
-                    
-                    sendTelegramNotification(notificationText, false);
+                    console.log(`✅ Email отправлен: ${order.customer_email} - ${productName}`);
+                } catch (emailError) {
+                    console.error('❌ Ошибка отправки email:', emailError);
                 }
             }
         }
