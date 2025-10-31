@@ -1495,104 +1495,39 @@ app.post('/api/payment/heleket/create', async (req, res) => {
             }
         }
         
-        // Используем правильный endpoint как в bot-t: POST /v1/payment
-        const apiEndpoint = `${HELEKET_API_URL.replace('/api', '')}/v1/payment`;
+        // Формируем прямую ссылку на оплату Heleket (как в bot-t)
+        // Формат: https://heleket.com/pay?merchant_id=...&amount=...&currency=...&order_id=...
+        const baseUrl = 'https://heleket.com';
+        const host = req.get('host');
+        const protocol = req.protocol;
         
-        // Формируем данные в формате bot-t
-        const paymentData = {
-            amount: finalAmount,
+        // Формируем параметры для URL
+        const paymentParams = new URLSearchParams({
+            merchant_id: HELEKET_MERCHANT_ID,
+            amount: finalAmount.toString(),
             currency: finalCurrency,
             order_id: orderId,
-            url_callback: `${req.protocol}://${req.get('host')}/api/payment/heleket`,
-            url_success: `${req.protocol}://${req.get('host')}/success`,
-            url_return: `${req.protocol}://${req.get('host')}/checkout`,
-            description: description || `Заказ ${orderId}`,
-            customerEmail: customerEmail || ''
-        };
+            description: (description || `Заказ ${orderId}`).substring(0, 200), // Ограничение длины
+            customer_email: customerEmail || '',
+            success_url: `${protocol}://${host}/success`,
+            cancel_url: `${protocol}://${host}/checkout`,
+            callback_url: `${protocol}://${host}/api/payment/heleket`
+        });
         
-        console.log('📤 Отправка запроса в Heleket API (формат bot-t):', {
-            url: apiEndpoint,
+        const paymentUrl = `${baseUrl}/pay?${paymentParams.toString()}`;
+        
+        console.log('🔗 Формируем прямую ссылку Heleket (как bot-t):', paymentUrl);
+        console.log('📋 Параметры:', {
             merchant_id: HELEKET_MERCHANT_ID,
             amount: finalAmount,
             currency: finalCurrency,
             order_id: orderId
         });
         
-        const response = await fetch(apiEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${HELEKET_API_KEY}`,
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(paymentData)
-        });
-        
-        // Проверяем тип ответа
-        const contentType = response.headers.get('content-type');
-        let data;
-        
-        if (contentType && contentType.includes('application/json')) {
-            data = await response.json();
-        } else {
-            // Если пришел HTML вместо JSON - значит ошибка
-            const htmlResponse = await response.text();
-            console.error('❌ Heleket API вернул HTML вместо JSON');
-            console.error('📄 Первые 1000 символов HTML:', htmlResponse.substring(0, 1000));
-            console.error('🌐 Status:', response.status, response.statusText);
-            console.error('📋 Headers:', JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2));
-            
-            // Пробуем извлечь полезную информацию из HTML
-            let htmlError = 'Неизвестная ошибка API';
-            const titleMatch = htmlResponse.match(/<title>([^<]+)<\/title>/i);
-            const errorMatch = htmlResponse.match(/error[^>]*>([^<]+)/i) || htmlResponse.match(/Ошибка[^>]*>([^<]+)/i);
-            
-            if (titleMatch) htmlError = titleMatch[1];
-            if (errorMatch) htmlError = errorMatch[1];
-            
-            // Если это ошибка о неподдерживаемом методе, пробуем альтернативные endpoint'ы
-            if (htmlResponse.includes('POST method is not supported') || htmlResponse.includes('Method not allowed')) {
-                console.log('⚠️ POST не поддерживается, возможно нужен другой endpoint');
-                console.log('💡 Подсказка: Проверьте документацию Heleket для правильного endpoint создания платежей');
-            }
-            
-            // Пробуем альтернативный endpoint или формат
-            return res.status(500).json({ 
-                error: 'Heleket API вернул ошибку',
-                message: htmlError || 'Неверный endpoint или метод запроса',
-                suggestion: 'Проверьте документацию Heleket для правильного API endpoint. Возможно нужен другой URL (не /v1/payments).',
-                api_url: apiEndpoint,
-                status_code: response.status,
-                hint: 'Endpoint /v1/payments поддерживает только GET, возможно нужен другой путь для создания платежей'
-            });
-        }
-        
-        if (!response.ok) {
-            console.error('❌ Ошибка создания платежа в Heleket:', data);
-            return res.status(response.status).json({ 
-                error: data.message || data.error || 'Ошибка создания платежа',
-                details: data
-            });
-        }
-        
-        console.log('✅ Платежная ссылка создана в Heleket:', data);
-        
-        // Возвращаем URL для редиректа клиента
-        // Heleket может вернуть поле payment_url, invoice_url, link, или checkout_url
-        const paymentUrl = data.payment_url || data.invoice_url || data.link || data.checkout_url || data.url;
-        
-        if (!paymentUrl) {
-            console.error('❌ Heleket не вернул URL платежной ссылки:', data);
-            return res.status(500).json({
-                error: 'Heleket не вернул URL платежной ссылки',
-                response: data
-            });
-        }
-        
         // Возвращаем URL для редиректа клиента с информацией о конвертации
         const responseData = {
             success: true,
-            payment_id: data.payment_id || data.invoice_id || data.id,
+            payment_id: `HELEKET-${orderId}-${Date.now()}`,
             payment_url: paymentUrl,
             order_id: orderId
         };
