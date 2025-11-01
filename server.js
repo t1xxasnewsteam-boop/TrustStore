@@ -254,7 +254,7 @@ function canSendNotification(ticketId) {
 }
 
 // Функция отправки уведомления в Telegram
-async function sendTelegramNotification(message, silent = false) {
+async function sendTelegramNotification(message, silent = false, replyMarkup = null) {
     try {
         if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
             console.log('⚠️ Telegram токен или chat_id не настроены, пропускаем уведомление');
@@ -262,22 +262,28 @@ async function sendTelegramNotification(message, silent = false) {
         }
         
         const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+        const body = {
+            chat_id: TELEGRAM_CHAT_ID,
+            text: message,
+            parse_mode: 'HTML', // Включаем HTML форматирование
+            disable_notification: silent
+        };
+        
+        if (replyMarkup) {
+            body.reply_markup = replyMarkup;
+        }
+        
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: TELEGRAM_CHAT_ID,
-                text: message,
-                parse_mode: 'HTML', // Включаем HTML форматирование
-                disable_notification: silent
-            })
+            body: JSON.stringify(body)
         });
         
         if (response.ok) {
             const data = await response.json();
             if (data.ok) {
                 console.log('✅ Telegram уведомление отправлено успешно');
-                return true;
+                return data.result || true; // Возвращаем результат или true для обратной совместимости
             } else {
                 console.error('❌ Telegram API вернул ошибку:', data.description || 'Unknown error');
                 return false;

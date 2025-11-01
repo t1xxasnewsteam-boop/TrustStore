@@ -1017,47 +1017,32 @@
                     <div class="form-section">
                         <h3>Способ оплаты</h3>
                         <div class="payment-methods" style="display: grid !important; grid-template-columns: 1fr !important; gap: 15px !important;">
-                            <div class="payment-method selected" data-method="heleket" style="position: relative; display: flex !important; padding-top: 35px;">
+                            <div class="payment-method selected" data-method="sbp" style="position: relative; display: flex !important; padding-top: 35px;">
                                 <div style="position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; pointer-events: none; z-index: 10;">
                                     🔥 Популярно
                                 </div>
                                 <div class="payment-method-icon">
-                                    <svg width="44" height="28" viewBox="0 0 56 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Криптовалютный кошелек" role="img">
+                                    <svg width="44" height="28" viewBox="0 0 56 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="СБП" role="img">
                                         <defs>
-                                            <linearGradient id="cryptoGrad" x1="0" y1="0" x2="56" y2="40" gradientUnits="userSpaceOnUse">
-                                                <stop offset="0" stop-color="#1BA27A"/>
-                                                <stop offset="1" stop-color="#26A17B"/>
+                                            <linearGradient id="sbpGrad" x1="0" y1="0" x2="56" y2="40" gradientUnits="userSpaceOnUse">
+                                                <stop offset="0" stop-color="#005BFF"/>
+                                                <stop offset="1" stop-color="#003A99"/>
                                             </linearGradient>
                                         </defs>
-                                        <!-- Card body (кошелек) -->
-                                        <rect x="2" y="3" width="52" height="34" rx="8" fill="url(#cryptoGrad)"/>
-                                        <!-- Верхняя полоска кошелька -->
-                                        <rect x="4" y="8" width="48" height="8" rx="3" fill="rgba(255,255,255,0.2)"/>
-                                        <!-- Клапан кошелька (складка сверху) -->
-                                        <path d="M6 8 Q28 14 50 8 L48 14 Q28 20 8 14 Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.25)" stroke-width="0.5"/>
-                                        <!-- Застежка кошелька -->
-                                        <circle cx="28" cy="26" r="4" fill="rgba(255,255,255,0.3)"/>
-                                        <circle cx="28" cy="26" r="2.5" fill="rgba(255,255,255,0.5)"/>
-                                        <!-- Линии на кошельке -->
-                                        <rect x="10" y="18" width="36" height="1.5" rx="1" fill="rgba(255,255,255,0.25)"/>
-                                        <rect x="10" y="21" width="28" height="1.5" rx="1" fill="rgba(255,255,255,0.2)"/>
-                                        <!-- Tether значок в углу (USDT) -->
-                                        <g transform="translate(38, 5)">
-                                            <circle cx="0" cy="0" r="6" fill="#26A17B"/>
-                                            <circle cx="0" cy="0" r="5" fill="#1BA27A"/>
-                                            <!-- Буква T -->
-                                            <path d="M-2.5 -2 L-2.5 2 M-3.5 0 L-1.5 0" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </g>
+                                        <!-- Card body -->
+                                        <rect x="2" y="3" width="52" height="34" rx="8" fill="url(#sbpGrad)"/>
+                                        <!-- СБП логотип (стилизованный) -->
+                                        <circle cx="28" cy="20" r="8" fill="white" opacity="0.9"/>
+                                        <path d="M24 20 L26 22 L32 16" stroke="#005BFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                                        <!-- Номер телефона стилизация -->
+                                        <rect x="8" y="28" width="40" height="3" rx="1.5" fill="rgba(255,255,255,0.7)"/>
                                         <!-- Border -->
                                         <rect x="2" y="3" width="52" height="34" rx="8" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
                                     </svg>
                                 </div>
                                 <div class="payment-method-info">
-                                    <div class="payment-method-name">Криптовалюта</div>
-                                    <div class="payment-method-desc">Bitcoin • USDT • Ethereum • и другие</div>
-                                    <div id="crypto-rate-info" style="font-size: 11px; color: #10b981; margin-top: 4px; font-weight: 500;">
-                                        💱 Автоконвертация RUB → USD по текущему курсу
-                                    </div>
+                                    <div class="payment-method-name">Банковская Карта</div>
+                                    <div class="payment-method-desc">Оплата через СБП (Система быстрых платежей)</div>
                                 </div>
                             </div>
                         </div>
@@ -1771,12 +1756,12 @@
             try {
                 // ⚠️ ВАЖНО: Определяем выбранный метод оплаты ПРЯМО СЕЙЧАС, а не из кэша!
                 const selectedPaymentMethodElement = document.querySelector('.payment-method.selected');
-                const selectedPaymentMethod = selectedPaymentMethodElement?.dataset.method || 'heleket';
+                const selectedPaymentMethod = selectedPaymentMethodElement?.dataset.method || 'sbp';
                 
                 console.log('💳 Выбранный метод оплаты:', selectedPaymentMethod);
                 console.log('📋 Элемент:', selectedPaymentMethodElement);
                 
-                if (!selectedPaymentMethod || selectedPaymentMethod !== 'heleket') {
+                if (!selectedPaymentMethod || selectedPaymentMethod !== 'sbp') {
                     console.error('❌ Неизвестный метод оплаты:', selectedPaymentMethod);
                     alert('❌ Выберите способ оплаты');
                     return;
@@ -1788,7 +1773,7 @@
                     customerPhone: phone,
                     products: orderItems,
                     totalAmount: currentTotalPrice,
-                    paymentMethod: 'Heleket',
+                    paymentMethod: 'SBP',
                     comment: comment
                 };
                     
@@ -1836,20 +1821,18 @@
                         clearCart();
                         localStorage.removeItem('appliedPromoCode'); // Удаляем промокод
                         
-                        // Оплата через Heleket (единственный способ)
-                        console.log('💎 Переход на оплату через HELEKET');
+                        // Оплата через СБП
+                        console.log('💳 Переход на оплату через СБП');
                         try {
-                            const paymentResponse = await fetch('/api/payment/heleket/create', {
+                            const paymentResponse = await fetch('/api/payment/sbp/create', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
                                     orderId: result.orderId,
                                     amount: currentTotalPrice,
-                                    currency: 'RUB',
-                                    description: fullDescription,
+                                    customerName: name,
                                     customerEmail: email,
-                                    successUrl: window.location.origin + '/success',
-                                    cancelUrl: window.location.origin + '/checkout'
+                                    customerPhone: phone
                                 })
                             });
                             
@@ -1859,39 +1842,14 @@
                             }
                             
                             const paymentData = await paymentResponse.json();
-                            console.log('✅ Ответ Heleket API:', paymentData);
+                            console.log('✅ Ответ СБП API:', paymentData);
                             
-                            if (paymentData.success && paymentData.payment_url) {
-                                console.log('🚀 Редирект на Heleket:', paymentData.payment_url);
-                                // Редирект на страницу оплаты Heleket
-                                window.location.href = paymentData.payment_url;
-                                return; // Важно! Прекращаем выполнение
-                            } else {
-                                throw new Error(paymentData.error || 'Ошибка создания платежа');
-                            }
+                            // Редирект на страницу оплаты СБП
+                            window.location.href = `/sbp-payment.html?orderId=${result.orderId}&amount=${currentTotalPrice}&phone=${encodeURIComponent(paymentData.formattedPhone)}`;
+                            return; // Важно! Прекращаем выполнение
                         } catch (error) {
-                            console.error('❌ Ошибка создания платежа Heleket:', error);
-                            
-                            let errorMsg = '❌ Ошибка создания платежа.';
-                            
-                            try {
-                                const errorData = error.response ? await error.response.json() : null;
-                                if (errorData && errorData.error) {
-                                    errorMsg += '\n\n' + errorData.error;
-                                    if (errorData.message) {
-                                        errorMsg += '\n' + errorData.message;
-                                    }
-                                    if (errorData.suggestion) {
-                                        errorMsg += '\n\n💡 ' + errorData.suggestion;
-                                    }
-                                } else {
-                                    errorMsg += '\n\n' + error.message;
-                                }
-                            } catch (e) {
-                                errorMsg += '\n\n' + error.message;
-                            }
-                            
-                            alert(errorMsg);
+                            console.error('❌ Ошибка создания платежа СБП:', error);
+                            alert('❌ Ошибка создания платежа. Попробуйте позже.');
                             return;
                         }
                 } else {

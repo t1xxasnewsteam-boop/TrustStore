@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оплата через СБП - Trust Store</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .payment-container {
+            background: white;
+            border-radius: 25px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .payment-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .payment-header h1 {
+            font-size: 28px;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+        
+        .payment-header p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .payment-info {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .info-label {
+            color: #666;
+        }
+        
+        .info-value {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        
+        .phone-display {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin: 25px 0;
+        }
+        
+        .phone-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+            letter-spacing: 2px;
+            margin: 10px 0;
+        }
+        
+        .amount-display {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin: 10px 0;
+        }
+        
+        .instructions {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .instructions h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #1a1a1a;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .btn-confirm {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+        
+        .btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-confirm:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .message {
+            text-align: center;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <div class="payment-header">
+            <h1>💳 Оплата через СБП</h1>
+            <p>Переведите указанную сумму на номер телефона</p>
+        </div>
+        
+        <div class="payment-info">
+            <div class="info-row">
+                <span class="info-label">Номер заказа:</span>
+                <span class="info-value" id="orderId">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Сумма к оплате:</span>
+                <span class="info-value" id="amount">-</span>
+            </div>
+        </div>
+        
+        <div class="phone-display">
+            <div style="font-size: 14px; color: #666; margin-bottom: 5px;">Переведите на номер:</div>
+            <div class="phone-number" id="phoneNumber">-</div>
+            <div class="amount-display" id="amountDisplay">-</div>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 Инструкция:</h3>
+            <ol>
+                <li>Откройте приложение вашего банка</li>
+                <li>Выберите "Перевод по номеру телефона" или "СБП"</li>
+                <li>Введите указанный номер телефона</li>
+                <li>Переведите точную сумму: <strong id="amountInline">-</strong></li>
+                <li>Нажмите кнопку "Я перевел" ниже</li>
+            </ol>
+        </div>
+        
+        <button class="btn-confirm" id="confirmBtn" onclick="confirmPayment()">
+            ✅ Я перевел деньги
+        </button>
+        
+        <div class="message" id="message"></div>
+        <div class="loading" id="loading">⏳ Отправка уведомления...</div>
+    </div>
+    
+    <script>
+        // Получаем данные из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('orderId');
+        const amount = urlParams.get('amount');
+        const phone = decodeURIComponent(urlParams.get('phone') || '');
+        
+        // Заполняем данные
+        document.getElementById('orderId').textContent = orderId || '-';
+        document.getElementById('amount').textContent = amount ? amount + ' ₽' : '-';
+        document.getElementById('phoneNumber').textContent = phone || '-';
+        document.getElementById('amountDisplay').textContent = amount ? amount + ' ₽' : '-';
+        document.getElementById('amountInline').textContent = amount ? amount + ' ₽' : '-';
+        
+        async function confirmPayment() {
+            if (!orderId) {
+                showMessage('❌ Ошибка: номер заказа не найден', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('confirmBtn');
+            const loading = document.getElementById('loading');
+            const message = document.getElementById('message');
+            
+            btn.disabled = true;
+            loading.style.display = 'block';
+            message.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/payment/sbp/confirm', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    if (data.alreadyPaid) {
+                        showMessage('✅ Заказ уже обработан! Товар отправлен на ваш email.', 'success');
+                    } else {
+                        showMessage('✅ Уведомление отправлено администратору! Заказ будет обработан в ближайшее время. Проверьте email.', 'success');
+                    }
+                } else {
+                    showMessage('❌ ' + (data.error || 'Ошибка отправки уведомления'), 'error');
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                showMessage('❌ Ошибка при отправке уведомления. Попробуйте позже.', 'error');
+                btn.disabled = false;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+        
+        function showMessage(text, type) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.className = 'message ' + type;
+            message.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
+
