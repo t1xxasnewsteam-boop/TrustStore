@@ -1,0 +1,34 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Показываем все СБП заказы за последний час
+send "echo '📋 Все СБП заказы за последний час:'\r"
+expect "# "
+
+send "node -e \"const Database = require('better-sqlite3'); const db = new Database('analytics.db'); const oneHourAgo = new Date(Date.now() - 60*60*1000).toISOString().replace('T', ' ').substring(0, 19); const orders = db.prepare('SELECT order_id, customer_email, customer_name, status, total_amount, created_at FROM orders WHERE payment_method = \\\"SBP\\\" AND created_at > ? ORDER BY created_at DESC').all(oneHourAgo); console.log(JSON.stringify(orders, null, 2)); db.close();\" 2>/dev/null\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
