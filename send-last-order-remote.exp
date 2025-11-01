@@ -1,0 +1,79 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Создаем временный скрипт
+send "cat > /tmp/send_order.sh << 'EOFBASH'\r"
+expect "EOFBASH"
+
+send "#!/bin/bash\r"
+expect "EOFBASH"
+
+send "cd /root/TrustStore\r"
+expect "EOFBASH"
+
+send "ORDER_ID=\$(sqlite3 analytics.db \"SELECT order_id FROM orders WHERE status='paid' ORDER BY created_at DESC LIMIT 1;\" 2>/dev/null)\r"
+expect "EOFBASH"
+
+send "if [ -z \"\$ORDER_ID\" ]; then\r"
+expect "EOFBASH"
+
+send "  echo '❌ Не найден оплаченный заказ'\r"
+expect "EOFBASH"
+
+send "  exit 1\r"
+expect "EOFBASH"
+
+send "fi\r"
+expect "EOFBASH"
+
+send "echo \"✅ Найден заказ: \$ORDER_ID\"\r"
+expect "EOFBASH"
+
+send "echo \"📤 Отправка заказа...\"\r"
+expect "EOFBASH"
+
+send "curl -X POST http://localhost:3000/api/manual-send-last-order -H 'Content-Type: application/json' -d \"{\\\\\\\"orderId\\\\\\\": \\\\\\\"\$ORDER_ID\\\\\\\"}\" 2>/dev/null | python3 -m json.tool 2>/dev/null || cat\r"
+expect "EOFBASH"
+
+send "echo \"\"\r"
+expect "EOFBASH"
+
+send "echo \"✅ Готово!\"\r"
+expect "EOFBASH"
+
+send "EOFBASH\r"
+expect "# "
+
+send "chmod +x /tmp/send_order.sh\r"
+expect "# "
+
+send "/tmp/send_order.sh\r"
+expect "# "
+
+send "rm /tmp/send_order.sh\r"
+expect "# "
+
+send "exit\r"
+expect eof
+

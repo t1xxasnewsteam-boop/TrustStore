@@ -1,0 +1,61 @@
+#!/usr/bin/expect -f
+# Скрипт для подключения к серверу и отправки последнего заказа
+
+set timeout 30
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Проверяем последний заказ
+send "echo '🔍 Проверка последнего заказа...'\r"
+expect "# "
+
+send "sqlite3 analytics.db \"SELECT order_id, customer_email, status, payment_method, total_amount, created_at FROM orders ORDER BY created_at DESC LIMIT 1;\" 2>/dev/null\r"
+expect "# "
+
+# Находим order_id последнего оплаченного заказа
+send "ORDER_ID=$(sqlite3 analytics.db \"SELECT order_id FROM orders WHERE status='paid' ORDER BY created_at DESC LIMIT 1;\" 2>/dev/null)\r"
+expect "# "
+
+send "echo Checking order...\r"
+expect "# "
+
+send "if [ ! -z \"$ORDER_ID\" ]; then echo \"Found order: $ORDER_ID\"; curl -X POST http://localhost:3000/api/manual-send-last-order -H 'Content-Type: application/json' -d \"{\\\"orderId\\\": \\\"$ORDER_ID\\\"}\" 2>/dev/null; else echo 'No paid order found'; fi\r"
+expect "# "
+
+# Проверяем логи после отправки
+send "echo ''\r"
+expect "# "
+
+send "echo '📊 Проверка логов отправки...'\r"
+expect "# "
+
+send "pm2 logs trust-store --lines 20 --nostream | grep -E '📧|email|✅|❌|Отправка|отправлен' | tail -10\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+send "echo '✅ Готово! Заказ должен быть отправлен.'\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
