@@ -1,0 +1,66 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+send "echo '🔍 ПРОВЕРКА СИСТЕМЫ'\r"
+expect "# "
+
+send "echo '═══════════════════════════════════════════════════════'\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+send "echo '📊 Статус PM2:'\r"
+expect "# "
+
+send "pm2 status\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+send "echo '📋 Последние логи (ошибки):'\r"
+expect "# "
+
+send "pm2 logs trust-store --err --lines 10 --nostream 2>/dev/null | tail -10 || echo 'Ошибок нет'\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+send "echo '📦 Последний заказ:'\r"
+expect "# "
+
+send "sqlite3 analytics.db \"SELECT order_id, customer_email, status, created_at FROM orders ORDER BY created_at DESC LIMIT 1;\" 2>/dev/null || echo 'БД недоступна'\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+send "echo '✅ Проверка завершена'\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
