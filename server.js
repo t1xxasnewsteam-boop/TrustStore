@@ -3268,6 +3268,21 @@ async function sendOrderEmail(data) {
     // Попытка отправить через SendGrid (если настроен)
     if (process.env.SENDGRID_API_KEY) {
         try {
+            // Читаем логотип для вложения
+            const logoPath = path.join(__dirname, 'youtube-avatar.png');
+            let attachments = [];
+            
+            if (fs.existsSync(logoPath)) {
+                const logoContent = fs.readFileSync(logoPath);
+                attachments.push({
+                    content: logoContent.toString('base64'),
+                    filename: 'youtube-avatar.png',
+                    type: 'image/png',
+                    disposition: 'inline',
+                    content_id: 'youtube-avatar'
+                });
+            }
+            
             const msg = {
                 to: data.to,
                 from: process.env.EMAIL_USER || 'orders@truststore.ru',
@@ -3277,11 +3292,12 @@ async function sendOrderEmail(data) {
                 headers: {
                     'X-Mailer': 'Trust Store',
                     'List-Unsubscribe': '<https://truststore.ru/unsubscribe>'
-                }
+                },
+                attachments: attachments
             };
             
             const response = await sgMail.send(msg);
-            console.log(`✅ Письмо отправлено через SendGrid: ${data.to}`);
+            console.log(`✅ Письмо отправлено через SendGrid: ${data.to}${attachments.length > 0 ? ' (с логотипом)' : ''}`);
             const messageId = response && response[0] && response[0].headers ? response[0].headers['x-message-id'] : 'unknown';
             return { success: true, messageId: messageId, method: 'SendGrid' };
         } catch (error) {
