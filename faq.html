@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ и Пользовательское соглашение | Trust Store</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="shortcut icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="logo-wrapper">
+                        <a href="/" style="text-decoration: none;">
+                            <div class="logo">
+                                <img src="logo.png" alt="Trust Store" class="logo-image">
+                                <h1>Trust Store</h1>
+                            </div>
+                        </a>
+                        <span class="logo-subtitle" style="pointer-events: none;">магазин цифровых товаров</span>
+                    </div>
+                </div>
+                <div class="header-center">
+                    <nav class="nav">
+                        <a href="/" class="nav-link">Главная</a>
+                        <a href="/catalog" class="nav-link">Каталог</a>
+                        <a href="/socials" class="nav-link">Мы в соцсетях</a>
+                    </nav>
+                </div>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <button class="btn-icon" onclick="openSearchModal()">🔍</button>
+                        <script>
+                            function openSearchModal() {
+                                window.location.href = '/';
+                            }
+                        </script>
+                        <button class="btn-icon cart-button" onclick="toggleCartWidget()">🛒 <span class="badge cart-count">0</span></button>
+                        <script>(function(){try{var c=JSON.parse(localStorage.getItem('trustStoreCart')||'[]'),t=0;c.forEach(function(i){t+=(i.quantity||1)});var b=document.currentScript.previousElementSibling.querySelector('.cart-count');if(b)b.textContent=t;}catch(e){}})();</script>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- FAQ Page -->
+    <section class="about-page" style="padding: 80px 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: calc(100vh - 200px);">
+        <div class="container">
+            <div style="max-width: 900px; margin: 0 auto; background: white; border-radius: 20px; padding: 60px; box-shadow: 0 20px 60px rgba(0,0,0,0.2);">
+                <h1 style="font-size: 42px; font-weight: 700; color: #1a1a1a; margin-bottom: 40px; text-align: center;">❓ Часто задаваемые вопросы</h1>
+                
+                <!-- FAQ Section -->
+                <div style="margin-bottom: 60px;">
+                    <div class="faq-item" style="margin-bottom: 25px; padding: 20px; background: rgba(102, 126, 234, 0.05); border-radius: 12px; border-left: 4px solid #667eea;">
+                        <h3 style="font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 10px;">📦 Как быстро я получу товар после оплаты?</h3>
+                        <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">
+                            После успешной оплаты вы получите всю информацию о товаре на указанный email в течение <strong>5-10 минут</strong>. Если письмо не пришло, проверьте папку "Спам" или напишите нам в Telegram.
+                        </p>
+                    </div>
+
+                    <div class="faq-item" style="margin-bottom: 25px; padding: 20px; background: rgba(102, 126, 234, 0.05); border-radius: 12px; border-left: 4px solid #667eea;">
+                        <h3 style="font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 10px;">💳 Какие способы оплаты вы принимаете?</h3>
+                        <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">
+                            Мы принимаем оплату банковскими картами (Visa, MasterCard, МИР) через YooMoney и криптовалюту (Bitcoin, USDT, Ethereum и другие) через Heleket. Конвертация из рублей в доллары происходит автоматически по текущему курсу.
+                        </p>
+                    </div>
+
+                    <div class="faq-item" style="margin-bottom: 25px; padding: 20px; background: rgba(102, 126, 234, 0.05); border-radius: 12px; border-left: 4px solid #667eea;">
+                        <h3 style="font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 10px;">🔒 Безопасны ли мои платежи?</h3>
+                        <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">
+                            Да, все платежи обрабатываются через проверенные платежные системы YooMoney и Heleket. Мы не храним данные ваших карт и не имеем к ним доступа. Все транзакции защищены современными протоколами шифрования.
+                        </p>
+                    </div>
+
+                    <div class="faq-item" style="margin-bottom: 25px; padding: 20px; background: rgba(102, 126, 234, 0.05); border-radius: 12px; border-left: 4px solid #667eea;">
+                        <h3 style="font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 10px;">✅ Гарантируете ли вы работоспособность подписок?</h3>
+                        <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">
+                            Да, мы работаем только с официальными поставщиками и гарантируем работоспособность всех подписок. Если возникнут проблемы — мы поможем их решить или вернем деньги в течение 7 дней.
+                        </p>
+                    </div>
+
+                    <div class="faq-item" style="margin-bottom: 25px; padding: 20px; background: rgba(102, 126, 234, 0.05); border-radius: 12px; border-left: 4px solid #667eea;">
+                        <h3 style="font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 10px;">🔄 Можно ли вернуть товар?</h3>
+                        <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">
+                            Возврат возможен в течение <strong>24 часов</strong> с момента покупки, если услуга не была оказана из-за технической ошибки или доступ не был предоставлен. Для возврата напишите нам в Telegram (<a href="https://t.me/truststore_admin" target="_blank" style="color: #667eea; text-decoration: underline;">@truststore_admin</a>) с указанием номера заказа. Мы рассмотрим обращение индивидуально и постараемся вернуть вам улыбку 😊
+                        </p>
+                    </div>
+
+                    <div class="faq-item" style="margin-bottom: 25px; padding: 20px; background: rgba(102, 126, 234, 0.05); border-radius: 12px; border-left: 4px solid #667eea;">
+                        <h3 style="font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 10px;">📧 Не пришло письмо с товаром. Что делать?</h3>
+                        <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">
+                            Сначала проверьте папку "Спам" в вашей почте. Если письма нет — напишите нам в Telegram (@truststore_admin) с указанием email, который вы указали при заказе, и номера заказа. Мы вышлем товар повторно в течение часа.
+                        </p>
+                    </div>
+
+                    <div class="faq-item" style="margin-bottom: 25px; padding: 20px; background: rgba(102, 126, 234, 0.05); border-radius: 12px; border-left: 4px solid #667eea;">
+                        <h3 style="font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 10px;">⏰ Работает ли ваша поддержка круглосуточно?</h3>
+                        <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">
+                            Да, наша поддержка работает 24/7 в Telegram (@truststore_admin). Мы отвечаем в течение 15-30 минут в рабочее время и в течение 1-2 часов в остальное время.
+                        </p>
+                    </div>
+
+                    <div class="faq-item" style="margin-bottom: 25px; padding: 20px; background: rgba(102, 126, 234, 0.05); border-radius: 12px; border-left: 4px solid #667eea;">
+                        <h3 style="font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 10px;">🎁 Есть ли у вас промокоды и скидки?</h3>
+                        <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">
+                            Да, мы регулярно проводим акции и раздаем промокоды в нашем Telegram-канале (@truststoreru). Подпишитесь, чтобы не пропустить выгодные предложения!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- User Agreement Section -->
+                <div style="margin-top: 60px; padding-top: 40px; border-top: 2px solid rgba(102, 126, 234, 0.2);">
+                    <h2 style="font-size: 36px; font-weight: 700; color: #1a1a1a; margin-bottom: 30px; text-align: center;">📜 Пользовательское соглашение</h2>
+                    
+                    <div style="color: #666; font-size: 16px; line-height: 1.8;">
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 15px;">1️⃣ Общие положения</h3>
+                            <p style="margin-bottom: 15px;">
+                                <strong>1.1.</strong> Добро пожаловать в Trust Store ❤️
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                Настоящее Пользовательское соглашение (далее — «Соглашение») описывает, как вы можете пользоваться нашим сервисом (далее — «Сервис»), и какие правила помогают нам поддерживать честность, прозрачность и безопасность для всех.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                <strong>1.2.</strong> Используя Сервис, вы подтверждаете, что согласны с условиями этого Соглашения.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                Если с чем-то не согласны — просто не используйте Сервис. Мы всегда открыты к диалогу и готовы помочь разобраться 🤝
+                            </p>
+                        </div>
+
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 15px;">2️⃣ Ответственность и честность ⚖️</h3>
+                            <p style="margin-bottom: 15px;">
+                                <strong>2.1.</strong> Мы делаем всё возможное, чтобы Сервис работал стабильно и радовал вас каждый день 💻
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                Однако иногда могут случаться технические сбои — предупреждаем честно: Сервис предоставляется «как есть» («AS IS»).
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                <strong>2.2.</strong> Мы не несем ответственности за сбои сторонних сервисов, но всегда готовы помочь и найти решение 💬
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                <strong>2.3.</strong> Всё, что вы делаете в Сервисе, вы делаете осознанно. Мы, в свою очередь, гарантируем честность, прозрачность и поддержку 💪
+                            </p>
+                        </div>
+
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 15px;">3️⃣ Правила использования 🚀</h3>
+                            <p style="margin-bottom: 15px;">
+                                <strong>3.1.</strong> Используйте Сервис с уважением к другим и в рамках закона.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                <strong>3.2.</strong> Мы можем временно ограничить доступ или удалить контент, если он нарушает правила — но всегда стараемся решать такие вопросы мягко и справедливо 💫
+                            </p>
+                        </div>
+
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 15px;">4️⃣ Конфиденциальность и безопасность 🔒</h3>
+                            <p style="margin-bottom: 15px;">
+                                <strong>4.1.</strong> Мы заботимся о вашей конфиденциальности и собираем только то, что действительно нужно для корректной работы Сервиса.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                <strong>4.2.</strong> Мы стараемся обеспечить максимальную безопасность данных, но, как и в любом онлайн-пространстве, 100% гарантии никто дать не может — поэтому соблюдайте базовую цифровую гигиену 🛡️
+                            </p>
+                        </div>
+
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 15px;">5️⃣ Обновления условий 🔁</h3>
+                            <p style="margin-bottom: 15px;">
+                                <strong>5.1.</strong> Технологии развиваются, и мы можем обновлять Соглашение, чтобы сделать Сервис ещё удобнее и безопаснее для вас 💡
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                <strong>5.2.</strong> Продолжая пользоваться Сервисом после обновления, вы автоматически соглашаетесь с новыми условиями. Мы стараемся заранее уведомлять о важных изменениях 📢
+                            </p>
+                        </div>
+
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 15px;">6️⃣ Право и порядок ⚖️</h3>
+                            <p style="margin-bottom: 15px;">
+                                <strong>6.1.</strong> Все вопросы и споры решаются по законодательству юрисдикции, где зарегистрирована администрация Сервиса.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                Мы всегда стремимся к доброму и мирному решению любых вопросов 🤍
+                            </p>
+                        </div>
+
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 15px;">7️⃣ Возвраты и решения 💰</h3>
+                            <p style="margin-bottom: 15px;">
+                                <strong>7.1.</strong> Мы предоставляем цифровые товары и услуги, поэтому возврат после их получения невозможен — это стандартная практика для цифрового контента.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                <strong>7.2.</strong> Однако если что-то пошло не так (например, услуга не была оказана из-за технической ошибки или доступ не был предоставлен) — мы обязательно всё решим 💬
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                <strong>7.3.</strong> Просто напишите нам в поддержку в течение <strong>24 часов</strong> после оплаты, если услуга не была оказана из-за технической ошибки или доступ не был предоставлен, указав номер заказа и контакты.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                Мы рассмотрим обращение индивидуально и постараемся вернуть вам улыбку 😊
+                            </p>
+                        </div>
+
+                        <div style="margin-top: 40px; padding: 25px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border-radius: 15px; text-align: center;">
+                            <p style="font-size: 18px; color: #1a1a1a; font-weight: 600; margin-bottom: 15px;">
+                                ✅ Используя наш Сервис (в том числе запуская бота или вводя команду /start), вы подтверждаете, что ознакомлены и согласны с этим Соглашением.
+                            </p>
+                            <p style="font-size: 18px; color: #667eea; font-weight: 600; margin-bottom: 10px;">
+                                Спасибо, что выбираете Trust Store 💙
+                            </p>
+                            <p style="font-size: 16px; color: #666;">
+                                Мы обещаем развиваться, чтобы каждый ваш день с нами был удобным, честным и технологичным! ⚡️
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy Policy Section -->
+                <div style="margin-top: 60px; padding-top: 40px; border-top: 2px solid rgba(102, 126, 234, 0.2);">
+                    <h2 style="font-size: 36px; font-weight: 700; color: #1a1a1a; margin-bottom: 20px; text-align: center;">🔒 Политика конфиденциальности</h2>
+                    
+                    <div style="color: #666; font-size: 14px; line-height: 1.6; margin-bottom: 30px; text-align: center;">
+                        <p><strong>Актуально с 1 ноября 2025 года</strong></p>
+                    </div>
+                    
+                    <div style="color: #666; font-size: 16px; line-height: 1.8;">
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 15px;">1️⃣ Общие положения</h3>
+                            <p style="margin-bottom: 15px;">
+                                <strong>1.1.</strong> Добро пожаловать в Trust Store 💙
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                Мы уважаем вашу конфиденциальность и хотим, чтобы вы понимали, какие данные мы собираем и как их используем.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                Настоящая Политика конфиденциальности (далее — «Политика») рассказывает об этом простыми словами.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                <strong>1.2.</strong> Используя наш Сервис, вы соглашаетесь с условиями Политики.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                Если вам что-то не подходит — просто свяжитесь с нами, и мы поможем разобраться 🤝
+                            </p>
+                        </div>
+
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 15px;">2️⃣ Какие данные мы собираем 🧾</h3>
+                            <p style="margin-bottom: 15px;">
+                                <strong>2.1.</strong> Мы собираем только то, что помогает нам работать стабильно и делать сервис лучше:
+                            </p>
+                            <ul style="margin-left: 20px; margin-bottom: 15px;">
+                                <li style="margin-bottom: 8px;">ваш идентификатор (логин, ID или никнейм);</li>
+                                <li style="margin-bottom: 8px;">технические данные (IP-адрес, браузер, устройство, операционная система);</li>
+                                <li style="margin-bottom: 8px;">историю действий в Сервисе — чтобы понимать, как улучшить ваш опыт.</li>
+                            </ul>
+                            <p style="margin-bottom: 15px;">
+                                <strong>2.2.</strong> Мы не запрашиваем паспортные данные, фото или другую избыточную личную информацию.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                Только минимум, необходимый для нормальной работы 💡
+                            </p>
+                        </div>
+
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 15px;">3️⃣ Как мы используем данные ⚙️</h3>
+                            <p style="margin-bottom: 15px;">
+                                <strong>3.1.</strong> Вся информация используется исключительно для:
+                            </p>
+                            <ul style="margin-left: 20px; margin-bottom: 15px;">
+                                <li style="margin-bottom: 8px;">корректной работы функций Сервиса;</li>
+                                <li style="margin-bottom: 8px;">связи с вами (поддержка, уведомления, важные обновления);</li>
+                                <li style="margin-bottom: 8px;">анализа и улучшения качества сервиса, чтобы делать его удобнее.</li>
+                            </ul>
+                            <p style="margin-bottom: 15px;">
+                                Никаких «скрытых целей» или передачи данных третьим лицам без вашего ведома — только честно и прозрачно.
+                            </p>
+                        </div>
+
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 15px;">4️⃣ Передача информации третьим лицам 🤝</h3>
+                            <p style="margin-bottom: 15px;">
+                                <strong>4.1.</strong> Мы не продаём и не передаём ваши данные посторонним.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                Передача возможна только в строго ограниченных случаях:
+                            </p>
+                            <ul style="margin-left: 20px; margin-bottom: 15px;">
+                                <li style="margin-bottom: 8px;">если это требует закон;</li>
+                                <li style="margin-bottom: 8px;">если нужно для выполнения обязательств (например, при оплате через платёжные системы);</li>
+                                <li style="margin-bottom: 8px;">если вы сами дали согласие.</li>
+                            </ul>
+                            <p style="margin-bottom: 15px;">
+                                Ваши данные — под нашей защитой 🛡️
+                            </p>
+                        </div>
+
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 15px;">5️⃣ Хранение и защита данных 🗄️</h3>
+                            <p style="margin-bottom: 15px;">
+                                <strong>5.1.</strong> Мы храним данные только столько, сколько нужно для работы сервиса и соблюдения закона.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                <strong>5.2.</strong> Применяем технические и организационные меры безопасности, но, как и везде в интернете, абсолютной защиты, к сожалению, не существует.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                Мы стараемся минимизировать риски и постоянно улучшаем безопасность 🔐
+                            </p>
+                        </div>
+
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 15px;">6️⃣ Важно знать ⚠️</h3>
+                            <p style="margin-bottom: 15px;">
+                                <strong>6.1.</strong> Используя интернет, вы всегда принимаете небольшие риски, связанные с передачей информации онлайн.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                <strong>6.2.</strong> Мы не несем ответственности за кражу или утечку данных, если это произошло по вине третьих лиц или самого пользователя, но всегда поможем разобраться и предложим решения.
+                            </p>
+                        </div>
+
+                        <div style="margin-bottom: 30px;">
+                            <h3 style="font-size: 22px; font-weight: 600; color: #1a1a1a; margin-bottom: 15px;">7️⃣ Обновления политики 🔁</h3>
+                            <p style="margin-bottom: 15px;">
+                                <strong>7.1.</strong> Иногда мы можем обновлять эту Политику — чтобы стать прозрачнее и современнее.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                <strong>7.2.</strong> Если вы продолжаете пользоваться Сервисом после изменений, это значит, что вы принимаете новую редакцию.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                Мы всегда стараемся сообщать о важных обновлениях 📢
+                            </p>
+                        </div>
+
+                        <div style="margin-top: 40px; padding: 25px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border-radius: 15px; text-align: center;">
+                            <p style="font-size: 18px; color: #1a1a1a; font-weight: 600; margin-bottom: 10px;">
+                                💬 Trust Store создан с заботой о пользователях.
+                            </p>
+                            <p style="font-size: 16px; color: #666; margin-bottom: 10px;">
+                                Мы ценим ваше доверие и делаем всё, чтобы использование нашего сервиса было удобным, безопасным и честным.
+                            </p>
+                            <p style="font-size: 18px; color: #667eea; font-weight: 600;">
+                                Спасибо, что вы с нами 💙
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 50px;">
+                    <a href="/" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 40px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                        Вернуться на главную
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Trust Store</h3>
+                    <p>Ваш надежный магазин цифровых товаров</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Компания</h4>
+                    <a href="/about">О нас</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Помощь</h4>
+                    <a href="/faq">FAQ</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Связь</h4>
+                    <span>Email: orders@truststore.ru</span>
+                    <span style="color: white; white-space: nowrap;">Telegram: <a href="https://t.me/truststore_admin" target="_blank" style="color: white; text-decoration: underline;">@truststore_admin</a> (кликабельно)</span>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Trust Store. Все права защищены. ИНН: 523802785027</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+    <script src="cart-widget.js"></script>
+    <script src="search.js"></script>
+    <style>
+        @media (max-width: 768px) {
+            .about-page {
+                padding: 40px 0 !important;
+            }
+            .about-page > .container > div {
+                padding: 30px 20px !important;
+            }
+            .about-page h1 {
+                font-size: 32px !important;
+            }
+            .about-page h2 {
+                font-size: 28px !important;
+            }
+            .faq-item {
+                padding: 16px !important;
+            }
+            .faq-item h3 {
+                font-size: 18px !important;
+            }
+            .faq-item p {
+                font-size: 14px !important;
+            }
+        }
+    </style>
+</body>
+</html>
+

@@ -1,0 +1,30 @@
+#!/usr/bin/expect -f
+
+set timeout 10
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore && pm2 logs trust-store --lines 100 --nostream | tail -50\r"
+expect "# "
+
+send "pm2 status\r"
+expect "# "
+
+# Проверяем что сервер работает и на каком порту
+send "netstat -tlnp | grep node | head -3\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
+

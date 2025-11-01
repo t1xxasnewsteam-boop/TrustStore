@@ -1,0 +1,32 @@
+#!/usr/bin/expect -f
+
+set timeout 20
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+send "git pull origin main\r"
+expect "# "
+
+send "pm2 restart trust-store --update-env\r"
+expect "# "
+
+send "sleep 5 && pm2 logs trust-store --lines 40 --nostream | grep -E 'IMAP|📧|📬|СПАМ|Spam|синхронизация|подключен|✅|❌' | tail -20\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
+

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Успешная оплата - Trust Store</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="shortcut icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .success-page {
+            padding: 100px 0;
+            background: white;
+            min-height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .success-container {
+            text-align: center;
+            max-width: 600px;
+        }
+        
+        .success-icon {
+            font-size: 100px;
+            margin-bottom: 30px;
+            animation: scaleIn 0.6s ease;
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .success-container h1 {
+            font-size: 40px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+        }
+        
+        .success-container p {
+            font-size: 18px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .success-info {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 40px 0;
+            text-align: left;
+        }
+        
+        .success-info h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 15px;
+        }
+        
+        .success-info ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .success-info li {
+            padding: 10px 0;
+            color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .success-info li:before {
+            content: "✓";
+            color: #26de81;
+            font-weight: 700;
+            font-size: 20px;
+        }
+        
+        .btn-home {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            margin-top: 20px;
+        }
+        
+        .btn-home:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+        }
+        
+        .support-link {
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .support-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .support-link a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Мобильная версия */
+        @media (max-width: 768px) {
+            .success-page {
+                padding: 60px 20px;
+                min-height: auto;
+            }
+            
+            .success-container {
+                max-width: 100%;
+            }
+            
+            .success-icon {
+                font-size: 70px;
+                margin-bottom: 20px;
+            }
+            
+            .success-container h1 {
+                font-size: 28px;
+                margin-bottom: 16px;
+            }
+            
+            .success-container p {
+                font-size: 16px;
+                margin-bottom: 12px;
+            }
+            
+            .success-info {
+                padding: 20px;
+                margin: 30px 0;
+                border-radius: 16px;
+            }
+            
+            .success-info h3 {
+                font-size: 18px;
+                margin-bottom: 12px;
+            }
+            
+            .success-info li {
+                padding: 8px 0;
+                font-size: 14px;
+            }
+            
+            .btn-home {
+                padding: 12px 32px;
+                font-size: 15px;
+                border-radius: 40px;
+            }
+            
+            .btn-support {
+                padding: 12px 28px !important;
+                font-size: 15px !important;
+            }
+            
+            .support-section {
+                margin-top: 30px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .success-page {
+                padding: 40px 16px;
+            }
+            
+            .success-icon {
+                font-size: 60px;
+                margin-bottom: 16px;
+            }
+            
+            .success-container h1 {
+                font-size: 24px;
+            }
+            
+            .success-container p {
+                font-size: 14px;
+            }
+            
+            .success-info {
+                padding: 16px;
+                margin: 24px 0;
+            }
+            
+            .success-info h3 {
+                font-size: 16px;
+            }
+            
+            .success-info li {
+                font-size: 13px;
+            }
+            
+            .btn-home,
+            .btn-support {
+                width: 100%;
+                padding: 14px !important;
+                font-size: 14px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="logo-wrapper">
+                        <a href="/" style="text-decoration: none;">
+                            <div class="logo">
+                                <img src="logo.png" alt="Trust Store" class="logo-image">
+                                <h1>Trust Store</h1>
+                            </div>
+                        </a>
+                        <span class="logo-subtitle" style="pointer-events: none;">магазин цифровых товаров</span>
+                    </div>
+                </div>
+                <div class="header-center">
+                    <nav class="nav">
+                        <a href="/" class="nav-link">Главная</a>
+                        <a href="/catalog" class="nav-link">Каталог</a>
+                        <a href="/socials" class="nav-link">Мы в соцсетях</a>
+                    </nav>
+                </div>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <button class="btn-icon">🔍</button>
+                        <button class="btn-icon cart-button" onclick="toggleCartWidget()">🛒 <span class="badge cart-count">0</span></button>
+                        <script>(function(){try{var c=JSON.parse(localStorage.getItem('trustStoreCart')||'[]'),t=0;c.forEach(function(i){t+=(i.quantity||1)});var b=document.currentScript.previousElementSibling.querySelector('.cart-count');if(b)b.textContent=t;}catch(e){}})();</script>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Success Page -->
+    <section class="success-page">
+        <div class="container">
+            <div class="success-container">
+                <div class="success-icon">🎉</div>
+                <h1>Оплата прошла успешно!</h1>
+                <p>Спасибо за покупку! Ваш заказ успешно оплачен.</p>
+                
+                <div class="success-info">
+                    <h3>📧 Что дальше?</h3>
+                    <ul>
+                        <li>В течение 5-10 минут вы получите инструкцию на указанный email</li>
+                        <li>Проверьте папку "Спам", если письмо не пришло</li>
+                        <li>Активация произойдёт автоматически после подтверждения</li>
+                        <li>Наша поддержка доступна 24/7 в Telegram</li>
+                    </ul>
+                </div>
+                
+                <a href="/" class="btn-home">Вернуться на главную</a>
+                
+                <div class="support-section" style="margin-top: 40px;">
+                    <div class="support-link" style="margin-bottom: 15px;">
+                        Возникли вопросы?
+                    </div>
+                    <a href="https://t.me/truststoreru" target="_blank" class="btn-support" style="display: inline-block; background: linear-gradient(135deg, #0088cc 0%, #0066aa 100%); color: white; padding: 15px 35px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(0, 136, 204, 0.4);">
+                        💬 Написать в поддержку
+                    </a>
+                    <style>
+                        .btn-support:hover {
+                            transform: translateY(-3px);
+                            box-shadow: 0 12px 35px rgba(0, 136, 204, 0.5);
+                        }
+                        .btn-support:active {
+                            transform: translateY(-1px);
+                        }
+                    </style>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Trust Store</h3>
+                    <p>Ваш надежный магазин цифровых товаров</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Компания</h4>
+                    <a href="/about">О нас</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Помощь</h4>
+                    <a href="/faq">FAQ</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Связь</h4>
+                    <span>Email: orders@truststore.ru</span>
+                    <span style="color: white; white-space: nowrap;">Telegram: <a href="https://t.me/truststore_admin" target="_blank" style="color: white; text-decoration: underline;">@truststore_admin</a> (кликабельно)</span>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Trust Store. Все права защищены. ИНН: 523802785027</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="tracking.js"></script>
+    <script src="cart.js"></script>
+    <script>
+        // Очищаем корзину и промокод после успешной оплаты
+        console.log('💳 Оплата прошла успешно! Очищаем корзину...');
+        clearCart();
+        localStorage.removeItem('appliedPromoCode');
+        console.log('✅ Корзина и промокод очищены после успешной оплаты');
+    </script>
+</body>
+</html>
+

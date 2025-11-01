@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Проверяем последние логи
+send "pm2 logs trust-store --lines 100 --nostream | tail -50\r"
+expect "# "
+
+# Проверяем статус IMAP listeners
+send "pm2 logs trust-store --lines 200 --nostream | grep -E 'IMAP|📧|📬|письмо|mail|Telegram|telegram|уведомление|Синхронизация' | tail -30\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
+

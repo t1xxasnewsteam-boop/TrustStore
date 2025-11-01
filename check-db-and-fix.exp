@@ -1,0 +1,35 @@
+#!/usr/bin/expect -f
+
+set timeout 10
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Находим файл БД
+send "ls -la *.db 2>/dev/null || find . -name '*.db' -type f 2>/dev/null | head -3\r"
+expect "# "
+
+# Если нашли БД, проверяем письма
+send "if [ -f database.db ]; then sqlite3 database.db \"SELECT COUNT(*) as total FROM email_messages;\" 2>/dev/null; sqlite3 database.db \"SELECT from_email, subject, created_at FROM email_messages ORDER BY created_at DESC LIMIT 3;\" 2>/dev/null; fi\r"
+expect "# "
+
+# Проверяем настройки .env
+send "grep EMAIL .env | head -5\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
+

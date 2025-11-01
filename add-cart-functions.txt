@@ -1,0 +1,85 @@
+// VPN
+function addProductToCart() {
+    const product = {
+        name: 'Личный VPN',
+        price: parseInt(document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '')),
+        duration: selectedDuration || '1 месяц',
+        category: 'Безопасность',
+        image: 'vpn-image.png'
+    };
+    addToCart(product);
+}
+
+// YouTube
+function addProductToCart() {
+    const product = {
+        name: 'YouTube Premium + Music Premium',
+        price: parseInt(document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '')),
+        duration: selectedDuration || '1 месяц',
+        category: 'Видео',
+        image: 'youtube-image.png'
+    };
+    addToCart(product);
+}
+
+// Adobe
+function addProductToCart() {
+    const product = {
+        name: 'Adobe Creative Cloud',
+        price: parseInt(document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '')),
+        duration: selectedDuration || '1 месяц',
+        category: 'Дизайн',
+        image: 'adobe-image.png'
+    };
+    addToCart(product);
+}
+
+// CapCut
+function addProductToCart() {
+    const product = {
+        name: 'CapCut Pro',
+        price: parseInt(document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '')),
+        duration: selectedDuration || '1 месяц',
+        category: 'Монтаж',
+        image: 'capcut-image.png'
+    };
+    addToCart(product);
+}
+
+// Gemini
+function addProductToCart() {
+    const product = {
+        name: 'Google Gemini + Veo 3',
+        price: parseInt(document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '')),
+        duration: selectedDuration || '1 месяц',
+        category: 'AI Генерация',
+        image: 'gemini-image.png'
+    };
+    addToCart(product);
+}
+
+// Cursor
+function addProductToCart() {
+    const product = {
+        name: 'Cursor AI Pro',
+        price: parseInt(document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '')),
+        duration: selectedDuration || '1 месяц',
+        category: 'AI Генерация',
+        image: 'cursor-image.png'
+    };
+    addToCart(product);
+}
+
+// Claude
+function addProductToCart() {
+    const product = {
+        name: 'Claude AI Pro',
+        price: parseInt(document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '')),
+        duration: selectedDuration || '1 месяц',
+        category: 'AI Генерация',
+        image: 'claude-image.png'
+    };
+    addToCart(product);
+}
+
+

@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Проверяем письма в БД
+send "node -e 'const db=require(\"better-sqlite3\")(\"analytics.db\");const total=db.prepare(\"SELECT COUNT(*) as c FROM email_messages\").get();console.log(\"Всего писем:\", total.c);const spam=db.prepare(\"SELECT COUNT(*) as c FROM email_messages WHERE subject LIKE \\\"%[СПАМ]%\\\"\").get();console.log(\"Писем с [СПАМ]:\", spam.c);const last=db.prepare(\"SELECT from_email,subject,created_at FROM email_messages ORDER BY created_at DESC LIMIT 10\").all();console.log(\"\\nПоследние 10 писем:\");last.forEach(e=>console.log(e.from_email+\" - \"+e.subject));'\r"
+expect "# "
+
+# Проверяем последние логи синхронизации
+send "pm2 logs trust-store --lines 100 --nostream | grep -E 'Синхронизация|INBOX|Spam|Спам|обработано|сохранено|📧|📬|🚨|✅' | tail -40\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
+

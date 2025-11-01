@@ -1,0 +1,30 @@
+#!/usr/bin/expect -f
+
+set timeout 10
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Проверяем письма в БД
+send "sqlite3 analytics.db \"SELECT COUNT(*) as total FROM email_messages;\"\r"
+expect "# "
+
+send "sqlite3 analytics.db \"SELECT id, from_email, subject, created_at FROM email_messages ORDER BY created_at DESC LIMIT 5;\"\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
+

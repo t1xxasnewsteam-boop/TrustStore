@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мы в соцсетях - Trust Store</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="shortcut icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="chat-widget.css">
+    <link rel="stylesheet" href="search.css">
+    <link rel="stylesheet" href="cart-widget.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .socials-page {
+            padding: 40px 0 50px;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Автоматические анимированные круги (яркие!) */
+        .animated-circle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .circle-1 {
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.35) 0%, transparent 70%);
+            filter: blur(50px);
+            animation: floatCircle1 10s ease-in-out infinite;
+            top: 10%;
+            left: 5%;
+        }
+        
+        .circle-2 {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(118, 75, 162, 0.3) 0%, transparent 70%);
+            filter: blur(45px);
+            animation: floatCircle2 9s ease-in-out infinite;
+            top: 40%;
+            right: 10%;
+        }
+        
+        .circle-3 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(240, 147, 251, 0.28) 0%, transparent 70%);
+            filter: blur(40px);
+            animation: floatCircle3 8s ease-in-out infinite;
+            bottom: 15%;
+            left: 25%;
+        }
+        
+        .circle-4 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(74, 172, 254, 0.32) 0%, transparent 70%);
+            filter: blur(48px);
+            animation: floatCircle4 11s ease-in-out infinite;
+            top: 60%;
+            left: 50%;
+        }
+        
+        .circle-5 {
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(229, 62, 165, 0.3) 0%, transparent 70%);
+            filter: blur(42px);
+            animation: floatCircle5 9.5s ease-in-out infinite;
+            top: 25%;
+            right: 30%;
+        }
+        
+        .circle-6 {
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, rgba(155, 81, 224, 0.28) 0%, transparent 70%);
+            filter: blur(38px);
+            animation: floatCircle6 8.5s ease-in-out infinite;
+            bottom: 35%;
+            right: 20%;
+        }
+        
+        .circle-7 {
+            width: 380px;
+            height: 380px;
+            background: radial-gradient(circle, rgba(139, 233, 253, 0.32) 0%, transparent 70%);
+            filter: blur(46px);
+            animation: floatCircle1 9.2s ease-in-out infinite;
+            top: 5%;
+            right: 5%;
+        }
+        
+        .circle-8 {
+            width: 340px;
+            height: 340px;
+            background: radial-gradient(circle, rgba(167, 139, 250, 0.3) 0%, transparent 70%);
+            filter: blur(44px);
+            animation: floatCircle2 8.8s ease-in-out infinite;
+            bottom: 10%;
+            right: 40%;
+        }
+        
+        .circle-9 {
+            width: 360px;
+            height: 360px;
+            background: radial-gradient(circle, rgba(251, 113, 133, 0.31) 0%, transparent 70%);
+            filter: blur(47px);
+            animation: floatCircle3 9.7s ease-in-out infinite;
+            top: 70%;
+            left: 15%;
+        }
+        
+        .circle-10 {
+            width: 310px;
+            height: 310px;
+            background: radial-gradient(circle, rgba(96, 165, 250, 0.29) 0%, transparent 70%);
+            filter: blur(43px);
+            animation: floatCircle4 8.3s ease-in-out infinite;
+            top: 45%;
+            left: 40%;
+        }
+        
+        @keyframes floatCircle1 {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(200px, -150px) scale(1.15);
+            }
+            50% {
+                transform: translate(350px, 120px) scale(0.85);
+            }
+            75% {
+                transform: translate(100px, 200px) scale(1.08);
+            }
+        }
+        
+        @keyframes floatCircle2 {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(-220px, 130px) scale(0.88);
+            }
+            50% {
+                transform: translate(-150px, -180px) scale(1.12);
+            }
+            75% {
+                transform: translate(-280px, 80px) scale(1.05);
+            }
+        }
+        
+        @keyframes floatCircle3 {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(180px, 170px) scale(1.13);
+            }
+            50% {
+                transform: translate(-140px, -150px) scale(0.87);
+            }
+            75% {
+                transform: translate(250px, -120px) scale(1.16);
+            }
+        }
+        
+        @keyframes floatCircle4 {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(-190px, -210px) scale(1.14);
+            }
+            50% {
+                transform: translate(160px, 160px) scale(0.89);
+            }
+            75% {
+                transform: translate(-130px, 140px) scale(1.07);
+            }
+        }
+        
+        @keyframes floatCircle5 {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(230px, -140px) scale(0.9);
+            }
+            50% {
+                transform: translate(-200px, 180px) scale(1.15);
+            }
+            75% {
+                transform: translate(170px, -170px) scale(1.04);
+            }
+        }
+        
+        @keyframes floatCircle6 {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(-160px, 200px) scale(1.12);
+            }
+            50% {
+                transform: translate(210px, -130px) scale(0.86);
+            }
+            75% {
+                transform: translate(-110px, -190px) scale(1.09);
+            }
+        }
+        
+        /* Анимированные декоративные элементы */
+        .socials-page::before,
+        .socials-page::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.08;
+            animation: float 10s ease-in-out infinite;
+            z-index: 0;
+        }
+        
+        .socials-page::before {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            top: 10%;
+            right: -100px;
+            filter: blur(60px);
+        }
+        
+        .socials-page::after {
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(135deg, #f093fb, #4facfe);
+            bottom: 10%;
+            left: -80px;
+            filter: blur(50px);
+            animation-delay: 10s;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            33% {
+                transform: translate(120px, -100px) scale(1.12);
+            }
+            66% {
+                transform: translate(-80px, 90px) scale(0.88);
+            }
+        }
+        
+        .socials-header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 1;
+            animation: fadeInDown 0.8s ease;
+        }
+        
+        .socials-header h1 {
+            font-size: 48px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.8),
+                         0 4px 20px rgba(255, 255, 255, 0.6);
+        }
+        
+        .socials-header p {
+            font-size: 18px;
+            color: #444;
+            text-shadow: 0 1px 8px rgba(255, 255, 255, 0.7),
+                         0 2px 15px rgba(255, 255, 255, 0.5);
+            font-weight: 500;
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .socials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+            padding-bottom: 0;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .social-card-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+        }
+        
+        .social-card-wrapper:nth-child(1) {
+            animation-delay: 0.2s;
+        }
+        
+        .social-card-wrapper:nth-child(2) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .social-card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 0;
+            padding-left: 5px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 11;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .social-card-title-icon {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+        
+        
+        .social-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 60px rgba(0, 0, 0, 0.2), 
+                        0 5px 20px rgba(102, 126, 234, 0.15),
+                        inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: pointer;
+            text-decoration: none;
+            position: relative;
+            z-index: 10;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .social-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            padding: 2px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .social-card:hover::before {
+            opacity: 1;
+        }
+        
+        .social-card:hover {
+            transform: translateY(-12px) scale(1.02);
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25), 
+                        0 10px 40px rgba(102, 126, 234, 0.3),
+                        inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+        
+        .social-icon {
+            width: 55px;
+            height: 55px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+            flex-shrink: 0;
+        }
+        
+        .telegram-icon {
+            background: linear-gradient(135deg, #0088cc 0%, #229ED9 100%);
+            color: white;
+        }
+        
+        .telegram-icon img,
+        .youtube-icon img,
+        .partner-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 15px;
+        }
+        
+        .youtube-icon {
+            background: linear-gradient(135deg, #FF0000 0%, #CC0000 100%);
+            color: white;
+        }
+        
+        .social-card-info {
+            flex: 1;
+        }
+        
+        .social-card-info h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+        }
+        
+        .social-card-info p {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* Секция "Наши партнёры" */
+        .partners-section {
+            margin-top: 0;
+            padding: 50px 0 60px;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Круги для секции партнеров */
+        .partners-section .animated-circle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .partners-section .circle-1 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.3) 0%, transparent 70%);
+            filter: blur(45px);
+            animation: floatCircle1 11s ease-in-out infinite reverse;
+            top: 20%;
+            left: 10%;
+        }
+        
+        .partners-section .circle-2 {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(240, 147, 251, 0.28) 0%, transparent 70%);
+            filter: blur(42px);
+            animation: floatCircle3 9.5s ease-in-out infinite;
+            bottom: 25%;
+            right: 15%;
+        }
+        
+        .partners-section .circle-3 {
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(74, 172, 254, 0.3) 0%, transparent 70%);
+            filter: blur(40px);
+            animation: floatCircle5 10s ease-in-out infinite reverse;
+            top: 50%;
+            right: 35%;
+        }
+        
+        .partners-section .circle-4 {
+            width: 360px;
+            height: 360px;
+            background: radial-gradient(circle, rgba(167, 139, 250, 0.3) 0%, transparent 70%);
+            filter: blur(43px);
+            animation: floatCircle2 9.3s ease-in-out infinite;
+            bottom: 10%;
+            left: 35%;
+        }
+        
+        .partners-section .circle-5 {
+            width: 330px;
+            height: 330px;
+            background: radial-gradient(circle, rgba(251, 113, 133, 0.29) 0%, transparent 70%);
+            filter: blur(41px);
+            animation: floatCircle4 10.5s ease-in-out infinite reverse;
+            top: 15%;
+            right: 5%;
+        }
+        
+        .partners-header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .partners-header h2 {
+            font-size: 38px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+        
+        .partners-header p {
+            font-size: 16px;
+            color: #666;
+        }
+        
+        .partners-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .partner-card-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+        }
+        
+        .partner-card-wrapper:nth-child(1) {
+            animation-delay: 0.2s;
+        }
+        
+        .partner-card-wrapper:nth-child(2) {
+            animation-delay: 0.4s;
+        }
+        
+        .partner-card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 0;
+            padding-left: 5px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 11;
+        }
+        
+        .partner-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 60px rgba(0, 0, 0, 0.2), 
+                        0 5px 20px rgba(102, 126, 234, 0.15),
+                        inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-decoration: none;
+            position: relative;
+            z-index: 10;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .partner-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            padding: 2px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .partner-card:hover::before {
+            opacity: 1;
+        }
+        
+        .partner-card:hover {
+            transform: translateY(-12px) scale(1.02);
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25), 
+                        0 10px 40px rgba(102, 126, 234, 0.3),
+                        inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+        
+        .partner-icon {
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+            flex-shrink: 0;
+            position: relative;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+        }
+        
+        .partner-card-wrapper:first-child .partner-icon::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 5px;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            background-image: url('youtube-logo.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 10;
+        }
+        
+        .admin-icon {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .partner-info {
+            flex: 1;
+        }
+        
+        .partner-info h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+        }
+        
+        .partner-info p {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .socials-header h1 {
+                font-size: 36px;
+            }
+            
+            .socials-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .social-card {
+                padding: 20px;
+            }
+            
+            .partners-header h2 {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="logo-wrapper">
+                        <a href="/" style="text-decoration: none;">
+                            <div class="logo">
+                                <img src="logo.png" alt="Trust Store" class="logo-image">
+                                <h1>Trust Store</h1>
+                            </div>
+                        </a>
+                        <span class="logo-subtitle" style="pointer-events: none;">магазин цифровых товаров</span>
+                    </div>
+                </div>
+                <div class="header-center">
+                    <nav class="nav">
+                        <a href="/" class="nav-link">Главная</a>
+                        <a href="/catalog" class="nav-link">Каталог</a>
+                        <a href="/socials" class="nav-link">Мы в соцсетях</a>
+                    </nav>
+                </div>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <button class="btn-icon search-button">🔍</button>
+                        <button class="btn-icon cart-button" onclick="toggleCartWidget()">🛒 <span class="badge cart-count">0</span></button>
+                        <script>(function(){try{var c=JSON.parse(localStorage.getItem('trustStoreCart')||'[]'),t=0;c.forEach(function(i){t+=(i.quantity||1)});var b=document.currentScript.previousElementSibling.querySelector('.cart-count');if(b)b.textContent=t;}catch(e){}})();</script>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Socials Page -->
+    <section class="socials-page">
+        <!-- Автоматические анимированные круги -->
+        <div class="animated-circle circle-1"></div>
+        <div class="animated-circle circle-2"></div>
+        <div class="animated-circle circle-3"></div>
+        <div class="animated-circle circle-4"></div>
+        <div class="animated-circle circle-5"></div>
+        <div class="animated-circle circle-6"></div>
+        <div class="animated-circle circle-7"></div>
+        <div class="animated-circle circle-8"></div>
+        <div class="animated-circle circle-9"></div>
+        <div class="animated-circle circle-10"></div>
+        
+        <div class="container">
+            <div class="socials-header">
+                <h1>🌐 Мы в соцсетях</h1>
+                <p>Подписывайтесь на наши каналы и будьте в курсе всех новостей и акций!</p>
+            </div>
+            
+            <div class="socials-grid">
+                <!-- Telegram -->
+                <div class="social-card-wrapper">
+                    <h3 class="social-card-title">
+                        <img src="Telegram-logo.png" alt="Telegram" class="social-card-title-icon">
+                        Мы в Telegram
+                    </h3>
+                    <a href="https://t.me/truststoreru" target="_blank" class="social-card">
+                        <div class="social-icon telegram-icon">
+                            <img src="telegram-avatar.png" alt="Telegram">
+                        </div>
+                        <div class="social-card-info">
+                            <h2>Trust Store</h2>
+                            <p>16 000+ подписчиков</p>
+                        </div>
+                    </a>
+                </div>
+                
+                <!-- YouTube -->
+                <div class="social-card-wrapper">
+                    <h3 class="social-card-title">
+                        <img src="youtube-logo.png" alt="YouTube" class="social-card-title-icon">
+                        Мы в YouTube
+                    </h3>
+                    <a href="https://www.youtube.com/@TrustStoreRU" target="_blank" class="social-card">
+                        <div class="social-icon youtube-icon">
+                            <img src="youtube-avatar.png" alt="YouTube">
+                        </div>
+                        <div class="social-card-info">
+                            <h2>Trust Store</h2>
+                            <p>100+ подписчиков</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Partners Section -->
+    <section class="partners-section">
+        <!-- Анимированные круги для секции партнеров -->
+        <div class="animated-circle circle-1"></div>
+        <div class="animated-circle circle-2"></div>
+        <div class="animated-circle circle-3"></div>
+        <div class="animated-circle circle-4"></div>
+        <div class="animated-circle circle-5"></div>
+        
+        <div class="container">
+            <div class="partners-header">
+                <h2>🤝 Наши партнёры</h2>
+                <p>Сотрудничество, которым мы гордимся</p>
+            </div>
+            
+            <div class="partners-grid">
+                <!-- Partner: twiceglow -->
+                <div class="partner-card-wrapper">
+                    <h3 class="partner-card-title">🤝 Наши партнёры</h3>
+                    <a href="https://www.youtube.com/@twiceglow" target="_blank" class="partner-card">
+                        <div class="partner-icon">
+                            <img src="partner-avatar.png" alt="twiceglow">
+                        </div>
+                        <div class="partner-info">
+                            <h3>twiceglow</h3>
+                            <p>2 000+ подписчиков</p>
+                        </div>
+                    </a>
+                </div>
+                
+                <!-- Admin: Trust Seller -->
+                <div class="partner-card-wrapper">
+                    <h3 class="partner-card-title">👤 Наш администратор</h3>
+                    <a href="https://t.me/truststore_admin" target="_blank" class="partner-card">
+                        <div class="partner-icon admin-icon">
+                            <img src="admin-avatar.png" alt="Trust Seller">
+                        </div>
+                        <div class="partner-info">
+                            <h3>Trust Seller (Артём)</h3>
+                            <p>Отвечает 24/7</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Trust Store</h3>
+                    <p>Ваш надежный магазин цифровых товаров</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Компания</h4>
+                    <a href="/about">О нас</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Помощь</h4>
+                    <a href="/faq">FAQ</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Связь</h4>
+                    <span>Email: orders@truststore.ru</span>
+                    <span style="color: white; white-space: nowrap;">Telegram: <a href="https://t.me/truststore_admin" target="_blank" style="color: white; text-decoration: underline;">@truststore_admin</a> (кликабельно)</span>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Trust Store. Все права защищены. ИНН: 523802785027</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Search Modal -->
+    <div id="search-modal">
+        <div class="search-modal-content">
+            <div class="search-modal-header">
+                <h2>🔍 Поиск</h2>
+                <button id="close-search">✕</button>
+            </div>
+            <div class="search-modal-body">
+                <div class="search-input-wrapper">
+                    <span class="search-input-icon">🔍</span>
+                    <input type="text" id="search-input" placeholder="Введите название товара...">
+                </div>
+                <div id="search-results"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="cartWidgetOverlay" class="cart-widget-overlay"></div>
+    
+    <!-- Cart Widget -->
+    <div id="cartWidget" class="cart-widget">
+        <div class="cart-widget-header">
+            <h3>🛒 Корзина</h3>
+            <button class="cart-widget-close" onclick="closeCartWidget()">×</button>
+        </div>
+        <div class="cart-widget-items" id="cartWidgetItems"></div>
+        <div class="cart-widget-footer" id="cartWidgetFooter">
+            <div class="cart-widget-total">
+                <span class="cart-widget-total-label">Итого:</span>
+                <span class="cart-widget-total-price" id="cartWidgetTotalPrice">0 ₽</span>
+            </div>
+            <div class="cart-widget-actions">
+                <button class="btn-view-full-cart" onclick="window.location.href='/cart'">Открыть корзину</button>
+                <button class="btn-cart-checkout" onclick="checkoutFromWidget()">Оформить</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="tracking.js"></script>
+    <script src="chat-widget.js"></script>
+    <script src="search.js"></script>
+    <script src="cart.js"></script>
+    <script src="cart-widget.js"></script>
+    <script src="notification.js"></script>
+</body>
+</html>
+
