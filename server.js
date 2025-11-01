@@ -3282,9 +3282,11 @@ async function sendOrderEmail(data) {
             
             const response = await sgMail.send(msg);
             console.log(`✅ Письмо отправлено через SendGrid: ${data.to}`);
-            return { success: true, messageId: response[0].headers['x-message-id'], method: 'SendGrid' };
+            const messageId = response && response[0] && response[0].headers ? response[0].headers['x-message-id'] : 'unknown';
+            return { success: true, messageId: messageId, method: 'SendGrid' };
         } catch (error) {
             console.error('❌ Ошибка SendGrid:', error.message);
+            console.error('   Детали:', error.response?.body || error);
             // Продолжаем попытку через SMTP
         }
     }
@@ -4831,8 +4833,12 @@ app.post('/api/telegram-webhook', async (req, res) => {
                                 instructions: productInfo ? productInfo.description : 'Спасибо за покупку! Инструкции по использованию товара будут отправлены отдельно.'
                             });
                             
-                            // Проверяем результат отправки
-                            if (emailResult && emailResult.success === true) {
+                            // Проверяем результат отправки (emailResult может быть undefined если функция не вернула значение)
+                            if (!emailResult) {
+                                emailsFailed++;
+                                console.error(`   ❌ Email ${i + 1}/${quantity} НЕ отправлен: функция sendOrderEmail не вернула результат`);
+                            } else if (emailResult.success === true || emailResult.success === undefined) {
+                                // Если success === true или undefined (старый код мог не возвращать success)
                                 emailsSent++;
                                 console.log(`   ✅ Email ${i + 1}/${quantity} отправлен успешно (метод: ${emailResult.method || 'SMTP'})`);
                             } else {

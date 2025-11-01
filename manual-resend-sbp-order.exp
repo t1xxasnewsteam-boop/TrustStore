@@ -1,0 +1,47 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Находим последний СБП заказ который уже paid
+send "echo '🔍 Поиск последнего оплаченного СБП заказа...'\r"
+expect "# "
+
+send "ORDER_ID=\$(node -e \"const Database = require('better-sqlite3'); const db = new Database('analytics.db'); const order = db.prepare('SELECT order_id FROM orders WHERE payment_method = \\\"SBP\\\" AND status = \\\"paid\\\" ORDER BY created_at DESC LIMIT 1').get(); console.log(order ? order.order_id : ''); db.close();\" 2>/dev/null)\r"
+expect "# "
+
+send "echo \"Найден заказ: \$ORDER_ID\"\r"
+expect "# "
+
+send "if [ -z \"\$ORDER_ID\" ]; then echo 'Заказ не найден'; exit; fi\r"
+expect "# "
+
+# Отправляем заказ вручную
+send "curl -X POST http://localhost:3000/api/manual-send-last-order -H 'Content-Type: application/json' -d \"{\\\"orderId\\\": \\\"\$ORDER_ID\\\"}\" -s | python3 -m json.tool 2>/dev/null || cat\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
