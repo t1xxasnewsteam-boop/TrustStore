@@ -1660,14 +1660,76 @@ app.post('/api/payment/heleket/create', async (req, res) => {
     }
 });
 
-// ==================== YOOMONEY PAYMENT WEBHOOK ====================
+// ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ОБРАБОТКИ ЗАКАЗОВ ====================
 
-// YooMoney webhook для уведомлений об оплате
+// Функция отправки email с повторными попытками
+async function sendOrderEmailWithRetry(emailData, maxRetries = 3) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            console.log(`   📧 Попытка ${attempt}/${maxRetries} отправки email...`);
+            const result = await sendOrderEmail(emailData);
+            
+            if (result && result.success) {
+                console.log(`   ✅ Email успешно отправлен с попытки ${attempt}`);
+                return { success: true, attempt };
+            } else {
+                console.error(`   ❌ Попытка ${attempt} не удалась:`, result?.error || 'Unknown error');
+                if (attempt < maxRetries) {
+                    await new Promise(resolve => setTimeout(resolve, 2000 * attempt)); // Экспоненциальная задержка
+                }
+            }
+        } catch (error) {
+            console.error(`   ❌ Ошибка на попытке ${attempt}:`, error.message);
+            if (attempt < maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+            }
+        }
+    }
+    
+    return { success: false, error: 'Все попытки отправки email исчерпаны' };
+}
+
+// Функция отправки Telegram уведомления с повторными попытками
+async function sendTelegramWithRetry(message, maxRetries = 3) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            console.log(`   📱 Попытка ${attempt}/${maxRetries} отправки в Telegram...`);
+            const result = await sendTelegramNotification(message, false);
+            
+            if (result === true) {
+                console.log(`   ✅ Telegram уведомление успешно отправлено с попытки ${attempt}`);
+                return true;
+            } else {
+                console.error(`   ❌ Попытка ${attempt} не удалась`);
+                if (attempt < maxRetries) {
+                    await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+                }
+            }
+        } catch (error) {
+            console.error(`   ❌ Ошибка на попытке ${attempt}:`, error.message);
+            if (attempt < maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+            }
+        }
+    }
+    
+    console.error('   ❌ Все попытки отправки в Telegram исчерпаны');
+    return false;
+}
+
+// ==================== YOOMONEY PAYMENT WEBHOOK (ПОЛНОСТЬЮ ПЕРЕПИСАН) ====================
+
 app.post('/api/payment/yoomoney', async (req, res) => {
+    const startTime = Date.now();
+    let orderProcessed = false;
+    
     try {
-        console.log('📥 Получено уведомление от YooMoney:');
-        console.log('   Headers:', JSON.stringify(req.headers, null, 2));
-        console.log('   Body:', JSON.stringify(req.body, null, 2));
+        console.log('\n═══════════════════════════════════════════════════════');
+        console.log('📥 YOOMONEY WEBHOOK ПОЛУЧЕН');
+        console.log('═══════════════════════════════════════════════════════\n');
+        console.log('⏰ Время:', new Date().toISOString());
+        console.log('📋 Headers:', JSON.stringify(req.headers, null, 2));
+        console.log('📦 Body:', JSON.stringify(req.body, null, 2));
         
         const {
             notification_type,
@@ -1681,44 +1743,40 @@ app.post('/api/payment/yoomoney', async (req, res) => {
             sha1_hash
         } = req.body;
         
-        console.log('📋 Парсинг данных YooMoney:');
+        // Валидация обязательных полей
+        if (!label || !amount || !notification_type) {
+            console.error('❌ Отсутствуют обязательные поля в webhook');
+            return res.status(400).send('Missing required fields');
+        }
+        
+        console.log('\n📋 Данные YooMoney:');
         console.log('   notification_type:', notification_type);
         console.log('   operation_id:', operation_id);
         console.log('   amount:', amount);
         console.log('   currency:', currency);
         console.log('   label (order_id):', label);
         
-        // Проверяем, что это уведомление об успешном переводе (p2p-incoming для переводов между кошельками, card-incoming для карт)
+        // Проверка типа уведомления
         if (notification_type !== 'p2p-incoming' && notification_type !== 'card-incoming') {
-            console.log('⚠️ Неподдерживаемый тип уведомления:', notification_type);
-            return res.status(400).send('Wrong notification type');
+            console.log('⚠️ Неподдерживаемый тип:', notification_type);
+            return res.status(200).send('OK'); // Возвращаем OK для неподдерживаемых типов
         }
         
-        console.log('✅ Тип уведомления поддерживается:', notification_type);
-        
-        // Проверяем подпись (если есть секретный ключ)
-        if (YOOMONEY_SECRET) {
+        // Проверка подписи (если настроена)
+        if (YOOMONEY_SECRET && sha1_hash) {
             const string = `${notification_type}&${operation_id}&${amount}&${currency}&${datetime}&${sender}&${codepro}&${YOOMONEY_SECRET}&${label}`;
             const hash = crypto.createHash('sha1').update(string).digest('hex');
             
-            console.log('🔐 Проверка подписи YooMoney:');
-            console.log('   Строка для хеша:', string.substring(0, 100) + '...');
-            console.log('   Ожидаемый hash:', hash);
-            console.log('   Полученный hash:', sha1_hash);
-            
             if (hash !== sha1_hash) {
-                console.error('❌ Неверная подпись от YooMoney!');
-                console.error('   Разница:', hash !== sha1_hash ? 'ХЕШИ НЕ СОВПАДАЮТ' : 'OK');
-                // НЕ отклоняем сразу, продолжаем обработку (может быть проблема с форматом данных)
-                console.log('⚠️ Продолжаем обработку несмотря на несовпадение подписи (для отладки)');
+                console.error('❌ Неверная подпись!');
+                // В продакшене можно вернуть 400, но для отладки продолжаем
+                console.log('⚠️ Продолжаем обработку (режим отладки)');
             } else {
-                console.log('✅ Подпись проверена и совпадает');
+                console.log('✅ Подпись проверена');
             }
-        } else {
-            console.log('⚠️ YOOMONEY_SECRET не установлен, пропускаем проверку подписи');
         }
         
-        // Находим заказ по label (order_id)
+        // Поиск заказа
         const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(label);
         
         if (!order) {
@@ -1726,141 +1784,156 @@ app.post('/api/payment/yoomoney', async (req, res) => {
             return res.status(404).send('Order not found');
         }
         
-        // Проверяем, не обработан ли уже этот платеж
+        console.log('\n📦 Найден заказ:');
+        console.log('   ID:', order.order_id);
+        console.log('   Клиент:', order.customer_name);
+        console.log('   Email:', order.customer_email);
+        console.log('   Статус:', order.status);
+        console.log('   Сумма:', order.total_amount);
+        
+        // Проверка, не обработан ли уже заказ
         if (order.status === 'paid') {
-            console.log('⚠️ Заказ уже обработан:', label);
+            console.log('⚠️ Заказ уже обработан, пропускаем');
             return res.status(200).send('OK');
         }
         
-        console.log('📦 Информация о заказе:');
-        console.log('   Статус:', order.status);
-        console.log('   Сумма заказа:', order.total_amount);
-        console.log('   Получено:', amount);
-        
-        // Проверяем сумму (допускаем небольшую разницу из-за округлений)
+        // Проверка суммы
         const orderAmount = parseFloat(order.total_amount);
         const paymentAmount = parseFloat(amount);
-        const difference = Math.abs(orderAmount - paymentAmount);
         
-        if (paymentAmount < orderAmount - 0.01) { // Допускаем разницу до 1 копейки
-            console.error('❌ Неверная сумма платежа:', paymentAmount, 'ожидалось:', orderAmount, 'разница:', difference);
+        if (paymentAmount < orderAmount - 0.01) {
+            console.error('❌ Неверная сумма:', paymentAmount, 'ожидалось:', orderAmount);
             return res.status(400).send('Wrong amount');
         }
         
-        if (difference > 0.01) {
-            console.log('⚠️ Небольшая разница в сумме:', difference, 'коп.');
+        // Обновление статуса заказа
+        console.log('\n💰 Обновление статуса заказа на "paid"...');
+        const updateResult = db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('paid', label);
+        
+        if (updateResult.changes === 0) {
+            console.error('❌ Не удалось обновить статус заказа!');
+            return res.status(500).send('Failed to update order');
         }
         
-        console.log('💰 Платеж подтвержден:', label, 'Сумма:', amount);
+        console.log('✅ Статус обновлен (изменено строк:', updateResult.changes, ')');
+        orderProcessed = true;
         
-        // Обновляем статус заказа
-        const updateResult = db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('paid', label);
-        console.log('✅ Статус заказа обновлен:', { orderId: label, changes: updateResult.changes });
+        // Получение товаров
+        const products = JSON.parse(order.products || '[]');
+        console.log('\n📦 Товары в заказе:', products.length);
         
-        // Получаем товары из заказа
-        const products = JSON.parse(order.products);
-        console.log('📦 Товары в заказе:', JSON.stringify(products, null, 2));
-        
-        // Обрабатываем каждый товар - ТОВАР ВСЕГДА В НАЛИЧИИ, ОТПРАВЛЯЕМ ПИСЬМО СРАЗУ
-        console.log('📧 Начинаем отправку emails клиенту...');
+        // ОТПРАВКА EMAILS С ПОВТОРНЫМИ ПОПЫТКАМИ
+        console.log('\n📧 ОТПРАВКА EMAILS КЛИЕНТУ (с повторными попытками)...\n');
         let emailsSent = 0;
         let emailsFailed = 0;
         
         for (const product of products) {
             const quantity = product.quantity || 1;
-            
-            // Получаем название товара
             const productName = product.name || product.productName || product.product_name;
-            console.log(`   📦 Обработка товара: "${productName}", количество: ${quantity}`);
             
-            // Получаем информацию о товаре из БД products
+            console.log(`\n📦 Товар: "${productName}" (x${quantity})`);
+            
+            // Поиск информации о товаре
             let productInfo = db.prepare('SELECT * FROM products WHERE name = ?').get(productName);
             if (!productInfo) {
-                // Пробуем найти по базовому названию (убираем скобки и дополнительную информацию)
                 const baseName = productName.split('(')[0].split('-')[0].split('|')[0].split('[')[0].trim();
                 productInfo = db.prepare('SELECT * FROM products WHERE name LIKE ?').get(baseName + '%');
-                if (productInfo) {
-                    console.log(`   ℹ️ Товар найден по базовому названию: ${baseName}`);
-                } else {
-                    console.log(`   ⚠️ Товар "${productName}" не найден в БД, используем данные из заказа`);
-                }
             }
             
-            // Отправляем email для каждого товара в количестве
+            // Отправка для каждого товара
             for (let i = 0; i < quantity; i++) {
-                try {
-                    console.log(`   📧 Отправка email ${i + 1}/${quantity} для "${productName}" на ${order.customer_email}...`);
-                    
-                    const emailData = {
-                        to: order.customer_email,
-                        orderNumber: label,
-                        productName: productName,
-                        productImage: productInfo ? productInfo.image : (product.image || null),
-                        productCategory: productInfo ? productInfo.category : null,
-                        productDescription: productInfo ? productInfo.description : null,
-                        login: null, // Не используем инвентарь
-                        password: null, // Не используем инвентарь
-                        instructions: productInfo ? productInfo.description : 'Спасибо за покупку! Инструкции по использованию товара будут отправлены отдельно.'
-                    };
-                    
-                    const emailResult = await sendOrderEmail(emailData);
-                    if (emailResult && emailResult.success) {
-                        emailsSent++;
-                        console.log(`   ✅ Email ${i + 1}/${quantity} отправлен успешно: ${order.customer_email} - ${productName}`);
-                    } else {
-                        emailsFailed++;
-                        console.error(`   ❌ Email ${i + 1}/${quantity} НЕ отправлен:`, emailResult?.error || 'Unknown error');
-                    }
-                } catch (emailError) {
+                const emailData = {
+                    to: order.customer_email,
+                    orderNumber: label,
+                    productName: productName,
+                    productImage: productInfo ? productInfo.image : (product.image || null),
+                    productCategory: productInfo ? productInfo.category : null,
+                    productDescription: productInfo ? productInfo.description : null,
+                    login: null,
+                    password: null,
+                    instructions: productInfo ? productInfo.description : 'Спасибо за покупку! Инструкции по использованию товара будут отправлены отдельно.'
+                };
+                
+                const emailResult = await sendOrderEmailWithRetry(emailData, 3);
+                
+                if (emailResult.success) {
+                    emailsSent++;
+                    console.log(`   ✅ Email ${i + 1}/${quantity} отправлен`);
+                } else {
                     emailsFailed++;
-                    console.error(`   ❌ Ошибка отправки email ${i + 1}/${quantity}:`, emailError.message || emailError);
-                    console.error(`   ❌ Stack trace:`, emailError.stack);
+                    console.error(`   ❌ Email ${i + 1}/${quantity} НЕ отправлен после всех попыток`);
                 }
             }
         }
         
-        console.log(`📊 Итого emails: отправлено ${emailsSent}, ошибок ${emailsFailed}`);
+        console.log(`\n📊 ИТОГО EMAILS: отправлено ${emailsSent}, ошибок ${emailsFailed}`);
         
-        // Отправляем уведомление об успешной оплате в Telegram
-        console.log('📱 Отправка уведомления в Telegram...');
-        const successNotification = `💰 <b>Новый платеж через YooMoney!</b>\n\n` +
-            `🆔 Заказ: ${label}\n` +
-            `💳 Операция: ${operation_id}\n` +
+        // ОТПРАВКА В TELEGRAM С ПОВТОРНЫМИ ПОПЫТКАМИ
+        console.log('\n📱 ОТПРАВКА УВЕДОМЛЕНИЯ В TELEGRAM (с повторными попытками)...\n');
+        
+        const telegramMessage = `💰 <b>НОВЫЙ ПЛАТЕЖ YOOMONEY!</b>\n\n` +
+            `🆔 Заказ: <code>${label}</code>\n` +
+            `💳 Операция: <code>${operation_id}</code>\n` +
             `👤 Клиент: ${order.customer_name}\n` +
             `📧 Email: ${order.customer_email}\n` +
             `💵 Сумма: ${amount} ${currency}\n` +
             `📦 Товары: ${products.map(p => p.name || p.productName || p.product_name).join(', ')}\n` +
-            `📅 Дата: ${datetime}\n\n` +
-            `📊 Emails: отправлено ${emailsSent}, ошибок ${emailsFailed}\n\n` +
-            `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
+            `📅 Дата: ${datetime || new Date().toISOString()}\n\n` +
+            `📊 Emails: ✅ ${emailsSent} | ❌ ${emailsFailed}\n\n` +
+            `🔗 <a href="https://truststore.ru/admin.html">Открыть админку</a>`;
         
-        try {
-            await sendTelegramNotification(successNotification, false);
-            console.log('   ✅ Telegram уведомление отправлено');
-        } catch (telegramError) {
-            console.error('   ❌ Ошибка отправки Telegram:', telegramError.message || telegramError);
-            console.error('   ❌ Stack trace:', telegramError.stack);
+        const telegramSent = await sendTelegramWithRetry(telegramMessage, 3);
+        
+        if (telegramSent) {
+            console.log('✅ Telegram уведомление отправлено');
+        } else {
+            console.error('❌ Telegram уведомление НЕ отправлено после всех попыток');
         }
         
-        // ВАЖНО: Всегда возвращаем 200 OK для YooMoney, даже если были ошибки
-        // YooMoney будет повторять запрос, если мы вернем ошибку
+        const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+        console.log(`\n✅ ОБРАБОТКА ЗАВЕРШЕНА за ${duration} сек`);
+        console.log('═══════════════════════════════════════════════════════\n');
+        
+        // Всегда возвращаем 200 OK
         res.status(200).send('OK');
         
     } catch (error) {
-        console.error('❌ Ошибка обработки YooMoney webhook:', error);
+        console.error('\n❌ КРИТИЧЕСКАЯ ОШИБКА ОБРАБОТКИ WEBHOOK:');
+        console.error('   Ошибка:', error.message);
+        console.error('   Stack:', error.stack);
+        
+        // Если заказ был обновлен, но отправка не удалась, отправляем уведомление об ошибке
+        if (orderProcessed) {
+            try {
+                await sendTelegramNotification(
+                    `⚠️ <b>ОШИБКА ПРИ ОБРАБОТКЕ ЗАКАЗА!</b>\n\n` +
+                    `Заказ: ${req.body?.label || 'unknown'}\n` +
+                    `Ошибка: ${error.message}\n\n` +
+                    `Проверь логи и отправь заказ вручную!`,
+                    false
+                );
+            } catch (telegramError) {
+                console.error('Не удалось отправить уведомление об ошибке:', telegramError);
+            }
+        }
+        
         res.status(500).send('Server error');
     }
 });
 
-// ==================== HELEKET PAYMENT WEBHOOK ====================
+// ==================== HELEKET PAYMENT WEBHOOK (ПОЛНОСТЬЮ ПЕРЕПИСАН) ====================
 
-// Heleket webhook для уведомлений об оплате
 app.post('/api/payment/heleket', async (req, res) => {
+    const startTime = Date.now();
+    let orderProcessed = false;
+    
     try {
-        console.log('📥 Получено уведомление от Heleket:');
-        console.log('   Headers:', JSON.stringify(req.headers, null, 2));
-        console.log('   Body:', JSON.stringify(req.body, null, 2));
-        console.log('   Raw body:', req.body);
+        console.log('\n═══════════════════════════════════════════════════════');
+        console.log('📥 HELEKET WEBHOOK ПОЛУЧЕН');
+        console.log('═══════════════════════════════════════════════════════\n');
+        console.log('⏰ Время:', new Date().toISOString());
+        console.log('📋 Headers:', JSON.stringify(req.headers, null, 2));
+        console.log('📦 Body:', JSON.stringify(req.body, null, 2));
         
         // Heleket может присылать данные в разных форматах, проверим разные варианты
         const body = req.body;
@@ -2018,107 +2091,122 @@ app.post('/api/payment/heleket', async (req, res) => {
             console.log('   ⚠️ Пропускаем проверку суммы');
         }
         
-        console.log('💰 Платеж Heleket подтвержден:', order_id, 'Сумма:', amount, currency);
+        console.log('\n💰 Платеж Heleket подтвержден');
+        console.log('   order_id:', order_id);
+        console.log('   Сумма:', amount, currency);
         console.log('   Статус заказа до обновления:', order.status);
         
-        // Обновляем статус заказа
+        // Обновление статуса заказа
+        console.log('\n💰 Обновление статуса заказа на "paid"...');
         const updateResult = db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('paid', order_id);
-        console.log('   ✅ Статус заказа обновлен на "paid" (изменено строк:', updateResult.changes, ')');
         
-        // Проверяем, что обновление прошло
-        const updatedOrder = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(order_id);
-        console.log('   Проверка после обновления - статус:', updatedOrder.status);
+        if (updateResult.changes === 0) {
+            console.error('❌ Не удалось обновить статус заказа!');
+            return res.status(500).send('Failed to update order');
+        }
         
-        // Получаем товары из заказа
-        const products = JSON.parse(order.products);
-        console.log('📦 Товары в заказе:', JSON.stringify(products, null, 2));
+        console.log('✅ Статус обновлен (изменено строк:', updateResult.changes, ')');
+        orderProcessed = true;
         
-        // Обрабатываем каждый товар - ТОВАР ВСЕГДА В НАЛИЧИИ, ОТПРАВЛЯЕМ ПИСЬМО СРАЗУ
-        console.log('📧 Начинаем отправку emails клиенту...');
+        // Получение товаров
+        const products = JSON.parse(order.products || '[]');
+        console.log('\n📦 Товары в заказе:', products.length);
+        
+        // ОТПРАВКА EMAILS С ПОВТОРНЫМИ ПОПЫТКАМИ
+        console.log('\n📧 ОТПРАВКА EMAILS КЛИЕНТУ (с повторными попытками)...\n');
         let emailsSent = 0;
         let emailsFailed = 0;
         
         for (const product of products) {
             const quantity = product.quantity || 1;
-            
-            // Получаем название товара
             const productName = product.name || product.productName || product.product_name;
-            console.log(`   📦 Обработка товара: "${productName}", количество: ${quantity}`);
             
-            // Получаем информацию о товаре из БД products
+            console.log(`\n📦 Товар: "${productName}" (x${quantity})`);
+            
+            // Поиск информации о товаре
             let productInfo = db.prepare('SELECT * FROM products WHERE name = ?').get(productName);
             if (!productInfo) {
-                // Пробуем найти по базовому названию (убираем скобки и дополнительную информацию)
                 const baseName = productName.split('(')[0].split('-')[0].split('|')[0].split('[')[0].trim();
                 productInfo = db.prepare('SELECT * FROM products WHERE name LIKE ?').get(baseName + '%');
-                if (productInfo) {
-                    console.log(`   ℹ️ Товар найден по базовому названию: ${baseName}`);
-                } else {
-                    console.log(`   ⚠️ Товар "${productName}" не найден в БД, используем данные из заказа`);
-                }
             }
             
-            // Отправляем email для каждого товара в количестве
+            // Отправка для каждого товара
             for (let i = 0; i < quantity; i++) {
-                try {
-                    console.log(`   📧 Отправка email ${i + 1}/${quantity} для "${productName}" на ${order.customer_email}...`);
-                    
-                    const emailData = {
-                        to: order.customer_email,
-                        orderNumber: order_id,
-                        productName: productName,
-                        productImage: productInfo ? productInfo.image : (product.image || null),
-                        productCategory: productInfo ? productInfo.category : null,
-                        productDescription: productInfo ? productInfo.description : null,
-                        login: null, // Не используем инвентарь
-                        password: null, // Не используем инвентарь
-                        instructions: productInfo ? productInfo.description : 'Спасибо за покупку! Инструкции по использованию товара будут отправлены отдельно.'
-                    };
-                    
-                    const emailResult = await sendOrderEmail(emailData);
-                    if (emailResult && emailResult.success) {
-                        emailsSent++;
-                        console.log(`   ✅ Email ${i + 1}/${quantity} отправлен успешно: ${order.customer_email} - ${productName}`);
-                    } else {
-                        emailsFailed++;
-                        console.error(`   ❌ Email ${i + 1}/${quantity} НЕ отправлен:`, emailResult?.error || 'Unknown error');
-                    }
-                } catch (emailError) {
+                const emailData = {
+                    to: order.customer_email,
+                    orderNumber: order_id,
+                    productName: productName,
+                    productImage: productInfo ? productInfo.image : (product.image || null),
+                    productCategory: productInfo ? productInfo.category : null,
+                    productDescription: productInfo ? productInfo.description : null,
+                    login: null,
+                    password: null,
+                    instructions: productInfo ? productInfo.description : 'Спасибо за покупку! Инструкции по использованию товара будут отправлены отдельно.'
+                };
+                
+                const emailResult = await sendOrderEmailWithRetry(emailData, 3);
+                
+                if (emailResult.success) {
+                    emailsSent++;
+                    console.log(`   ✅ Email ${i + 1}/${quantity} отправлен`);
+                } else {
                     emailsFailed++;
-                    console.error(`   ❌ Ошибка отправки email ${i + 1}/${quantity}:`, emailError.message || emailError);
-                    console.error(`   ❌ Stack trace:`, emailError.stack);
+                    console.error(`   ❌ Email ${i + 1}/${quantity} НЕ отправлен после всех попыток`);
                 }
             }
         }
         
-        console.log(`📊 Итого emails: отправлено ${emailsSent}, ошибок ${emailsFailed}`);
+        console.log(`\n📊 ИТОГО EMAILS: отправлено ${emailsSent}, ошибок ${emailsFailed}`);
         
-        // Отправляем уведомление об успешной оплате в Telegram
-        const successNotification = `💰 <b>Новый платеж через Heleket!</b>\n\n` +
-            `🆔 Заказ: ${order_id}\n` +
-            `💳 Платеж: ${payment_id || 'N/A'}\n` +
+        // ОТПРАВКА В TELEGRAM С ПОВТОРНЫМИ ПОПЫТКАМИ
+        console.log('\n📱 ОТПРАВКА УВЕДОМЛЕНИЯ В TELEGRAM (с повторными попытками)...\n');
+        
+        const telegramMessage = `💰 <b>НОВЫЙ ПЛАТЕЖ HELEKET!</b>\n\n` +
+            `🆔 Заказ: <code>${order_id}</code>\n` +
+            `💳 Платеж: <code>${payment_id || 'N/A'}</code>\n` +
             `👤 Клиент: ${order.customer_name}\n` +
             `📧 Email: ${order.customer_email}\n` +
             `💵 Сумма: ${amount} ${currency}\n` +
             `📦 Товары: ${products.map(p => p.name || p.productName || p.product_name).join(', ')}\n` +
             `📅 Дата: ${new Date().toISOString()}\n\n` +
-            `📊 Emails: отправлено ${emailsSent}, ошибок ${emailsFailed}\n\n` +
-            `🔗 <a href="https://truststore.ru/t1xxas">Открыть админку</a>`;
+            `📊 Emails: ✅ ${emailsSent} | ❌ ${emailsFailed}\n\n` +
+            `🔗 <a href="https://truststore.ru/admin.html">Открыть админку</a>`;
         
-        console.log('📱 Отправка уведомления в Telegram...');
-        try {
-            await sendTelegramNotification(successNotification, false);
-            console.log('   ✅ Telegram уведомление отправлено');
-        } catch (telegramError) {
-            console.error('   ❌ Ошибка отправки Telegram:', telegramError.message || telegramError);
-            console.error('   ❌ Stack trace:', telegramError.stack);
+        const telegramSent = await sendTelegramWithRetry(telegramMessage, 3);
+        
+        if (telegramSent) {
+            console.log('✅ Telegram уведомление отправлено');
+        } else {
+            console.error('❌ Telegram уведомление НЕ отправлено после всех попыток');
         }
         
-        // ВАЖНО: Всегда возвращаем 200 OK для Heleket, даже если были ошибки
+        const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+        console.log(`\n✅ ОБРАБОТКА ЗАВЕРШЕНА за ${duration} сек`);
+        console.log('═══════════════════════════════════════════════════════\n');
+        
+        // Всегда возвращаем 200 OK
         res.status(200).send('OK');
         
     } catch (error) {
-        console.error('❌ Ошибка обработки Heleket webhook:', error);
+        console.error('\n❌ КРИТИЧЕСКАЯ ОШИБКА ОБРАБОТКИ WEBHOOK:');
+        console.error('   Ошибка:', error.message);
+        console.error('   Stack:', error.stack);
+        
+        // Если заказ был обновлен, но отправка не удалась, отправляем уведомление об ошибке
+        if (orderProcessed) {
+            try {
+                await sendTelegramNotification(
+                    `⚠️ <b>ОШИБКА ПРИ ОБРАБОТКЕ ЗАКАЗА HELEKET!</b>\n\n` +
+                    `Заказ: ${req.body?.order_id || req.body?.orderId || 'unknown'}\n` +
+                    `Ошибка: ${error.message}\n\n` +
+                    `Проверь логи и отправь заказ вручную!`,
+                    false
+                );
+            } catch (telegramError) {
+                console.error('Не удалось отправить уведомление об ошибке:', telegramError);
+            }
+        }
+        
         res.status(500).send('Server error');
     }
 });
