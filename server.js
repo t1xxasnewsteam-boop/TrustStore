@@ -4833,22 +4833,24 @@ app.post('/api/telegram-webhook', async (req, res) => {
                                 instructions: productInfo ? productInfo.description : 'Спасибо за покупку! Инструкции по использованию товара будут отправлены отдельно.'
                             });
                             
-                            // Проверяем результат отправки (emailResult может быть undefined если функция не вернула значение)
-                            if (!emailResult) {
-                                emailsFailed++;
-                                console.error(`   ❌ Email ${i + 1}/${quantity} НЕ отправлен: функция sendOrderEmail не вернула результат`);
-                            } else if (emailResult.success === true || emailResult.success === undefined) {
-                                // Если success === true или undefined (старый код мог не возвращать success)
-                                emailsSent++;
-                                console.log(`   ✅ Email ${i + 1}/${quantity} отправлен успешно (метод: ${emailResult.method || 'SMTP'})`);
-                            } else {
+                            // Проверяем результат отправки
+                            if (emailResult && emailResult.success === false) {
+                                // Явно указано что не удалось
                                 emailsFailed++;
                                 const errorMsg = emailResult?.error || emailResult?.message || 'Unknown error';
                                 console.error(`   ❌ Email ${i + 1}/${quantity} НЕ отправлен:`, errorMsg);
                                 
-                                // Если есть note, выводим его
                                 if (emailResult?.note) {
                                     console.error(`   ⚠️ Примечание:`, emailResult.note);
+                                }
+                            } else {
+                                // success === true или undefined - считаем успехом
+                                emailsSent++;
+                                const method = emailResult?.method || 'SMTP';
+                                console.log(`   ✅ Email ${i + 1}/${quantity} отправлен успешно (метод: ${method})`);
+                                
+                                if (!emailResult) {
+                                    console.warn(`   ⚠️ Функция sendOrderEmail не вернула результат, но исключения не было`);
                                 }
                             }
                         } catch (emailError) {
