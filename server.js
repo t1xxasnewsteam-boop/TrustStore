@@ -4653,6 +4653,8 @@ app.post('/api/manual-send-last-order', async (req, res) => {
 // ==================== SBP PAYMENT (СБП) ====================
 // Номер телефона для СБП (настрой в .env или здесь)
 const SBP_PHONE = process.env.SBP_PHONE || '+79024170636'; // Озон Банк, Валерий Б
+const SBP_BANK = process.env.SBP_BANK || 'Озон Банк';
+const SBP_NAME = process.env.SBP_NAME || 'Валерий Б';
 
 // API для создания заказа с оплатой через СБП
 app.post('/api/payment/sbp/create', async (req, res) => {
@@ -4678,7 +4680,9 @@ app.post('/api/payment/sbp/create', async (req, res) => {
             orderId,
             sbpPhone: SBP_PHONE,
             formattedPhone,
-            amount
+            amount,
+            bank: SBP_BANK,
+            name: SBP_NAME
         });
     } catch (error) {
         console.error('❌ Ошибка создания заказа СБП:', error);

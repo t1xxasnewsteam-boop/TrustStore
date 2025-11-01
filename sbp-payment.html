@@ -193,6 +193,8 @@
         <div class="phone-display">
             <div style="font-size: 14px; color: #666; margin-bottom: 5px;">Переведите на номер:</div>
             <div class="phone-number" id="phoneNumber">-</div>
+            <div style="font-size: 16px; color: #666; margin-top: 8px; margin-bottom: 5px;" id="bankInfo">-</div>
+            <div style="font-size: 14px; color: #999; margin-bottom: 10px;" id="nameInfo">-</div>
             <div class="amount-display" id="amountDisplay">-</div>
         </div>
         
@@ -221,11 +223,15 @@
         const orderId = urlParams.get('orderId');
         const amount = urlParams.get('amount');
         const phone = decodeURIComponent(urlParams.get('phone') || '');
+        const bank = decodeURIComponent(urlParams.get('bank') || '');
+        const name = decodeURIComponent(urlParams.get('name') || '');
         
         // Заполняем данные
         document.getElementById('orderId').textContent = orderId || '-';
         document.getElementById('amount').textContent = amount ? amount + ' ₽' : '-';
         document.getElementById('phoneNumber').textContent = phone || '-';
+        document.getElementById('bankInfo').textContent = bank ? '🏦 ' + bank : '';
+        document.getElementById('nameInfo').textContent = name ? '👤 ' + name : '';
         document.getElementById('amountDisplay').textContent = amount ? amount + ' ₽' : '-';
         document.getElementById('amountInline').textContent = amount ? amount + ' ₽' : '-';
         
