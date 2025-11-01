@@ -1797,13 +1797,19 @@ app.post('/api/payment/yoomoney', async (req, res) => {
             return res.status(200).send('OK');
         }
         
-        // Проверка суммы
+        // Проверка суммы (учитываем комиссии платежной системы до 10%)
         const orderAmount = parseFloat(order.total_amount);
         const paymentAmount = parseFloat(amount);
+        const minAmount = orderAmount * 0.90; // Допускаем до 10% разницы из-за комиссий
         
-        if (paymentAmount < orderAmount - 0.01) {
-            console.error('❌ Неверная сумма:', paymentAmount, 'ожидалось:', orderAmount);
+        if (paymentAmount < minAmount) {
+            console.error('❌ Неверная сумма платежа:', paymentAmount, 'ожидалось минимум:', minAmount.toFixed(2), '(с учетом комиссий до 10%)');
             return res.status(400).send('Wrong amount');
+        }
+        
+        if (paymentAmount < orderAmount) {
+            const difference = orderAmount - paymentAmount;
+            console.log(`⚠️ Платеж меньше на ${difference.toFixed(2)} ₽ (комиссия платежной системы)`);
         }
         
         // Обновление статуса заказа
