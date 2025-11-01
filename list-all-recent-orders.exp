@@ -1,0 +1,43 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Проверяем все заказы через node скрипт
+send "echo '📋 ВСЕ ПОСЛЕДНИЕ ЗАКАЗЫ:'\r"
+expect "# "
+
+send "node -e \"const Database = require('better-sqlite3'); const db = new Database('analytics.db'); const orders = db.prepare('SELECT order_id, customer_email, customer_name, status, total_amount, created_at FROM orders ORDER BY created_at DESC LIMIT 5').all(); console.log(JSON.stringify(orders, null, 2)); db.close();\" 2>/dev/null || echo 'Проверяем БД...'\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+send "echo '🔍 Ищем заказы созданные в последние 30 минут...'\r"
+expect "# "
+
+send "node -e \"const Database = require('better-sqlite3'); const db = new Database('analytics.db'); const thirtyMinAgo = new Date(Date.now() - 30*60*1000).toISOString(); const recent = db.prepare('SELECT order_id, customer_email, customer_name, status, total_amount, created_at FROM orders WHERE created_at > ? ORDER BY created_at DESC').all(thirtyMinAgo); console.log('Найдено заказов:', recent.length); recent.forEach((o, i) => console.log(\`\${i+1}. \${o.order_id} - \${o.customer_email} - \${o.status} - \${o.created_at}\`)); db.close();\" 2>/dev/null\r"
+expect "# "
+
+send "exit\r"
+expect eof
+

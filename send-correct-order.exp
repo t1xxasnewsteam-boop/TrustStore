@@ -1,0 +1,40 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Отправляем ПРАВИЛЬНЫЙ новый заказ
+send "echo '📤 Отправка НОВОГО заказа ORD-1762026621082...'\r"
+expect "# "
+
+send "curl -X POST http://localhost:3000/api/manual-send-last-order -H 'Content-Type: application/json' -d '{\"orderId\": \"ORD-1762026621082\"}' -s | python3 -m json.tool 2>/dev/null || cat\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+send "echo '✅ ГОТОВО! Новый заказ отправлен!'\r"
+expect "# "
+
+send "exit\r"
+expect eof
+

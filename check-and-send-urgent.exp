@@ -1,0 +1,67 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Проверяем последние заказы
+send "echo '🔍 ПОИСК ПОСЛЕДНИХ ЗАКАЗОВ...'\r"
+expect "# "
+
+send "sqlite3 analytics.db \"SELECT order_id, customer_email, customer_name, status, payment_method, total_amount, created_at FROM orders ORDER BY created_at DESC LIMIT 3;\" 2>/dev/null || echo 'Проверяем через API'\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+# Ищем последний оплаченный заказ со статусом не "paid"
+send "echo '🔍 Поиск необработанных оплаченных заказов...'\r"
+expect "# "
+
+send "sqlite3 analytics.db \"SELECT order_id, customer_email, status FROM orders WHERE status != 'paid' ORDER BY created_at DESC LIMIT 5;\" 2>/dev/null\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+# Отправляем последний заказ
+send "echo '📤 ОТПРАВКА ПОСЛЕДНЕГО ЗАКАЗА...'\r"
+expect "# "
+
+send "curl -X POST http://localhost:3000/api/manual-send-last-order -H 'Content-Type: application/json' -s | python3 -m json.tool 2>/dev/null || cat\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+# Проверяем логи на ошибки
+send "echo '📋 ПОСЛЕДНИЕ ОШИБКИ В ЛОГАХ:'\r"
+expect "# "
+
+send "pm2 logs trust-store --err --lines 20 --nostream 2>/dev/null | tail -10 || echo 'Ошибок нет'\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+send "exit\r"
+expect eof
+

@@ -1,0 +1,47 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Находим последний заказ который был создан недавно
+send "echo '🔍 Поиск последнего заказа...'\r"
+expect "# "
+
+send "sqlite3 analytics.db \"SELECT order_id, customer_email, customer_name, status, total_amount, created_at FROM orders ORDER BY created_at DESC LIMIT 1;\" 2>/dev/null\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+# Отправляем последний заказ независимо от статуса
+send "echo '📤 ОТПРАВКА ПОСЛЕДНЕГО ЗАКАЗА...'\r"
+expect "# "
+
+send "curl -X POST http://localhost:3000/api/manual-send-last-order -H 'Content-Type: application/json' -s\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
