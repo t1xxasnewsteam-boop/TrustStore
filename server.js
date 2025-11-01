@@ -4792,17 +4792,23 @@ app.post('/api/telegram-webhook', async (req, res) => {
                 }
                 
                 // Обновляем статус на "paid"
+                console.log(`\n✅ Подтверждение заказа ${orderId} через Telegram...`);
                 db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('paid', orderId);
                 
-                // Отправляем заказ клиенту (используем функцию из manual-send-last-order)
+                // Отправляем заказ клиенту
                 const products = JSON.parse(order.products || '[]');
                 let emailsSent = 0;
                 let emailsFailed = 0;
                 
-                // Отправляем emails
+                console.log(`📧 Отправка emails клиенту ${order.customer_email}...`);
+                console.log(`📦 Товаров в заказе: ${products.length}`);
+                
+                // Отправляем emails с повторными попытками
                 for (const product of products) {
                     const quantity = product.quantity || 1;
                     const productName = product.name || product.productName || product.product_name;
+                    
+                    console.log(`\n📦 Обработка товара: "${productName}" (x${quantity})`);
                     
                     let productInfo = db.prepare('SELECT * FROM products WHERE name = ?').get(productName);
                     if (!productInfo) {
@@ -4812,7 +4818,8 @@ app.post('/api/telegram-webhook', async (req, res) => {
                     
                     for (let i = 0; i < quantity; i++) {
                         try {
-                            await sendOrderEmail({
+                            console.log(`   📧 Попытка отправки email ${i + 1}/${quantity}...`);
+                            const emailResult = await sendOrderEmail({
                                 to: order.customer_email,
                                 orderNumber: order.order_id,
                                 productName: productName,
@@ -4823,20 +4830,37 @@ app.post('/api/telegram-webhook', async (req, res) => {
                                 password: null,
                                 instructions: productInfo ? productInfo.description : 'Спасибо за покупку! Инструкции по использованию товара будут отправлены отдельно.'
                             });
-                            emailsSent++;
+                            
+                            // Проверяем результат отправки
+                            if (emailResult && emailResult.success === true) {
+                                emailsSent++;
+                                console.log(`   ✅ Email ${i + 1}/${quantity} отправлен успешно (метод: ${emailResult.method || 'SMTP'})`);
+                            } else {
+                                emailsFailed++;
+                                const errorMsg = emailResult?.error || emailResult?.message || 'Unknown error';
+                                console.error(`   ❌ Email ${i + 1}/${quantity} НЕ отправлен:`, errorMsg);
+                                
+                                // Если есть note, выводим его
+                                if (emailResult?.note) {
+                                    console.error(`   ⚠️ Примечание:`, emailResult.note);
+                                }
+                            }
                         } catch (emailError) {
                             emailsFailed++;
-                            console.error(`❌ Ошибка отправки email:`, emailError.message);
+                            console.error(`   ❌ Ошибка отправки email ${i + 1}/${quantity}:`, emailError.message);
                         }
                     }
                 }
+                
+                console.log(`\n📊 ИТОГО EMAILS: отправлено ${emailsSent}, ошибок ${emailsFailed}`);
                 
                 // Отправляем уведомление об успешной обработке
                 const successMessage = `✅ <b>Заказ подтвержден и отправлен!</b>\n\n` +
                     `🆔 Заказ: <code>${orderId}</code>\n` +
                     `👤 Клиент: ${order.customer_name}\n` +
                     `📧 Email: ${order.customer_email}\n` +
-                    `📊 Emails отправлено: ${emailsSent} | Ошибок: ${emailsFailed}`;
+                    `📊 Emails отправлено: ${emailsSent} | Ошибок: ${emailsFailed}\n\n` +
+                    `${emailsFailed > 0 ? '⚠️ Некоторые emails не отправлены - проверь логи!' : '✅ Все emails отправлены успешно!'}`;
                 
                 // Обновляем сообщение с кнопками на сообщение об успехе
                 const editUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`;

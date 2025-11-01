@@ -1,0 +1,44 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Находим последний заказ со статусом payment_confirmed_by_customer или awaiting_payment
+send "echo '🔍 Поиск последнего СБП заказа...'\r"
+expect "# "
+
+send "node -e \"const Database = require('better-sqlite3'); const db = new Database('analytics.db'); const order = db.prepare('SELECT * FROM orders WHERE payment_method = \\\"SBP\\\" ORDER BY created_at DESC LIMIT 1').get(); console.log(JSON.stringify(order, null, 2)); db.close();\" 2>/dev/null\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+# Проверяем логи на ошибки отправки email
+send "echo '📋 Последние логи отправки email:'\r"
+expect "# "
+
+send "pm2 logs trust-store --lines 100 --nostream | grep -E 'email|Email|EMAIL|SMTP|SendGrid|отправк' | tail -20\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
