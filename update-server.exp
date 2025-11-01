@@ -1,0 +1,100 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Проверяем текущий статус git
+send "echo '📊 Текущий статус репозитория...'\r"
+expect "# "
+
+send "git status\r"
+expect "# "
+
+# Делаем backup текущего кода
+send "echo '💾 Создание резервной копии...'\r"
+expect "# "
+
+send "cp server.js server.js.backup.\$(date +%Y%m%d_%H%M%S) 2>/dev/null || echo 'Backup создан'\r"
+expect "# "
+
+# Останавливаем сервер
+send "echo '🛑 Остановка сервера...'\r"
+expect "# "
+
+send "pm2 stop trust-store || echo 'Сервер уже остановлен'\r"
+expect "# "
+
+# Обновляем код с GitHub
+send "echo '📥 Обновление кода с GitHub...'\r"
+expect "# "
+
+send "git fetch origin\r"
+expect "# "
+
+send "git pull origin main\r"
+expect "# "
+
+# Проверяем изменения
+send "echo '✅ Код обновлен'\r"
+expect "# "
+
+# Устанавливаем зависимости (если нужно)
+send "echo '📦 Проверка зависимостей...'\r"
+expect "# "
+
+send "npm install --production 2>&1 | tail -5 || echo 'Зависимости в порядке'\r"
+expect "# "
+
+# Запускаем сервер
+send "echo '🚀 Запуск сервера...'\r"
+expect "# "
+
+send "pm2 restart trust-store || pm2 start server.js --name trust-store\r"
+expect "# "
+
+# Ждем немного
+send "sleep 3\r"
+expect "# "
+
+# Проверяем статус
+send "echo '📊 Статус сервера:'\r"
+expect "# "
+
+send "pm2 status\r"
+expect "# "
+
+# Проверяем логи
+send "echo '📋 Последние логи:'\r"
+expect "# "
+
+send "pm2 logs trust-store --lines 10 --nostream | tail -10\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+send "echo '✅ ОБНОВЛЕНИЕ ЗАВЕРШЕНО!'\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
