@@ -4650,4 +4650,257 @@ app.post('/api/manual-send-last-order', async (req, res) => {
     }
 });
 
+// ==================== SBP PAYMENT (СБП) ====================
+// Номер телефона для СБП (настрой в .env или здесь)
+const SBP_PHONE = process.env.SBP_PHONE || '+79991234567'; // ⚠️ ЗАМЕНИ на свой номер!
+
+// API для создания заказа с оплатой через СБП
+app.post('/api/payment/sbp/create', async (req, res) => {
+    try {
+        const { orderId, amount, customerName, customerEmail, customerPhone } = req.body;
+        
+        if (!orderId || !amount) {
+            return res.status(400).json({ error: 'orderId и amount обязательны' });
+        }
+        
+        // Обновляем статус заказа на "awaiting_payment" (ожидает оплаты)
+        const updateResult = db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('awaiting_payment', orderId);
+        
+        if (updateResult.changes === 0) {
+            return res.status(404).json({ error: 'Заказ не найден' });
+        }
+        
+        // Форматируем номер телефона для отображения
+        const formattedPhone = SBP_PHONE.replace(/(\d{1})(\d{3})(\d{3})(\d{2})(\d{2})/, '+$1 ($2) $3-$4-$5');
+        
+        res.json({
+            success: true,
+            orderId,
+            sbpPhone: SBP_PHONE,
+            formattedPhone,
+            amount
+        });
+    } catch (error) {
+        console.error('❌ Ошибка создания заказа СБП:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// API для подтверждения клиентом что он перевел деньги (кнопка "Я перевел")
+app.post('/api/payment/sbp/confirm', async (req, res) => {
+    try {
+        const { orderId } = req.body;
+        
+        if (!orderId) {
+            return res.status(400).json({ error: 'orderId обязателен' });
+        }
+        
+        // Получаем информацию о заказе
+        const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(orderId);
+        
+        if (!order) {
+            return res.status(404).json({ error: 'Заказ не найден' });
+        }
+        
+        if (order.status === 'paid') {
+            return res.json({ success: true, message: 'Заказ уже оплачен', alreadyPaid: true });
+        }
+        
+        const products = JSON.parse(order.products || '[]');
+        const productNames = products.map(p => p.name || p.productName || p.product_name).join(', ');
+        
+        // Форматируем номер телефона
+        const formattedPhone = SBP_PHONE.replace(/(\d{1})(\d{3})(\d{3})(\d{2})(\d{2})/, '+$1 ($2) $3-$4-$5');
+        
+        // Создаем inline клавиатуру для подтверждения
+        const replyMarkup = {
+            inline_keyboard: [
+                [
+                    { text: '✅ Подтвердить оплату', callback_data: `confirm_order_${orderId}` },
+                    { text: '❌ Отклонить', callback_data: `reject_order_${orderId}` }
+                ]
+            ]
+        };
+        
+        // Отправляем уведомление в Telegram с кнопками
+        const telegramMessage = `💸 <b>НОВЫЙ ПЛАТЕЖ СБП!</b>\n\n` +
+            `🆔 Заказ: <code>${orderId}</code>\n` +
+            `👤 Клиент: ${order.customer_name}\n` +
+            `📧 Email: ${order.customer_email}\n` +
+            `📱 Телефон: ${order.customer_phone || 'не указан'}\n` +
+            `💵 Сумма: <b>${order.total_amount} ₽</b>\n` +
+            `📦 Товары: ${productNames}\n\n` +
+            `🔢 <b>Переведите на СБП:</b>\n` +
+            `📱 <code>${formattedPhone}</code>\n` +
+            `💰 Сумма: <b>${order.total_amount} ₽</b>\n\n` +
+            `⏳ Клиент утверждает что перевел деньги.\n` +
+            `Проверьте перевод и подтвердите или отклоните заказ.`;
+        
+        const telegramResult = await sendTelegramNotification(telegramMessage, false, replyMarkup);
+        
+        // Сохраняем информацию о подтверждении от клиента
+        db.prepare(`
+            UPDATE orders 
+            SET status = 'payment_confirmed_by_customer'
+            WHERE order_id = ?
+        `).run(orderId);
+        
+        res.json({
+            success: true,
+            message: 'Уведомление отправлено администратору. Заказ будет обработан после подтверждения.'
+        });
+        
+    } catch (error) {
+        console.error('❌ Ошибка подтверждения СБП:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Webhook для обработки callback от Telegram бота (кнопки подтверждения/отклонения)
+app.post('/api/telegram-webhook', async (req, res) => {
+    try {
+        const update = req.body;
+        
+        // Обрабатываем только callback_query (нажатия кнопок)
+        if (update.callback_query) {
+            const callbackData = update.callback_query.data;
+            const messageId = update.callback_query.message.message_id;
+            
+            // Проверяем что это наш callback
+            if (callbackData.startsWith('confirm_order_')) {
+                const orderId = callbackData.replace('confirm_order_', '');
+                
+                // Получаем заказ
+                const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(orderId);
+                
+                if (!order) {
+                    // Отвечаем на callback
+                    const answerUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`;
+                    await fetch(answerUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            callback_query_id: update.callback_query.id,
+                            text: '❌ Заказ не найден'
+                        })
+                    });
+                    return res.status(200).send('OK');
+                }
+                
+                // Обновляем статус на "paid"
+                db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('paid', orderId);
+                
+                // Отправляем заказ клиенту (используем функцию из manual-send-last-order)
+                const products = JSON.parse(order.products || '[]');
+                let emailsSent = 0;
+                let emailsFailed = 0;
+                
+                // Отправляем emails
+                for (const product of products) {
+                    const quantity = product.quantity || 1;
+                    const productName = product.name || product.productName || product.product_name;
+                    
+                    let productInfo = db.prepare('SELECT * FROM products WHERE name = ?').get(productName);
+                    if (!productInfo) {
+                        const baseName = productName.split('(')[0].split('-')[0].split('|')[0].split('[')[0].trim();
+                        productInfo = db.prepare('SELECT * FROM products WHERE name LIKE ?').get(baseName + '%');
+                    }
+                    
+                    for (let i = 0; i < quantity; i++) {
+                        try {
+                            await sendOrderEmail({
+                                to: order.customer_email,
+                                orderNumber: order.order_id,
+                                productName: productName,
+                                productImage: productInfo ? productInfo.image : (product.image || null),
+                                productCategory: productInfo ? productInfo.category : null,
+                                productDescription: productInfo ? productInfo.description : null,
+                                login: null,
+                                password: null,
+                                instructions: productInfo ? productInfo.description : 'Спасибо за покупку! Инструкции по использованию товара будут отправлены отдельно.'
+                            });
+                            emailsSent++;
+                        } catch (emailError) {
+                            emailsFailed++;
+                            console.error(`❌ Ошибка отправки email:`, emailError.message);
+                        }
+                    }
+                }
+                
+                // Отправляем уведомление об успешной обработке
+                const successMessage = `✅ <b>Заказ подтвержден и отправлен!</b>\n\n` +
+                    `🆔 Заказ: <code>${orderId}</code>\n` +
+                    `👤 Клиент: ${order.customer_name}\n` +
+                    `📧 Email: ${order.customer_email}\n` +
+                    `📊 Emails отправлено: ${emailsSent} | Ошибок: ${emailsFailed}`;
+                
+                // Обновляем сообщение с кнопками на сообщение об успехе
+                const editUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`;
+                await fetch(editUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: TELEGRAM_CHAT_ID,
+                        message_id: messageId,
+                        text: successMessage,
+                        parse_mode: 'HTML'
+                    })
+                });
+                
+                // Отвечаем на callback
+                const answerUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`;
+                await fetch(answerUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        callback_query_id: update.callback_query.id,
+                        text: '✅ Заказ подтвержден и отправлен клиенту!'
+                    })
+                });
+                
+            } else if (callbackData.startsWith('reject_order_')) {
+                const orderId = callbackData.replace('reject_order_', '');
+                
+                // Обновляем статус на "rejected"
+                db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('rejected', orderId);
+                
+                // Отвечаем на callback
+                const answerUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`;
+                await fetch(answerUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        callback_query_id: update.callback_query.id,
+                        text: '❌ Заказ отклонен'
+                    })
+                });
+                
+                // Обновляем сообщение
+                const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(orderId);
+                const rejectMessage = `❌ <b>Заказ отклонен</b>\n\n` +
+                    `🆔 Заказ: <code>${orderId}</code>\n` +
+                    `👤 Клиент: ${order ? order.customer_name : 'N/A'}\n` +
+                    `💵 Сумма: ${order ? order.total_amount : 'N/A'} ₽`;
+                
+                const editUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`;
+                await fetch(editUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: TELEGRAM_CHAT_ID,
+                        message_id: messageId,
+                        text: rejectMessage,
+                        parse_mode: 'HTML'
+                    })
+                });
+            }
+        }
+        
+        res.status(200).send('OK');
+    } catch (error) {
+        console.error('❌ Ошибка обработки Telegram webhook:', error);
+        res.status(500).send('Error');
+    }
+});
+
 
