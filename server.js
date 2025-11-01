@@ -4690,8 +4690,9 @@ app.post('/api/payment/sbp/create', async (req, res) => {
             return res.status(404).json({ error: 'Заказ не найден' });
         }
         
-        // Форматируем номер телефона для отображения
-        const formattedPhone = SBP_PHONE.replace(/(\d{1})(\d{3})(\d{3})(\d{2})(\d{2})/, '+$1 ($2) $3-$4-$5');
+        // Форматируем номер телефона для отображения (убираем все нецифровые символы, потом форматируем)
+        const cleanPhone = SBP_PHONE.replace(/\D/g, ''); // Убираем все нецифровые символы
+        const formattedPhone = cleanPhone.replace(/(\d{1})(\d{3})(\d{3})(\d{2})(\d{2})/, '+$1 ($2) $3-$4-$5');
         
         res.json({
             success: true,
@@ -4731,8 +4732,9 @@ app.post('/api/payment/sbp/confirm', async (req, res) => {
         const products = JSON.parse(order.products || '[]');
         const productNames = products.map(p => p.name || p.productName || p.product_name).join(', ');
         
-        // Форматируем номер телефона
-        const formattedPhone = SBP_PHONE.replace(/(\d{1})(\d{3})(\d{3})(\d{2})(\d{2})/, '+$1 ($2) $3-$4-$5');
+        // Форматируем номер телефона (убираем все нецифровые символы, потом форматируем)
+        const cleanPhone = SBP_PHONE.replace(/\D/g, ''); // Убираем все нецифровые символы
+        const formattedPhone = cleanPhone.replace(/(\d{1})(\d{3})(\d{3})(\d{2})(\d{2})/, '+$1 ($2) $3-$4-$5');
         
         // Создаем inline клавиатуру для подтверждения
         const replyMarkup = {
