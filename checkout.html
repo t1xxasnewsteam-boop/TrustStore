@@ -1861,36 +1861,98 @@
                         clearCart();
                         localStorage.removeItem('appliedPromoCode'); // Удаляем промокод
                         
-                        // Оплата через СБП
-                        console.log('💳 Переход на оплату через СБП');
-                        try {
-                            const paymentResponse = await fetch('/api/payment/sbp/create', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    orderId: result.orderId,
-                                    amount: currentTotalPrice,
-                                    customerName: name,
-                                    customerEmail: email,
-                                    customerPhone: phone
-                                })
-                            });
-                            
-                            if (!paymentResponse.ok) {
-                                const errorData = await paymentResponse.json();
-                                throw new Error(errorData.error || `HTTP ${paymentResponse.status}`);
+                        // Оплата в зависимости от выбранного метода
+                        if (selectedPaymentMethod === 'sbp') {
+                            // Оплата через СБП
+                            console.log('💳 Переход на оплату через СБП');
+                            try {
+                                const paymentResponse = await fetch('/api/payment/sbp/create', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        orderId: result.orderId,
+                                        amount: currentTotalPrice,
+                                        customerName: name,
+                                        customerEmail: email,
+                                        customerPhone: phone
+                                    })
+                                });
+                                
+                                if (!paymentResponse.ok) {
+                                    const errorData = await paymentResponse.json();
+                                    throw new Error(errorData.error || `HTTP ${paymentResponse.status}`);
+                                }
+                                
+                                const paymentData = await paymentResponse.json();
+                                console.log('✅ Ответ СБП API:', paymentData);
+                                
+                                // Редирект на страницу оплаты СБП
+                                window.location.href = `/sbp-payment.html?orderId=${result.orderId}&amount=${currentTotalPrice}&phone=${encodeURIComponent(paymentData.formattedPhone)}&bank=${encodeURIComponent(paymentData.bank)}&name=${encodeURIComponent(paymentData.name)}`;
+                                return; // Важно! Прекращаем выполнение
+                            } catch (error) {
+                                console.error('❌ Ошибка создания платежа СБП:', error);
+                                alert('❌ Ошибка создания платежа. Попробуйте позже.');
+                                return;
                             }
-                            
-                            const paymentData = await paymentResponse.json();
-                            console.log('✅ Ответ СБП API:', paymentData);
-                            
-                            // Редирект на страницу оплаты СБП
-                            window.location.href = `/sbp-payment.html?orderId=${result.orderId}&amount=${currentTotalPrice}&phone=${encodeURIComponent(paymentData.formattedPhone)}`;
-                            return; // Важно! Прекращаем выполнение
-                        } catch (error) {
-                            console.error('❌ Ошибка создания платежа СБП:', error);
-                            alert('❌ Ошибка создания платежа. Попробуйте позже.');
-                            return;
+                        } else if (selectedPaymentMethod === 'heleket') {
+                            // Оплата через Heleket
+                            console.log('💎 Переход на оплату через HELEKET');
+                            try {
+                                const paymentResponse = await fetch('/api/payment/heleket/create', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        orderId: result.orderId,
+                                        amount: currentTotalPrice,
+                                        currency: 'RUB',
+                                        description: fullDescription,
+                                        customerEmail: email,
+                                        successUrl: window.location.origin + '/success',
+                                        cancelUrl: window.location.origin + '/checkout'
+                                    })
+                                });
+                                
+                                if (!paymentResponse.ok) {
+                                    const errorData = await paymentResponse.json();
+                                    throw new Error(errorData.error || `HTTP ${paymentResponse.status}`);
+                                }
+                                
+                                const paymentData = await paymentResponse.json();
+                                console.log('✅ Ответ Heleket API:', paymentData);
+                                
+                                if (paymentData.success && paymentData.payment_url) {
+                                    console.log('🚀 Редирект на Heleket:', paymentData.payment_url);
+                                    // Редирект на страницу оплаты Heleket
+                                    window.location.href = paymentData.payment_url;
+                                    return; // Важно! Прекращаем выполнение
+                                } else {
+                                    throw new Error(paymentData.error || 'Ошибка создания платежа');
+                                }
+                            } catch (error) {
+                                console.error('❌ Ошибка создания платежа Heleket:', error);
+                                
+                                let errorMsg = '❌ Ошибка создания платежа.';
+                                
+                                try {
+                                    const errorData = error.response ? await error.response.json() : null;
+                                    if (errorData && errorData.error) {
+                                        errorMsg += '\n\n' + errorData.error;
+                                        if (errorData.message) {
+                                            errorMsg += '\n' + errorData.message;
+                                        }
+                                        if (errorData.suggestion) {
+                                            errorMsg += '\n\n💡 ' + errorData.suggestion;
+                                        }
+                                    } else {
+                                        errorMsg += '\n\n' + error.message;
+                                    }
+                                } catch (e) {
+                                    errorMsg += '\n\n' + error.message;
+                                }
+                                
+                                alert(errorMsg);
+                                return;
+                            }
                         }
                 } else {
                     console.error('Ошибка создания заказа');
