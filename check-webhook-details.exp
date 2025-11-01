@@ -1,0 +1,44 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Проверяем детали webhook для заказа
+send "echo '🔍 Детали webhook для заказа ORD-1762026621082:'\r"
+expect "# "
+
+send "pm2 logs trust-store --lines 500 --nostream | grep -A 15 'ORD-1762026621082' | grep -E 'amount|сумма|paymentAmount|orderAmount|minAmount|Wrong|неверная|✅|❌' | tail -20\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+# Проверяем была ли обновлена проверка суммы
+send "echo '📋 Проверка кода - учет комиссий:'\r"
+expect "# "
+
+send "grep -A 5 'minAmount = orderAmount' server.js | head -10\r"
+expect "# "
+
+send "exit\r"
+expect eof
+

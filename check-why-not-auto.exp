@@ -1,0 +1,64 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Проверяем статус заказа
+send "echo '📦 Информация о заказе ORD-1762026621082:'\r"
+expect "# "
+
+send "node -e \"const Database = require('better-sqlite3'); const db = new Database('analytics.db'); const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get('ORD-1762026621082'); console.log(JSON.stringify(order, null, 2)); db.close();\" 2>/dev/null\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+# Проверяем логи на webhook
+send "echo '🔍 Поиск webhook в логах...'\r"
+expect "# "
+
+send "pm2 logs trust-store --lines 200 --nostream | grep -E 'ORD-1762026621082|1762026621082|webhook|payment|YooMoney|Heleket' | tail -20\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+# Проверяем последние ошибки
+send "echo '❌ Последние ошибки:'\r"
+expect "# "
+
+send "pm2 logs trust-store --err --lines 50 --nostream | grep -E 'ORD-1762026621082|1762026621082|сумма|amount|Wrong' | tail -15\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+# Проверяем был ли вообще webhook
+send "echo '📥 Все webhook за последний час:'\r"
+expect "# "
+
+send "pm2 logs trust-store --lines 500 --nostream | grep -E 'WEBHOOK ПОЛУЧЕН|webhook|payment' | tail -10\r"
+expect "# "
+
+send "exit\r"
+expect eof
+

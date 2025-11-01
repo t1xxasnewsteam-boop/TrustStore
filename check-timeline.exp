@@ -1,0 +1,54 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Проверяем время последнего обновления кода
+send "echo '📅 Время последнего обновления server.js:'\r"
+expect "# "
+
+send "stat server.js | grep Modify\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+# Проверяем когда пришел webhook
+send "echo '⏰ Время последнего webhook:'\r"
+expect "# "
+
+send "pm2 logs trust-store --lines 1000 --nostream | grep -E 'YOOMONEY WEBHOOK ПОЛУЧЕН.*ORD-1762026621082|1762026621082.*WEBHOOK' | head -1\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+# Проверяем была ли ошибка суммы
+send "echo '🔍 Ошибки суммы для этого заказа:'\r"
+expect "# "
+
+send "pm2 logs trust-store --lines 1000 --nostream | grep -B 5 -A 5 '2182.5.*2250' | head -15\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
