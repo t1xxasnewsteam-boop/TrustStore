@@ -428,11 +428,11 @@
         document.getElementById('amount').textContent = amount ? amount + ' ₽' : '-';
         document.getElementById('phoneNumber').textContent = phone || '-';
         
-        // Заполняем информацию о банке с логотипом
+        // Заполняем информацию о банке с логотипом (без смайлика)
         const bankTextElement = document.getElementById('bankText');
         const bankLogoElement = document.getElementById('bankLogo');
         if (bank) {
-            bankTextElement.textContent = '🏦 ' + bank;
+            bankTextElement.textContent = bank;
             // Показываем логотип для Озон Банка
             if (bank.toLowerCase().includes('озон')) {
                 bankLogoElement.style.display = 'flex';
@@ -444,6 +444,40 @@
         document.getElementById('nameInfo').textContent = name ? '👤 ' + name : '';
         document.getElementById('amountDisplay').textContent = amount ? amount + ' ₽' : '-';
         document.getElementById('amountInline').textContent = amount ? amount + ' ₽' : '-';
+        
+        // Запускаем таймер на 1 час
+        let timerSeconds = 60 * 60; // 1 час = 3600 секунд
+        const timerDisplay = document.getElementById('timerDisplay');
+        const timerValue = document.getElementById('timerValue');
+        
+        function updateTimer() {
+            const minutes = Math.floor(timerSeconds / 60);
+            const seconds = timerSeconds % 60;
+            timerValue.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            if (timerSeconds > 0) {
+                timerSeconds--;
+            } else {
+                timerDisplay.style.background = '#f8d7da';
+                timerDisplay.style.borderColor = '#dc3545';
+                timerDisplay.style.color = '#721c24';
+                timerValue.textContent = '00:00';
+                clearInterval(timerInterval);
+            }
+        }
+        
+        timerDisplay.style.display = 'block';
+        updateTimer();
+        const timerInterval = setInterval(updateTimer, 1000);
+        
+        // Показываем страницу после загрузки (2 секунды)
+        setTimeout(() => {
+            const loadingScreen = document.getElementById('loadingScreen');
+            loadingScreen.classList.add('hidden');
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+            }, 500);
+        }, 2000);
         
         // Функция копирования номера телефона
         async function copyPhoneNumber() {
