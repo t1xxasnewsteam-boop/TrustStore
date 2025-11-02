@@ -392,7 +392,10 @@
                 </div>
                 <span id="bankText">-</span>
             </div>
-            <div style="font-size: 14px; color: #999; margin-bottom: 10px;" id="nameInfo">-</div>
+            <div style="font-size: 14px; color: #999; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;" id="nameInfo">
+                <span>👤</span>
+                <span id="nameText">-</span>
+            </div>
             <div class="amount-display" id="amountDisplay">-</div>
         </div>
         
@@ -468,7 +471,7 @@
             bankTextElement.textContent = '-';
         }
         
-        document.getElementById('nameInfo').textContent = name ? '👤 ' + name : '';
+        document.getElementById('nameText').textContent = name || '-';
         document.getElementById('amountDisplay').textContent = amount ? amount + ' ₽' : '-';
         document.getElementById('amountInline').textContent = amount ? amount + ' ₽' : '-';
         
