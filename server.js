@@ -5017,6 +5017,64 @@ app.post('/api/telegram-webhook', async (req, res) => {
     try {
         const update = req.body;
         
+        // Обрабатываем комментарии к постам (отзывы)
+        if (update.message && update.message.reply_to_message) {
+            const message = update.message;
+            const TARGET_POST_IDS = [15, 19, 20, 21, 22]; // ID постов для поста #19
+            
+            // Проверяем, что это комментарий к нужному посту
+            const replyToId = message.reply_to_message.message_id;
+            if (TARGET_POST_IDS.includes(replyToId)) {
+                // Пропускаем ботов и официальные ответы канала
+                if (!message.from.is_bot && 
+                    (!message.from.username || message.from.username.toLowerCase() !== 'truststoreru')) {
+                    
+                    const firstName = message.from.first_name || '';
+                    const lastName = message.from.last_name || '';
+                    const author = (firstName + ' ' + lastName).trim();
+                    const text = message.text || message.caption || '';
+                    
+                    // Пропускаем пустые и короткие сообщения
+                    if (text.trim() && text.length >= 5 && !text.includes('o-4zWa6SFWUGo')) {
+                        // Проверяем, не добавлен ли уже этот комментарий
+                        const existing = db.prepare('SELECT id FROM telegram_reviews WHERE telegram_comment_id = ?').get(message.message_id);
+                        
+                        if (!existing) {
+                            try {
+                                const telegramDate = message.date || Math.floor(Date.now() / 1000);
+                                
+                                db.prepare(`
+                                    INSERT INTO telegram_reviews (telegram_user_id, author_name, review_text, rating, telegram_comment_id, telegram_date)
+                                    VALUES (?, ?, ?, 5, ?, ?)
+                                `).run(message.from.id, author, text, message.message_id, telegramDate);
+                                
+                                console.log(`✅ [WEBHOOK] Добавлен отзыв от ${author}: "${text.substring(0, 50)}..."`);
+                                
+                                // Система ДОМИНО: оставляем только 10 последних
+                                const totalReviews = db.prepare('SELECT COUNT(*) as count FROM telegram_reviews').get();
+                                if (totalReviews.count > 10) {
+                                    const oldestReview = db.prepare(`
+                                        SELECT id, author_name FROM telegram_reviews 
+                                        ORDER BY telegram_date ASC 
+                                        LIMIT 1
+                                    `).get();
+                                    
+                                    if (oldestReview) {
+                                        db.prepare('DELETE FROM telegram_reviews WHERE id = ?').run(oldestReview.id);
+                                        console.log(`🗑️ [WEBHOOK] Удален старый отзыв от ${oldestReview.author_name}`);
+                                    }
+                                }
+                            } catch (err) {
+                                if (!err.message.includes('UNIQUE')) {
+                                    console.error(`❌ [WEBHOOK] Ошибка добавления отзыва:`, err.message);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         // Обрабатываем только callback_query (нажатия кнопок)
         if (update.callback_query) {
             const callbackData = update.callback_query.data;
