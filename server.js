@@ -2730,6 +2730,18 @@ app.get('/api/telegram-reviews', (req, res) => {
     }
 });
 
+// API для ручной синхронизации отзывов
+app.post('/api/sync-reviews', async (req, res) => {
+    try {
+        console.log('🔄 Ручная синхронизация отзывов...');
+        await syncTelegramReviews();
+        res.json({ success: true, message: 'Синхронизация завершена' });
+    } catch (error) {
+        console.error('❌ Ошибка синхронизации:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // Функция синхронизации отзывов из Telegram (через getUpdates)
 async function syncTelegramReviews() {
     try {
@@ -2781,9 +2793,29 @@ async function syncTelegramReviews() {
             if (update.message && update.message.chat && update.message.from) {
                 const message = update.message;
                 
+                // Логируем все сообщения для отладки
+                if (message.text && message.text.length > 10) {
+                    console.log(`📨 Сообщение ${message.message_id}: reply_to=${message.reply_to_message?.message_id || 'нет'}, текст="${message.text.substring(0, 50)}..."`);
+                }
+                
                 // ВАЖНО: Проверяем что это комментарий ТОЛЬКО к нужному посту
-                if (!message.reply_to_message || message.reply_to_message.message_id !== TARGET_POST_ID) {
-                    continue; // Пропускаем все сообщения НЕ под нужным постом
+                // Но также проверяем, если это просто сообщение в группе обсуждений (без reply_to)
+                if (message.reply_to_message) {
+                    if (message.reply_to_message.message_id !== TARGET_POST_ID) {
+                        console.log(`⏭️ Пропущен комментарий: reply_to_message_id=${message.reply_to_message.message_id}, ожидается ${TARGET_POST_ID}`);
+                        continue; // Пропускаем все сообщения НЕ под нужным постом
+                    }
+                } else {
+                    // Если нет reply_to_message, возможно это прямой комментарий в группе
+                    // Проверяем chat.type и другие параметры
+                    if (message.chat.type !== 'supergroup' && message.chat.type !== 'group') {
+                        console.log(`⏭️ Пропущено: не группа обсуждений, chat.type=${message.chat.type}`);
+                        continue;
+                    }
+                    // Если это сообщение в группе без reply_to, пропускаем его
+                    // (нам нужны только комментарии к посту)
+                    console.log(`⏭️ Пропущено: нет reply_to_message, возможно не комментарий к посту`);
+                    continue;
                 }
                 
                 // Пропускаем сообщения от ботов
