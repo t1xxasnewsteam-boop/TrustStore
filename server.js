@@ -680,6 +680,7 @@ db.exec(`
     CREATE TABLE IF NOT EXISTS telegram_stats (
         id INTEGER PRIMARY KEY CHECK (id = 1),
         total_comments INTEGER DEFAULT 0,
+        last_update_id INTEGER DEFAULT 0,
         last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
     );
     
