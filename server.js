@@ -5410,7 +5410,7 @@ app.post('/api/telegram-webhook', async (req, res) => {
                         // Обновляем сообщение с кнопками на сообщение об успехе
                         try {
                             const editUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`;
-                            await fetch(editUrl, {
+                            const editResponse = await fetch(editUrl, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
@@ -5420,14 +5420,40 @@ app.post('/api/telegram-webhook', async (req, res) => {
                                     parse_mode: 'HTML'
                                 })
                             });
-                            console.log(`✅ Сообщение обновлено для заказа ${orderId}`);
+                            
+                            const editData = await editResponse.json();
+                            if (editData.ok) {
+                                console.log(`✅ Сообщение обновлено для заказа ${orderId}`);
+                            } else {
+                                console.error(`❌ Ошибка обновления сообщения:`, editData.description || 'Unknown error');
+                            }
                         } catch (editError) {
                             console.error(`❌ Ошибка обновления сообщения:`, editError.message);
                         }
+                        
+                        console.log(`\n🎉 Заказ ${orderId} успешно обработан и отправлен клиенту!`);
                     } catch (error) {
                         console.error(`❌ Ошибка обработки заказа ${orderId}:`, error);
+                        console.error(`   Stack:`, error.stack);
+                        
+                        // Обновляем сообщение об ошибке
+                        try {
+                            const editUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`;
+                            await fetch(editUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    chat_id: TELEGRAM_CHAT_ID,
+                                    message_id: messageId,
+                                    text: `❌ <b>Ошибка обработки заказа!</b>\n\n🆔 Заказ: <code>${orderId}</code>\n\n⚠️ Произошла ошибка при обработке заказа. Проверь логи сервера.`,
+                                    parse_mode: 'HTML'
+                                })
+                            });
+                        } catch (editError) {
+                            console.error(`❌ Ошибка отправки сообщения об ошибке:`, editError.message);
+                        }
                     }
-                }, 0); // Выполняем сразу после отправки ответа
+                }, 100); // Небольшая задержка для гарантии отправки ответа
                 
             } else if (callbackData.startsWith('reject_order_')) {
                 const orderId = callbackData.replace('reject_order_', '');
