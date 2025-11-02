@@ -2750,8 +2750,19 @@ app.get('/api/debug-reviews', async (req, res) => {
             return res.json({ error: 'TELEGRAM_BOT_TOKEN не настроен' });
         }
         
+        // Временно отключаем webhook для получения обновлений
+        try {
+            await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/deleteWebhook?drop_pending_updates=false`);
+            console.log('📱 Webhook временно отключен для получения обновлений');
+        } catch (whError) {
+            console.log('⚠️ Ошибка при отключении webhook (возможно уже отключен)');
+        }
+        
+        // Небольшая задержка перед получением обновлений
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         // Получаем последние обновления без offset
-        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?limit=50`;
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?limit=100`;
         const response = await fetch(url);
         const data = await response.json();
         
