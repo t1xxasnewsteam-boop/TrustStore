@@ -3054,6 +3054,19 @@ async function syncTelegramReviews(fullSync = false) {
             console.log('ℹ️ Новых отзывов не обнаружено');
         }
         
+        // Восстанавливаем webhook, если он был активен
+        if (webhookWasActive && webhookUrl) {
+            try {
+                console.log('📱 Восстановление webhook...');
+                await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook?url=${encodeURIComponent(webhookUrl)}`);
+                console.log('✅ Webhook восстановлен');
+            } catch (whError) {
+                console.error('❌ Ошибка восстановления webhook:', whError.message);
+            }
+        }
+        
+        return { added, maxUpdateId };
+        
     } catch (error) {
         console.error('❌ Ошибка синхронизации отзывов:', error.message);
     }
