@@ -3000,6 +3000,17 @@ async function syncTelegramReviews(fullSync = false) {
         
         // 📊 Обновляем счетчик комментариев и last_update_id
         try {
+            // Проверяем и добавляем колонку last_update_id, если её нет
+            try {
+                db.prepare('SELECT last_update_id FROM telegram_stats LIMIT 1').get();
+            } catch (checkErr) {
+                if (checkErr.message.includes('no such column: last_update_id')) {
+                    console.log('⚙️ Добавление колонки last_update_id в telegram_stats...');
+                    db.exec('ALTER TABLE telegram_stats ADD COLUMN last_update_id INTEGER DEFAULT 0');
+                    console.log('✅ Колонка last_update_id добавлена');
+                }
+            }
+            
             // Получаем текущее значение
             const currentStats = db.prepare('SELECT total_comments FROM telegram_stats WHERE id = 1').get();
             const currentTotal = currentStats ? currentStats.total_comments : 0;
@@ -3021,7 +3032,7 @@ async function syncTelegramReviews(fullSync = false) {
             console.log(`📌 Сохранен last_update_id: ${maxUpdateId}`);
         } catch (err) {
             console.error('❌ Ошибка сохранения статистики:', err.message);
-            // Если колонка last_update_id отсутствует, добавим её
+            // Если колонка last_update_id отсутствует, добавим её (запасной вариант)
             if (err.message.includes('no such column: last_update_id')) {
                 try {
                     console.log('⚙️ Добавление колонки last_update_id в telegram_stats...');
