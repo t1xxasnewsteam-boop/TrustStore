@@ -509,14 +509,16 @@ const upload = multer({
         console.log('📝 MIME type:', file.mimetype);
         console.log('📝 Extension:', path.extname(file.originalname).toLowerCase());
         
-        // Разрешенные расширения и MIME типы (изображения + PDF)
-        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf'];
+        // Разрешенные расширения и MIME типы (изображения + PDF + HEIC)
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic', '.heif', '.pdf'];
         const allowedMimeTypes = [
             'image/jpeg',
             'image/jpg', 
             'image/png',
             'image/gif',
             'image/webp',
+            'image/heic',
+            'image/heif',
             'application/pdf'
         ];
         
@@ -532,7 +534,7 @@ const upload = multer({
             return cb(null, true);
         } else {
             console.log('❌ Файл отклонен!');
-            cb(new Error(`Недопустимый формат файла. Разрешены: JPG, JPEG, PNG, GIF, WEBP, PDF`));
+            cb(new Error(`Недопустимый формат файла. Разрешены: JPG, JPEG, PNG, GIF, WEBP, HEIC, HEIF, PDF`));
         }
     }
 });

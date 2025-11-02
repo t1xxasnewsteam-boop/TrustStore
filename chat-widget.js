@@ -650,13 +650,14 @@
                 return;
             }
             
-            // Проверка типа - принимаем изображения и PDF
-            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
-            const isAllowed = file.type.startsWith('image/') || file.type === 'application/pdf';
+            // Проверка типа - принимаем изображения (включая HEIC) и PDF
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif', 'application/pdf'];
+            const isAllowed = file.type.startsWith('image/') || file.type === 'application/pdf' || 
+                             file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif');
             
             if (!isAllowed) {
                 console.error('❌ Неверный тип файла:', file.type);
-                alert('Можно загружать только изображения (JPG, PNG, GIF, WEBP) или PDF');
+                alert('Можно загружать только изображения (JPG, PNG, GIF, WEBP, HEIC) или PDF');
                 chatImageInput.value = '';
                 return;
             }
