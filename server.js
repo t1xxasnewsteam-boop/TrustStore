@@ -2733,8 +2733,9 @@ app.get('/api/telegram-reviews', (req, res) => {
 // API для ручной синхронизации отзывов
 app.post('/api/sync-reviews', async (req, res) => {
     try {
-        console.log('🔄 Ручная синхронизация отзывов...');
-        const result = await syncTelegramReviews();
+        const { fullSync } = req.body; // Параметр для полной синхронизации (все обновления)
+        console.log(`🔄 Ручная синхронизация отзывов... ${fullSync ? '(полная синхронизация)' : '(только новые)'}`);
+        const result = await syncTelegramReviews(fullSync);
         res.json({ success: true, message: 'Синхронизация завершена', added: result?.added || 0 });
     } catch (error) {
         console.error('❌ Ошибка синхронизации:', error);
@@ -2805,25 +2806,47 @@ app.get('/api/debug-reviews', async (req, res) => {
 });
 
 // Функция синхронизации отзывов из Telegram (через getUpdates)
-async function syncTelegramReviews() {
+async function syncTelegramReviews(fullSync = false) {
     try {
-        console.log('🔄 Синхронизация отзывов из Telegram через getUpdates...');
+        console.log(`🔄 Синхронизация отзывов из Telegram через getUpdates... ${fullSync ? '(полная синхронизация всех обновлений)' : '(только новые)'}`);
         
-        // Получаем последний обработанный update_id из базы
-        let lastUpdateId = 0;
+        // Проверяем и временно отключаем webhook, если он активен
+        let webhookWasActive = false;
+        let webhookUrl = null;
         try {
-            const stats = db.prepare('SELECT last_update_id FROM telegram_stats WHERE id = 1').get();
-            if (stats && stats.last_update_id) {
-                lastUpdateId = stats.last_update_id;
-                console.log(`📌 Последний обработанный update_id: ${lastUpdateId}`);
+            const webhookInfo = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo`);
+            const webhookData = await webhookInfo.json();
+            if (webhookData.ok && webhookData.result.url) {
+                webhookWasActive = true;
+                webhookUrl = webhookData.result.url;
+                console.log('📱 Временное отключение webhook для синхронизации...');
+                await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/deleteWebhook?drop_pending_updates=false`);
+                await new Promise(resolve => setTimeout(resolve, 2000));
             }
-        } catch (err) {
-            // Колонка может отсутствовать, создадим её позже
-            console.log('ℹ️ Колонка last_update_id еще не создана, начнем с 0');
+        } catch (whError) {
+            console.log('ℹ️ Webhook не активен или ошибка проверки');
         }
         
-        // Получаем обновления от бота с offset (только новые)
-        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?limit=100&offset=${lastUpdateId + 1}`;
+        // Получаем последний обработанный update_id из базы (если не полная синхронизация)
+        let lastUpdateId = 0;
+        if (!fullSync) {
+            try {
+                const stats = db.prepare('SELECT last_update_id FROM telegram_stats WHERE id = 1').get();
+                if (stats && stats.last_update_id) {
+                    lastUpdateId = stats.last_update_id;
+                    console.log(`📌 Последний обработанный update_id: ${lastUpdateId}`);
+                }
+            } catch (err) {
+                console.log('ℹ️ Колонка last_update_id еще не создана, начнем с 0');
+            }
+        } else {
+            console.log('📥 Полная синхронизация: получаем все обновления без offset');
+        }
+        
+        // Получаем обновления от бота (с offset или без, в зависимости от режима)
+        const url = fullSync 
+            ? `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?limit=100`
+            : `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?limit=100&offset=${lastUpdateId + 1}`;
         const response = await fetch(url);
         
         if (!response.ok) {
