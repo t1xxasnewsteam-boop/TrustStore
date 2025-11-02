@@ -38,7 +38,7 @@
                 <input 
                     type="file" 
                     id="chatImageInput" 
-                    accept="image/*,.pdf" 
+                    accept="image/*,.pdf,.heic,.heif" 
                     style="display: none;"
                 >
                 <button class="chat-image-btn" id="chatImageBtn" title="Прикрепить изображение">
