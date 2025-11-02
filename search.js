@@ -115,9 +115,15 @@ const searchButton = document.querySelector('.btn-icon')?.textContent?.includes(
 if (searchButton && searchModal) {
     searchButton.addEventListener('click', () => {
         if (searchModal) {
+            // Убираем display: none и устанавливаем flex с правильным позиционированием
             searchModal.style.display = 'flex';
+            searchModal.style.justifyContent = 'center';
+            searchModal.style.alignItems = 'center';
             if (searchInput) {
-                searchInput.focus();
+                // Небольшая задержка для гарантии что modal виден
+                setTimeout(() => {
+                    searchInput.focus();
+                }, 100);
                 searchInput.value = '';
             }
             if (searchResults) {
