@@ -2956,6 +2956,23 @@ async function syncTelegramReviews(fullSync = false) {
                         added++;
                         console.log(`✅ Добавлен отзыв от ${author}: "${text.substring(0, 50)}..."`);
                         
+                        // Обновляем счетчик общего количества комментариев
+                        try {
+                            const currentStats = db.prepare('SELECT total_comments FROM telegram_stats WHERE id = 1').get();
+                            const currentTotal = currentStats ? currentStats.total_comments : 0;
+                            const newTotal = currentTotal + 1;
+                            db.prepare(`
+                                INSERT INTO telegram_stats (id, total_comments, last_updated) 
+                                VALUES (1, ?, CURRENT_TIMESTAMP)
+                                ON CONFLICT(id) DO UPDATE SET 
+                                    total_comments = excluded.total_comments,
+                                    last_updated = CURRENT_TIMESTAMP
+                            `).run(newTotal);
+                            console.log(`📊 Обновлен счетчик комментариев: ${currentTotal} → ${newTotal}`);
+                        } catch (statsErr) {
+                            console.error(`❌ Ошибка обновления счетчика:`, statsErr.message);
+                        }
+                        
                         // 🔄 СИСТЕМА "ДОМИНО": Оставляем только 10 последних отзывов
                         const totalReviews = db.prepare('SELECT COUNT(*) as count FROM telegram_reviews').get();
                         if (totalReviews.count > 10) {
