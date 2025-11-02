@@ -49,11 +49,11 @@
 
 @keyframes slideDown {
     from {
-        transform: translateY(-50px);
+        transform: translate(-50%, -60%);
         opacity: 0;
     }
     to {
-        transform: translateY(0);
+        transform: translate(-50%, -50%);
         opacity: 1;
     }
 }
