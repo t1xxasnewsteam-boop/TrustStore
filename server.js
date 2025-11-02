@@ -2853,7 +2853,7 @@ async function syncTelegramReviews() {
             }
         }
         
-        // 📊 Обновляем счетчик комментариев (добавляем ТОЛЬКО новые)
+        // 📊 Обновляем счетчик комментариев и last_update_id
         try {
             // Получаем текущее значение
             const currentStats = db.prepare('SELECT total_comments FROM telegram_stats WHERE id = 1').get();
@@ -2862,17 +2862,41 @@ async function syncTelegramReviews() {
             // Добавляем только НОВЫЕ комментарии к существующему числу
             const newTotal = currentTotal + added;
             
+            // Обновляем статистику с новым last_update_id
             db.prepare(`
-                INSERT INTO telegram_stats (id, total_comments, last_updated) 
-                VALUES (1, ?, CURRENT_TIMESTAMP)
+                INSERT INTO telegram_stats (id, total_comments, last_update_id, last_updated) 
+                VALUES (1, ?, ?, CURRENT_TIMESTAMP)
                 ON CONFLICT(id) DO UPDATE SET 
                     total_comments = excluded.total_comments,
+                    last_update_id = excluded.last_update_id,
                     last_updated = CURRENT_TIMESTAMP
-            `).run(newTotal);
+            `).run(newTotal, maxUpdateId);
             
             console.log(`📊 Комментариев: ${currentTotal} + ${added} новых = ${newTotal} всего`);
+            console.log(`📌 Сохранен last_update_id: ${maxUpdateId}`);
         } catch (err) {
             console.error('❌ Ошибка сохранения статистики:', err.message);
+            // Если колонка last_update_id отсутствует, добавим её
+            if (err.message.includes('no such column: last_update_id')) {
+                try {
+                    console.log('⚙️ Добавление колонки last_update_id в telegram_stats...');
+                    db.exec('ALTER TABLE telegram_stats ADD COLUMN last_update_id INTEGER DEFAULT 0');
+                    // Повторяем запрос
+                    const currentStats = db.prepare('SELECT total_comments FROM telegram_stats WHERE id = 1').get();
+                    const currentTotal = currentStats ? currentStats.total_comments : 0;
+                    db.prepare(`
+                        INSERT INTO telegram_stats (id, total_comments, last_update_id, last_updated) 
+                        VALUES (1, ?, ?, CURRENT_TIMESTAMP)
+                        ON CONFLICT(id) DO UPDATE SET 
+                            total_comments = excluded.total_comments,
+                            last_update_id = excluded.last_update_id,
+                            last_updated = CURRENT_TIMESTAMP
+                    `).run(currentTotal + added, maxUpdateId);
+                    console.log('✅ Колонка last_update_id добавлена и данные сохранены');
+                } catch (alterErr) {
+                    console.error('❌ Ошибка добавления колонки:', alterErr.message);
+                }
+            }
         }
         
         if (added > 0) {
