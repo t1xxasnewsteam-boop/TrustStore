@@ -2743,6 +2743,58 @@ app.post('/api/sync-reviews', async (req, res) => {
     }
 });
 
+// API для ручного добавления отзыва и исправления счетчика
+app.post('/api/fix-reviews', async (req, res) => {
+    try {
+        // Добавляем отзыв от Aleksey T
+        db.prepare(`
+            INSERT OR IGNORE INTO telegram_reviews 
+            (telegram_user_id, author_name, review_text, rating, telegram_comment_id, telegram_date, created_at)
+            VALUES (0, 'Aleksey T', ?, 5, 1273, 1730559360, CURRENT_TIMESTAMP)
+        `).run('Все супер 👍 Купил со скидкой по промокоду, да еще и пробный период 30 дней итого 2 месяца подписки за 2К. Ребята отзывчивые, все объяснили, подсказали. Буду обращаться ещё. Лучше и искать нечего. Спасибо большое ребятам из Trust Store, удачи и процветания вам, при сегодняшних реалиях вы делаете больше дело.');
+        
+        // Удаляем дубликаты от Андрей Benefiseller
+        const deleted = db.prepare(`
+            DELETE FROM telegram_reviews 
+            WHERE author_name = 'Андрей Benefiseller' 
+            AND id NOT IN (
+                SELECT id FROM telegram_reviews 
+                WHERE author_name = 'Андрей Benefiseller' 
+                ORDER BY telegram_date DESC, id DESC 
+                LIMIT 1
+            )
+        `).run();
+        
+        // Обновляем счетчик на основе реального количества
+        const reviewCount = db.prepare('SELECT COUNT(*) as count FROM telegram_reviews').get().count;
+        
+        // Добавляем колонку last_update_id если её нет
+        try {
+            db.exec('ALTER TABLE telegram_stats ADD COLUMN last_update_id INTEGER DEFAULT 0');
+        } catch (err) {
+            // Игнорируем если колонка уже есть
+        }
+        
+        db.prepare(`
+            INSERT INTO telegram_stats (id, total_comments, last_updated)
+            VALUES (1, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(id) DO UPDATE SET 
+                total_comments = excluded.total_comments,
+                last_updated = CURRENT_TIMESTAMP
+        `).run(reviewCount);
+        
+        res.json({ 
+            success: true, 
+            message: 'Отзыв добавлен, дубликаты удалены, счетчик обновлен',
+            reviewCount,
+            deletedDuplicates: deleted.changes
+        });
+    } catch (error) {
+        console.error('❌ Ошибка исправления отзывов:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // API для отладки - получить информацию о последних обновлениях
 app.get('/api/debug-reviews', async (req, res) => {
     try {
