@@ -168,46 +168,47 @@ document.addEventListener('DOMContentLoaded', function() {
     // Поиск по товарам
     if (searchInput && searchResults) {
         searchInput.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase().trim();
-        
-        if (query === '') {
-            searchResults.innerHTML = '';
-            return;
-        }
-        
-        // Фильтруем товары (ищем по названию, категории и алиасам)
-        const filteredProducts = products.filter(product => {
-            const nameMatch = product.name.toLowerCase().includes(query);
-            const categoryMatch = product.category && product.category.toLowerCase().includes(query);
-            const aliasMatch = product.aliases && product.aliases.some(alias => 
-                alias.toLowerCase().includes(query)
-            );
-            return nameMatch || categoryMatch || aliasMatch;
-        });
-        
-        // Отображаем результаты
-        if (filteredProducts.length === 0) {
-            searchResults.innerHTML = `
-                <div class="search-no-results">
-                    <div class="no-results-icon">😔</div>
-                    <h3>Ничего не найдено</h3>
-                    <p>Попробуйте изменить запрос</p>
-                </div>
-            `;
-        } else {
-            searchResults.innerHTML = filteredProducts.map(product => `
-                <a href="${product.url}" class="search-result-item">
-                    <img src="${product.image}" alt="${product.name}" class="search-result-image">
-                    <div class="search-result-info">
-                        <h4>${highlightText(product.name, query)}</h4>
-                        <p><span class="search-category">${product.category}</span> • ${product.price}</p>
+            const query = e.target.value.toLowerCase().trim();
+            
+            if (query === '') {
+                searchResults.innerHTML = '';
+                return;
+            }
+            
+            // Фильтруем товары (ищем по названию, категории и алиасам)
+            const filteredProducts = products.filter(product => {
+                const nameMatch = product.name.toLowerCase().includes(query);
+                const categoryMatch = product.category && product.category.toLowerCase().includes(query);
+                const aliasMatch = product.aliases && product.aliases.some(alias => 
+                    alias.toLowerCase().includes(query)
+                );
+                return nameMatch || categoryMatch || aliasMatch;
+            });
+            
+            // Отображаем результаты
+            if (filteredProducts.length === 0) {
+                searchResults.innerHTML = `
+                    <div class="search-no-results">
+                        <div class="no-results-icon">😔</div>
+                        <h3>Ничего не найдено</h3>
+                        <p>Попробуйте изменить запрос</p>
                     </div>
-                    <div class="search-result-arrow">→</div>
-                </a>
-            `).join('');
-        }
-    });
-}
+                `;
+            } else {
+                searchResults.innerHTML = filteredProducts.map(product => `
+                    <a href="${product.url}" class="search-result-item">
+                        <img src="${product.image}" alt="${product.name}" class="search-result-image">
+                        <div class="search-result-info">
+                            <h4>${highlightText(product.name, query)}</h4>
+                            <p><span class="search-category">${product.category}</span> • ${product.price}</p>
+                        </div>
+                        <div class="search-result-arrow">→</div>
+                    </a>
+                `).join('');
+            }
+        });
+    }
+}); // Конец DOMContentLoaded
 
 // Подсветка совпадений в тексте
 function highlightText(text, query) {
