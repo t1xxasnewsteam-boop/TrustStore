@@ -30,11 +30,6 @@
             display: none !important;
         }
         
-        /* Убираем лишние элементы внизу */
-        body > *:last-child:not(.footer):not(#chatWidget):not(.chat-widget-button):not(.chat-widget-window) {
-            /* Проверяем, что это не важные элементы */
-        }
-        
         /* Фиксируем footer внизу */
         .footer {
             margin-top: auto;
@@ -42,22 +37,30 @@
             z-index: 1;
         }
         
+        /* Обеспечиваем правильный layout */
+        main,
+        section {
+            flex: 1;
+        }
+        
         /* Убираем overflow проблемы */
-        html, body {
+        html {
             height: 100%;
         }
         
         body {
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
+            margin: 0;
+            padding: 0;
         }
         
         .cart-page {
             flex: 1;
             padding: 60px 0 80px;
-            min-height: calc(100vh - 200px);
             position: relative;
-            overflow: hidden;
+            width: 100%;
         }
         
         .cart-container {
