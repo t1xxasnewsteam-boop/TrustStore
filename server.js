@@ -5272,21 +5272,47 @@ app.post('/api/telegram-webhook', async (req, res) => {
             if (callbackData.startsWith('confirm_order_')) {
                 const orderId = callbackData.replace('confirm_order_', '');
                 
-                // Получаем заказ
-                const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(orderId);
-                
-                if (!order) {
-                    // Отвечаем на callback
-                    const answerUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`;
+                // Отвечаем на callback СРАЗУ, чтобы кнопка перестала показывать "loading"
+                const answerUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`;
+                try {
                     await fetch(answerUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             callback_query_id: update.callback_query.id,
-                            text: '❌ Заказ не найден'
+                            text: 'Обработка...'
                         })
                     });
-                    return res.status(200).send('OK');
+                    console.log(`✅ Ответ на callback_query отправлен для заказа ${orderId}`);
+                } catch (answerError) {
+                    console.error(`❌ Ошибка ответа на callback_query:`, answerError.message);
+                }
+                
+                // Возвращаем OK сразу, чтобы Telegram получил ответ
+                res.status(200).send('OK');
+                
+                // Получаем заказ
+                const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(orderId);
+                
+                if (!order) {
+                    console.error(`❌ Заказ ${orderId} не найден`);
+                    // Обновляем сообщение об ошибке
+                    try {
+                        const editUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`;
+                        await fetch(editUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                chat_id: TELEGRAM_CHAT_ID,
+                                message_id: messageId,
+                                text: `❌ <b>Ошибка!</b>\n\nЗаказ <code>${orderId}</code> не найден в базе данных.`,
+                                parse_mode: 'HTML'
+                            })
+                        });
+                    } catch (editError) {
+                        console.error(`❌ Ошибка редактирования сообщения:`, editError.message);
+                    }
+                    return;
                 }
                 
                 // Обновляем статус на "paid"
@@ -5367,52 +5393,71 @@ app.post('/api/telegram-webhook', async (req, res) => {
                     `${emailsFailed > 0 ? '⚠️ Некоторые emails не отправлены - проверь логи!' : '✅ Все emails отправлены успешно!'}`;
                 
                 // Обновляем сообщение с кнопками на сообщение об успехе
-                const editUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`;
-                await fetch(editUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: TELEGRAM_CHAT_ID,
-                        message_id: messageId,
-                        text: successMessage,
-                        parse_mode: 'HTML'
-                    })
-                });
-                
-                // Отвечаем на callback
-                const answerUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`;
-                await fetch(answerUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        callback_query_id: update.callback_query.id,
-                        text: '✅ Заказ подтвержден и отправлен клиенту!'
-                    })
-                });
+                try {
+                    const editUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`;
+                    await fetch(editUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: TELEGRAM_CHAT_ID,
+                            message_id: messageId,
+                            text: successMessage,
+                            parse_mode: 'HTML'
+                        })
+                    });
+                    console.log(`✅ Сообщение обновлено для заказа ${orderId}`);
+                } catch (editError) {
+                    console.error(`❌ Ошибка обновления сообщения:`, editError.message);
+                }
                 
             } else if (callbackData.startsWith('reject_order_')) {
                 const orderId = callbackData.replace('reject_order_', '');
                 
+                // Отвечаем на callback СРАЗУ
+                const answerUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`;
+                try {
+                    await fetch(answerUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            callback_query_id: update.callback_query.id,
+                            text: 'Отклонение...'
+                        })
+                    });
+                    console.log(`✅ Ответ на callback_query отправлен для отклонения заказа ${orderId}`);
+                } catch (answerError) {
+                    console.error(`❌ Ошибка ответа на callback_query:`, answerError.message);
+                }
+                
+                // Возвращаем OK сразу
+                res.status(200).send('OK');
+                
                 // Обновляем статус на "rejected"
                 db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('rejected', orderId);
                 
-                // Отвечаем на callback
-                const answerUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`;
-                await fetch(answerUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        callback_query_id: update.callback_query.id,
-                        text: '❌ Заказ отклонен'
-                    })
-                });
-                
                 // Обновляем сообщение
-                const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(orderId);
-                const rejectMessage = `❌ <b>Заказ отклонен</b>\n\n` +
-                    `🆔 Заказ: <code>${orderId}</code>\n` +
-                    `👤 Клиент: ${order ? order.customer_name : 'N/A'}\n` +
-                    `💵 Сумма: ${order ? order.total_amount : 'N/A'} ₽`;
+                try {
+                    const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(orderId);
+                    const rejectMessage = `❌ <b>Заказ отклонен</b>\n\n` +
+                        `🆔 Заказ: <code>${orderId}</code>\n` +
+                        `👤 Клиент: ${order ? order.customer_name : 'N/A'}\n` +
+                        `💵 Сумма: ${order ? order.total_amount : 'N/A'} ₽`;
+                    
+                    const editUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`;
+                    await fetch(editUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: TELEGRAM_CHAT_ID,
+                            message_id: messageId,
+                            text: rejectMessage,
+                            parse_mode: 'HTML'
+                        })
+                    });
+                    console.log(`✅ Сообщение об отклонении обновлено для заказа ${orderId}`);
+                } catch (editError) {
+                    console.error(`❌ Ошибка обновления сообщения об отклонении:`, editError.message);
+                }
                 
                 const editUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`;
                 await fetch(editUrl, {
