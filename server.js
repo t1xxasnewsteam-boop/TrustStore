@@ -5286,20 +5286,25 @@ app.post('/api/telegram-webhook', async (req, res) => {
                 // Отвечаем на callback СРАЗУ, чтобы кнопка перестала показывать "loading"
                 const answerUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`;
                 try {
-                    await fetch(answerUrl, {
+                    const answerResponse = await fetch(answerUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             callback_query_id: update.callback_query.id,
-                            text: 'Обработка...'
+                            text: 'Обработка заказа...'
                         })
                     });
-                    console.log(`✅ Ответ на callback_query отправлен для заказа ${orderId}`);
+                    const answerData = await answerResponse.json();
+                    if (answerData.ok) {
+                        console.log(`✅ Ответ на callback_query отправлен для заказа ${orderId}`);
+                    } else {
+                        console.error(`❌ Ошибка ответа на callback_query:`, answerData.description || 'Unknown error');
+                    }
                 } catch (answerError) {
                     console.error(`❌ Ошибка ответа на callback_query:`, answerError.message);
                 }
                 
-                // Сразу возвращаем OK для Telegram, чтобы не было таймаута
+                // Сразу возвращаем OK для Telegram webhook, чтобы не было таймаута
                 res.status(200).send('OK');
                 
                 // Вся дальнейшая обработка идет асинхронно, после ответа Telegram
