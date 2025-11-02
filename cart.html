@@ -15,11 +15,25 @@
     <style>
         body {
             background-color: #f8f9fa;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* Скрываем все декоративные элементы внизу страницы */
+        body::after,
+        body::before,
+        .cart-page::after,
+        .cart-page::before,
+        .cart-container::after,
+        .cart-container::before {
+            display: none !important;
         }
         
         .cart-page {
             padding: 60px 0 80px;
             min-height: calc(100vh - 200px);
+            position: relative;
+            overflow: hidden;
         }
         
         .cart-container {
