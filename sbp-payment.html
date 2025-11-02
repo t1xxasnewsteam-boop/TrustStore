@@ -442,6 +442,14 @@
         // Сохраняем оригинальный номер для копирования (без форматирования)
         let originalPhone = phone;
         
+        // Заполняем название банка в заголовке
+        const bankNameHeader = document.getElementById('bankNameHeader');
+        if (bank) {
+            bankNameHeader.textContent = bank;
+        } else {
+            bankNameHeader.textContent = 'Озон Банк'; // По умолчанию
+        }
+        
         // Заполняем данные
         document.getElementById('orderId').textContent = orderId || '-';
         document.getElementById('amount').textContent = amount ? amount + ' ₽' : '-';
