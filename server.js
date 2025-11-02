@@ -4716,9 +4716,9 @@ app.post('/api/manual-send-last-order', async (req, res) => {
 
 // ==================== SBP PAYMENT (СБП) ====================
 // Номер телефона для СБП (настрой в .env или здесь)
-const SBP_PHONE = process.env.SBP_PHONE || '+79024170636'; // Озон Банк, Валерий Б
+const SBP_PHONE = process.env.SBP_PHONE || '+79506718212'; // Озон Банк, Андрей С
 const SBP_BANK = process.env.SBP_BANK || 'Озон Банк';
-const SBP_NAME = process.env.SBP_NAME || 'Валерий Б';
+const SBP_NAME = process.env.SBP_NAME || 'Андрей С';
 
 // API для создания заказа с оплатой через СБП
 app.post('/api/payment/sbp/create', async (req, res) => {
