@@ -5288,127 +5288,135 @@ app.post('/api/telegram-webhook', async (req, res) => {
                     console.error(`❌ Ошибка ответа на callback_query:`, answerError.message);
                 }
                 
-                // Возвращаем OK сразу, чтобы Telegram получил ответ
+                // Сразу возвращаем OK для Telegram, чтобы не было таймаута
                 res.status(200).send('OK');
                 
-                // Получаем заказ
-                const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(orderId);
-                
-                if (!order) {
-                    console.error(`❌ Заказ ${orderId} не найден`);
-                    // Обновляем сообщение об ошибке
+                // Вся дальнейшая обработка идет асинхронно, после ответа Telegram
+                // Используем setTimeout чтобы гарантировать, что ответ уже отправлен
+                setTimeout(async () => {
                     try {
-                        const editUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`;
-                        await fetch(editUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                chat_id: TELEGRAM_CHAT_ID,
-                                message_id: messageId,
-                                text: `❌ <b>Ошибка!</b>\n\nЗаказ <code>${orderId}</code> не найден в базе данных.`,
-                                parse_mode: 'HTML'
-                            })
-                        });
-                    } catch (editError) {
-                        console.error(`❌ Ошибка редактирования сообщения:`, editError.message);
-                    }
-                    return;
-                }
-                
-                // Обновляем статус на "paid"
-                console.log(`\n✅ Подтверждение заказа ${orderId} через Telegram...`);
-                db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('paid', orderId);
-                
-                // Отправляем заказ клиенту
-                const products = JSON.parse(order.products || '[]');
-                let emailsSent = 0;
-                let emailsFailed = 0;
-                
-                console.log(`📧 Отправка emails клиенту ${order.customer_email}...`);
-                console.log(`📦 Товаров в заказе: ${products.length}`);
-                
-                // Отправляем emails с повторными попытками
-                for (const product of products) {
-                    const quantity = product.quantity || 1;
-                    const productName = product.name || product.productName || product.product_name;
-                    
-                    console.log(`\n📦 Обработка товара: "${productName}" (x${quantity})`);
-                    
-                    let productInfo = db.prepare('SELECT * FROM products WHERE name = ?').get(productName);
-                    if (!productInfo) {
-                        const baseName = productName.split('(')[0].split('-')[0].split('|')[0].split('[')[0].trim();
-                        productInfo = db.prepare('SELECT * FROM products WHERE name LIKE ?').get(baseName + '%');
-                    }
-                    
-                    for (let i = 0; i < quantity; i++) {
-                        try {
-                            console.log(`   📧 Попытка отправки email ${i + 1}/${quantity}...`);
-                            const emailResult = await sendOrderEmail({
-                                to: order.customer_email,
-                                orderNumber: order.order_id,
-                                productName: productName,
-                                productImage: productInfo ? productInfo.image : (product.image || null),
-                                productCategory: productInfo ? productInfo.category : null,
-                                productDescription: productInfo ? productInfo.description : null,
-                                login: null,
-                                password: null,
-                                instructions: productInfo ? productInfo.description : 'Спасибо за покупку! Инструкции по использованию товара будут отправлены отдельно.'
-                            });
+                        // Получаем заказ
+                        const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(orderId);
+                        
+                        if (!order) {
+                            console.error(`❌ Заказ ${orderId} не найден`);
+                            // Обновляем сообщение об ошибке
+                            try {
+                                const editUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`;
+                                await fetch(editUrl, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        chat_id: TELEGRAM_CHAT_ID,
+                                        message_id: messageId,
+                                        text: `❌ <b>Ошибка!</b>\n\nЗаказ <code>${orderId}</code> не найден в базе данных.`,
+                                        parse_mode: 'HTML'
+                                    })
+                                });
+                            } catch (editError) {
+                                console.error(`❌ Ошибка редактирования сообщения:`, editError.message);
+                            }
+                            return;
+                        }
+                        
+                        // Обновляем статус на "paid"
+                        console.log(`\n✅ Подтверждение заказа ${orderId} через Telegram...`);
+                        db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('paid', orderId);
+                        
+                        // Отправляем заказ клиенту
+                        const products = JSON.parse(order.products || '[]');
+                        let emailsSent = 0;
+                        let emailsFailed = 0;
+                        
+                        console.log(`📧 Отправка emails клиенту ${order.customer_email}...`);
+                        console.log(`📦 Товаров в заказе: ${products.length}`);
+                        
+                        // Отправляем emails с повторными попытками
+                        for (const product of products) {
+                            const quantity = product.quantity || 1;
+                            const productName = product.name || product.productName || product.product_name;
                             
-                            // Проверяем результат отправки
-                            if (emailResult && emailResult.success === false) {
-                                // Явно указано что не удалось
-                                emailsFailed++;
-                                const errorMsg = emailResult?.error || emailResult?.message || 'Unknown error';
-                                console.error(`   ❌ Email ${i + 1}/${quantity} НЕ отправлен:`, errorMsg);
-                                
-                                if (emailResult?.note) {
-                                    console.error(`   ⚠️ Примечание:`, emailResult.note);
-                                }
-                            } else {
-                                // success === true или undefined - считаем успехом
-                                emailsSent++;
-                                const method = emailResult?.method || 'SMTP';
-                                console.log(`   ✅ Email ${i + 1}/${quantity} отправлен успешно (метод: ${method})`);
-                                
-                                if (!emailResult) {
-                                    console.warn(`   ⚠️ Функция sendOrderEmail не вернула результат, но исключения не было`);
+                            console.log(`\n📦 Обработка товара: "${productName}" (x${quantity})`);
+                            
+                            let productInfo = db.prepare('SELECT * FROM products WHERE name = ?').get(productName);
+                            if (!productInfo) {
+                                const baseName = productName.split('(')[0].split('-')[0].split('|')[0].split('[')[0].trim();
+                                productInfo = db.prepare('SELECT * FROM products WHERE name LIKE ?').get(baseName + '%');
+                            }
+                            
+                            for (let i = 0; i < quantity; i++) {
+                                try {
+                                    console.log(`   📧 Попытка отправки email ${i + 1}/${quantity}...`);
+                                    const emailResult = await sendOrderEmail({
+                                        to: order.customer_email,
+                                        orderNumber: order.order_id,
+                                        productName: productName,
+                                        productImage: productInfo ? productInfo.image : (product.image || null),
+                                        productCategory: productInfo ? productInfo.category : null,
+                                        productDescription: productInfo ? productInfo.description : null,
+                                        login: null,
+                                        password: null,
+                                        instructions: productInfo ? productInfo.description : 'Спасибо за покупку! Инструкции по использованию товара будут отправлены отдельно.'
+                                    });
+                                    
+                                    // Проверяем результат отправки
+                                    if (emailResult && emailResult.success === false) {
+                                        // Явно указано что не удалось
+                                        emailsFailed++;
+                                        const errorMsg = emailResult?.error || emailResult?.message || 'Unknown error';
+                                        console.error(`   ❌ Email ${i + 1}/${quantity} НЕ отправлен:`, errorMsg);
+                                        
+                                        if (emailResult?.note) {
+                                            console.error(`   ⚠️ Примечание:`, emailResult.note);
+                                        }
+                                    } else {
+                                        // success === true или undefined - считаем успехом
+                                        emailsSent++;
+                                        const method = emailResult?.method || 'SMTP';
+                                        console.log(`   ✅ Email ${i + 1}/${quantity} отправлен успешно (метод: ${method})`);
+                                        
+                                        if (!emailResult) {
+                                            console.warn(`   ⚠️ Функция sendOrderEmail не вернула результат, но исключения не было`);
+                                        }
+                                    }
+                                } catch (emailError) {
+                                    emailsFailed++;
+                                    console.error(`   ❌ Ошибка отправки email ${i + 1}/${quantity}:`, emailError.message);
                                 }
                             }
-                        } catch (emailError) {
-                            emailsFailed++;
-                            console.error(`   ❌ Ошибка отправки email ${i + 1}/${quantity}:`, emailError.message);
                         }
+                        
+                        console.log(`\n📊 ИТОГО EMAILS: отправлено ${emailsSent}, ошибок ${emailsFailed}`);
+                        
+                        // Отправляем уведомление об успешной обработке
+                        const successMessage = `✅ <b>Заказ подтвержден и отправлен!</b>\n\n` +
+                            `🆔 Заказ: <code>${orderId}</code>\n` +
+                            `👤 Клиент: ${order.customer_name}\n` +
+                            `📧 Email: ${order.customer_email}\n` +
+                            `📊 Emails отправлено: ${emailsSent} | Ошибок: ${emailsFailed}\n\n` +
+                            `${emailsFailed > 0 ? '⚠️ Некоторые emails не отправлены - проверь логи!' : '✅ Все emails отправлены успешно!'}`;
+                        
+                        // Обновляем сообщение с кнопками на сообщение об успехе
+                        try {
+                            const editUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`;
+                            await fetch(editUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    chat_id: TELEGRAM_CHAT_ID,
+                                    message_id: messageId,
+                                    text: successMessage,
+                                    parse_mode: 'HTML'
+                                })
+                            });
+                            console.log(`✅ Сообщение обновлено для заказа ${orderId}`);
+                        } catch (editError) {
+                            console.error(`❌ Ошибка обновления сообщения:`, editError.message);
+                        }
+                    } catch (error) {
+                        console.error(`❌ Ошибка обработки заказа ${orderId}:`, error);
                     }
-                }
-                
-                console.log(`\n📊 ИТОГО EMAILS: отправлено ${emailsSent}, ошибок ${emailsFailed}`);
-                
-                // Отправляем уведомление об успешной обработке
-                const successMessage = `✅ <b>Заказ подтвержден и отправлен!</b>\n\n` +
-                    `🆔 Заказ: <code>${orderId}</code>\n` +
-                    `👤 Клиент: ${order.customer_name}\n` +
-                    `📧 Email: ${order.customer_email}\n` +
-                    `📊 Emails отправлено: ${emailsSent} | Ошибок: ${emailsFailed}\n\n` +
-                    `${emailsFailed > 0 ? '⚠️ Некоторые emails не отправлены - проверь логи!' : '✅ Все emails отправлены успешно!'}`;
-                
-                // Обновляем сообщение с кнопками на сообщение об успехе
-                try {
-                    const editUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`;
-                    await fetch(editUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            chat_id: TELEGRAM_CHAT_ID,
-                            message_id: messageId,
-                            text: successMessage,
-                            parse_mode: 'HTML'
-                        })
-                    });
-                    console.log(`✅ Сообщение обновлено для заказа ${orderId}`);
-                } catch (editError) {
-                    console.error(`❌ Ошибка обновления сообщения:`, editError.message);
-                }
+                }, 0); // Выполняем сразу после отправки ответа
                 
             } else if (callbackData.startsWith('reject_order_')) {
                 const orderId = callbackData.replace('reject_order_', '');
