@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="search.css">
     <link rel="stylesheet" href="cart-widget.css">
+    <link rel="stylesheet" href="chat-widget.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -29,7 +30,30 @@
             display: none !important;
         }
         
+        /* Убираем лишние элементы внизу */
+        body > *:last-child:not(.footer):not(#chatWidget):not(.chat-widget-button):not(.chat-widget-window) {
+            /* Проверяем, что это не важные элементы */
+        }
+        
+        /* Фиксируем footer внизу */
+        .footer {
+            margin-top: auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Убираем overflow проблемы */
+        html, body {
+            height: 100%;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+        
         .cart-page {
+            flex: 1;
             padding: 60px 0 80px;
             min-height: calc(100vh - 200px);
             position: relative;
@@ -629,10 +653,10 @@
 
     <script src="tracking.js"></script>
     <script src="script.js"></script>
-    <script src="chat-widget.js"></script>
     <script src="search.js"></script>
     <script src="cart.js"></script>
     <script src="cart-widget.js"></script>
+    <script src="chat-widget.js"></script>
     
     <script>
         // Проверка валидности промокодов в корзине

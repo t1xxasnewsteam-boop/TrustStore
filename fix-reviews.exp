@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+set timeout 30
+spawn ssh root@45.95.234.173
+expect "password:" { send "o-4zWa6SFWUGo\r" }
+expect "# " { send "cd /root/TrustStore\r" }
+expect "# " { send "sqlite3 analytics.db \"INSERT OR IGNORE INTO telegram_reviews (telegram_user_id, author_name, review_text, rating, telegram_comment_id, telegram_date, created_at) VALUES (0, 'Aleksey T', 'Все супер 👍 Купил со скидкой по промокоду, да еще и пробный период 30 дней итого 2 месяца подписки за 2К. Ребята отзывчивые, все объяснили, подсказали. Буду обращаться ещё. Лучше и искать нечего. Спасибо большое ребятам из Trust Store, удачи и процветания вам, при сегодняшних реалиях вы делаете больше дело.', 5, 1273, 1730559360, CURRENT_TIMESTAMP);\"\r" }
+expect "# " { send "sqlite3 analytics.db \"DELETE FROM telegram_reviews WHERE author_name = 'Андрей Benefiseller' AND telegram_comment_id < (SELECT MAX(telegram_comment_id) FROM telegram_reviews WHERE author_name = 'Андрей Benefiseller');\"\r" }
+expect "# " { send "sqlite3 analytics.db \"UPDATE telegram_stats SET total_comments = (SELECT COUNT(*) FROM telegram_reviews) WHERE id = 1;\"\r" }
+expect "# " { send "sqlite3 analytics.db \"ALTER TABLE telegram_stats ADD COLUMN IF NOT EXISTS last_update_id INTEGER DEFAULT 0;\" 2>/dev/null || echo 'Column exists'\r" }
+expect "# " { send "sqlite3 analytics.db \"SELECT COUNT(*) as reviews_count, (SELECT total_comments FROM telegram_stats WHERE id = 1) as stats_count FROM telegram_reviews;\"\r" }
+expect "# " { send "exit\r" }
+expect eof
+
