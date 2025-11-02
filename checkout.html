@@ -1187,6 +1187,10 @@
             let hasChanges = false;
             const invalidPromoCodes = new Set();
             
+            // Получаем email для проверки (если пользователь уже ввел)
+            const emailInput = document.getElementById('customer-email');
+            const customerEmail = emailInput ? emailInput.value.trim() : '';
+            
             // Проверяем каждый товар с промокодом
             const validatedItems = await Promise.all(orderItems.map(async (item) => {
                 if (item.appliedPromo && item.appliedPromo.code) {
@@ -1194,7 +1198,7 @@
                         const response = await fetch('/api/validate-promo', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ code: item.appliedPromo.code })
+                            body: JSON.stringify({ code: item.appliedPromo.code, email: customerEmail })
                         });
                         
                         const data = await response.json();
@@ -1635,11 +1639,15 @@
             applyButton.textContent = 'Проверка...';
             
             try {
+                // Получаем email для проверки (если пользователь уже ввел)
+                const emailInput = document.getElementById('customer-email');
+                const customerEmail = emailInput ? emailInput.value.trim() : '';
+                
                 // Проверяем промокод через API
                 const response = await fetch('/api/validate-promo', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code: promoCode })
+                    body: JSON.stringify({ code: promoCode, email: customerEmail })
                 });
                 
                 const data = await response.json();
@@ -1838,13 +1846,17 @@
                             usedPromoCodes.add(currentPromoCode);
                         }
                         
-                        // Применяем каждый уникальный промокод
+                        // Применяем каждый уникальный промокод (с email и orderId)
                         for (const promoCode of usedPromoCodes) {
                             try {
                                 await fetch('/api/apply-promo', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ code: promoCode })
+                                    body: JSON.stringify({ 
+                                        code: promoCode,
+                                        email: email,
+                                        orderId: result.orderId
+                                    })
                                 });
                                 console.log('✅ Промокод применен:', promoCode);
                             } catch (error) {

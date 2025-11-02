@@ -656,6 +656,16 @@ db.exec(`
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS promo_code_uses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        promo_code TEXT NOT NULL,
+        customer_email TEXT NOT NULL,
+        order_id TEXT,
+        used_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (promo_code) REFERENCES promo_codes(code),
+        UNIQUE(promo_code, customer_email)
+    );
+
     CREATE TABLE IF NOT EXISTS telegram_reviews (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         telegram_user_id INTEGER,
@@ -748,6 +758,8 @@ db.exec(`
     CREATE INDEX IF NOT EXISTS idx_email_message_id ON email_messages(message_id);
     CREATE INDEX IF NOT EXISTS idx_email_from ON email_messages(from_email);
     CREATE INDEX IF NOT EXISTS idx_email_read ON email_messages(is_read);
+    CREATE INDEX IF NOT EXISTS idx_promo_code_uses_email ON promo_code_uses(customer_email);
+    CREATE INDEX IF NOT EXISTS idx_promo_code_uses_code ON promo_code_uses(promo_code);
 `);
 
 // Миграция: добавление колонки image_url если её нет
@@ -2336,7 +2348,7 @@ app.get('/api/promo-codes', authMiddleware, (req, res) => {
 // Проверка промокода (клиент)
 app.post('/api/validate-promo', (req, res) => {
     try {
-        const { code } = req.body;
+        const { code, email } = req.body;
         
         if (!code) {
             return res.status(400).json({ error: 'Промокод не указан' });
@@ -2358,9 +2370,21 @@ app.post('/api/validate-promo', (req, res) => {
             return res.json({ valid: false, message: 'Промокод истек' });
         }
         
-        // Проверяем количество использований
+        // Проверяем количество использований (глобальное)
         if (promoCode.current_uses >= promoCode.max_uses) {
             return res.json({ valid: false, message: 'Промокод исчерпан' });
+        }
+        
+        // Проверяем, использовал ли уже этот email этот промокод
+        if (email) {
+            const existingUse = db.prepare(`
+                SELECT * FROM promo_code_uses 
+                WHERE promo_code = ? AND customer_email = ?
+            `).get(code.toUpperCase(), email.toLowerCase());
+            
+            if (existingUse) {
+                return res.json({ valid: false, message: 'Вы уже использовали этот промокод' });
+            }
         }
         
         res.json({ 
@@ -2377,15 +2401,37 @@ app.post('/api/validate-promo', (req, res) => {
 // Применение промокода (увеличение счетчика использований)
 app.post('/api/apply-promo', (req, res) => {
     try {
-        const { code } = req.body;
+        const { code, email, orderId } = req.body;
         
+        const promoCodeUpper = code.toUpperCase();
+        
+        // Увеличиваем глобальный счетчик использований
         db.prepare(`
             UPDATE promo_codes 
             SET current_uses = current_uses + 1
             WHERE code = ?
-        `).run(code.toUpperCase());
+        `).run(promoCodeUpper);
         
-        console.log(`🎫 Промокод ${code} использован`);
+        // Сохраняем использование промокода клиентом (если email передан)
+        if (email) {
+            try {
+                db.prepare(`
+                    INSERT INTO promo_code_uses (promo_code, customer_email, order_id)
+                    VALUES (?, ?, ?)
+                `).run(promoCodeUpper, email.toLowerCase(), orderId || null);
+                console.log(`🎫 Промокод ${code} использован клиентом ${email}`);
+            } catch (insertError) {
+                // Если уже использован этим клиентом - это нормально (может быть повторная попытка)
+                if (insertError.message.includes('UNIQUE constraint')) {
+                    console.log(`⚠️ Промокод ${code} уже использован клиентом ${email}`);
+                } else {
+                    throw insertError;
+                }
+            }
+        } else {
+            console.log(`🎫 Промокод ${code} использован (без привязки к email)`);
+        }
+        
         res.json({ success: true });
     } catch (error) {
         console.error('Ошибка применения промокода:', error);
