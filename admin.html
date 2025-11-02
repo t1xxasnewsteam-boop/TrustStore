@@ -1200,7 +1200,7 @@
                     
                     <!-- Форма ответа -->
                     <div style="padding: 20px 30px; border-top: 1px solid var(--border-color); background: var(--bg-card);">
-                        <input type="file" id="admin-image-input" accept="image/*,.pdf" style="display: none;">
+                        <input type="file" id="admin-image-input" accept="image/*,.pdf,.heic,.heif" style="display: none;">
                         <div id="image-preview" style="display: none; margin-bottom: 15px; position: relative;">
                             <img id="preview-img" style="max-width: 200px; max-height: 200px; border-radius: 10px; border: 2px solid var(--border-color);">
                             <button onclick="clearImagePreview()" style="position: absolute; top: 5px; right: 5px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 16px; line-height: 1;">×</button>
@@ -1306,7 +1306,7 @@
                         <textarea id="reply-body" placeholder="Введите ваш ответ..." style="width: 100%; padding: 15px; border: 2px solid var(--border-color); border-radius: 10px; font-size: 14px; font-family: inherit; min-height: 100px; resize: vertical; background: var(--bg-secondary); color: var(--text-primary);"></textarea>
                         
                         <!-- Загрузка фото -->
-                        <input type="file" id="reply-image-input" accept="image/*,.pdf" style="display: none;" onchange="handleReplyImageSelect(event)">
+                        <input type="file" id="reply-image-input" accept="image/*,.pdf,.heic,.heif" style="display: none;" onchange="handleReplyImageSelect(event)">
                         <div id="reply-image-preview" style="display: none; margin-top: 15px; padding: 15px; background: var(--bg-secondary); border-radius: 10px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <img id="reply-image-preview-img" src="" alt="Preview" style="max-width: 100px; max-height: 100px; border-radius: 8px;">
