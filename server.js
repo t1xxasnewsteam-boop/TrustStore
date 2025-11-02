@@ -5103,6 +5103,43 @@ app.post('/api/telegram-webhook', async (req, res) => {
                                 
                                 console.log(`✅ [WEBHOOK] Добавлен отзыв от ${author}: "${text.substring(0, 50)}..."`);
                                 
+                                // Обновляем счетчик общего количества комментариев
+                                try {
+                                    const currentStats = db.prepare('SELECT total_comments FROM telegram_stats WHERE id = 1').get();
+                                    const currentTotal = currentStats ? currentStats.total_comments : 0;
+                                    const newTotal = currentTotal + 1;
+                                    db.prepare(`
+                                        INSERT INTO telegram_stats (id, total_comments, last_updated) 
+                                        VALUES (1, ?, CURRENT_TIMESTAMP)
+                                        ON CONFLICT(id) DO UPDATE SET 
+                                            total_comments = excluded.total_comments,
+                                            last_updated = CURRENT_TIMESTAMP
+                                    `).run(newTotal);
+                                    console.log(`📊 [WEBHOOK] Обновлен счетчик комментариев: ${currentTotal} → ${newTotal}`);
+                                } catch (statsErr) {
+                                    // Если колонки нет, добавляем её
+                                    if (statsErr.message.includes('no such column: last_update_id')) {
+                                        try {
+                                            db.exec('ALTER TABLE telegram_stats ADD COLUMN last_update_id INTEGER DEFAULT 0');
+                                            const currentStats = db.prepare('SELECT total_comments FROM telegram_stats WHERE id = 1').get();
+                                            const currentTotal = currentStats ? currentStats.total_comments : 0;
+                                            db.prepare(`
+                                                INSERT INTO telegram_stats (id, total_comments, last_update_id, last_updated) 
+                                                VALUES (1, ?, 0, CURRENT_TIMESTAMP)
+                                                ON CONFLICT(id) DO UPDATE SET 
+                                                    total_comments = excluded.total_comments,
+                                                    last_update_id = 0,
+                                                    last_updated = CURRENT_TIMESTAMP
+                                            `).run(currentTotal + 1);
+                                            console.log('✅ [WEBHOOK] Колонка last_update_id добавлена');
+                                        } catch (alterErr) {
+                                            console.error(`❌ [WEBHOOK] Ошибка добавления колонки:`, alterErr.message);
+                                        }
+                                    } else {
+                                        console.error(`❌ [WEBHOOK] Ошибка обновления счетчика:`, statsErr.message);
+                                    }
+                                }
+                                
                                 // Система ДОМИНО: оставляем только 10 последних
                                 const totalReviews = db.prepare('SELECT COUNT(*) as count FROM telegram_reviews').get();
                                 if (totalReviews.count > 10) {
