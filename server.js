@@ -4921,13 +4921,24 @@ app.post('/api/manual-send-last-order', async (req, res) => {
                 lastOrder.status = 'paid';
             }
         } else {
-            // Находим последний оплаченный заказ
+            // Сначала пробуем найти последний СБП заказ со статусом payment_confirmed_by_customer
             lastOrder = db.prepare(`
                 SELECT * FROM orders 
-                WHERE status = 'paid'
+                WHERE payment_method = 'SBP' 
+                AND status = 'payment_confirmed_by_customer'
                 ORDER BY created_at DESC 
                 LIMIT 1
             `).get();
+            
+            // Если не найден, ищем последний оплаченный заказ
+            if (!lastOrder) {
+                lastOrder = db.prepare(`
+                    SELECT * FROM orders 
+                    WHERE status = 'paid'
+                    ORDER BY created_at DESC 
+                    LIMIT 1
+                `).get();
+            }
         }
         
         if (!lastOrder) {
