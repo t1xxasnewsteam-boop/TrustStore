@@ -3052,18 +3052,22 @@ async function syncTelegramReviews(fullSync = false) {
                         }
                         
                         // 🔄 СИСТЕМА "ДОМИНО": Оставляем только 10 последних отзывов
-                        const totalReviews = db.prepare('SELECT COUNT(*) as count FROM telegram_reviews').get();
-                        if (totalReviews.count > 10) {
-                            // Удаляем самый старый отзыв (по telegram_date)
-                            const oldestReview = db.prepare(`
-                                SELECT id, author_name FROM telegram_reviews 
-                                ORDER BY telegram_date ASC 
-                                LIMIT 1
-                            `).get();
+                        // Удаляем все отзывы после 10-го (сортируем по дате DESC, берем с 11-го)
+                        const allReviews = db.prepare(`
+                            SELECT id, author_name FROM telegram_reviews 
+                            ORDER BY telegram_date DESC, id DESC
+                        `).all();
+                        
+                        if (allReviews.length > 10) {
+                            // Берем все отзывы после 10-го (с 11-го до конца)
+                            const reviewsToDelete = allReviews.slice(10);
+                            const idsToDelete = reviewsToDelete.map(r => r.id);
+                            const placeholders = idsToDelete.map(() => '?').join(',');
                             
-                            if (oldestReview) {
-                                db.prepare('DELETE FROM telegram_reviews WHERE id = ?').run(oldestReview.id);
-                                console.log(`🗑️ Удален старый отзыв от ${oldestReview.author_name} (система домино)`);
+                            if (idsToDelete.length > 0) {
+                                db.prepare(`DELETE FROM telegram_reviews WHERE id IN (${placeholders})`).run(...idsToDelete);
+                                console.log(`🎲 ДОМИНО: Удалено старых отзывов: ${idsToDelete.length} (осталось 10)`);
+                                console.log(`   Удалены ID: ${idsToDelete.join(', ')}`);
                             }
                         }
                     } catch (err) {
@@ -5229,18 +5233,23 @@ app.post('/api/telegram-webhook', async (req, res) => {
                                     }
                                 }
                                 
-                                // Система ДОМИНО: оставляем только 10 последних
-                                const totalReviews = db.prepare('SELECT COUNT(*) as count FROM telegram_reviews').get();
-                                if (totalReviews.count > 10) {
-                                    const oldestReview = db.prepare(`
-                                        SELECT id, author_name FROM telegram_reviews 
-                                        ORDER BY telegram_date ASC 
-                                        LIMIT 1
-                                    `).get();
+                                // 🎲 СИСТЕМА ДОМИНО: Оставляем только 10 последних отзывов
+                                // Удаляем все отзывы после 10-го (сортируем по дате DESC, берем с 11-го)
+                                const allReviews = db.prepare(`
+                                    SELECT id, author_name FROM telegram_reviews 
+                                    ORDER BY telegram_date DESC, id DESC
+                                `).all();
+                                
+                                if (allReviews.length > 10) {
+                                    // Берем все отзывы после 10-го (с 11-го до конца)
+                                    const reviewsToDelete = allReviews.slice(10);
+                                    const idsToDelete = reviewsToDelete.map(r => r.id);
+                                    const placeholders = idsToDelete.map(() => '?').join(',');
                                     
-                                    if (oldestReview) {
-                                        db.prepare('DELETE FROM telegram_reviews WHERE id = ?').run(oldestReview.id);
-                                        console.log(`🗑️ [WEBHOOK] Удален старый отзыв от ${oldestReview.author_name}`);
+                                    if (idsToDelete.length > 0) {
+                                        db.prepare(`DELETE FROM telegram_reviews WHERE id IN (${placeholders})`).run(...idsToDelete);
+                                        console.log(`🎲 [WEBHOOK] ДОМИНО: Удалено старых отзывов: ${idsToDelete.length} (осталось 10)`);
+                                        console.log(`   Удалены ID: ${idsToDelete.join(', ')}`);
                                     }
                                 }
                             } catch (err) {
