@@ -2735,8 +2735,21 @@ async function syncTelegramReviews() {
     try {
         console.log('🔄 Синхронизация отзывов из Telegram через getUpdates...');
         
-        // Получаем обновления от бота (максимум возможных)
-        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?limit=100`;
+        // Получаем последний обработанный update_id из базы
+        let lastUpdateId = 0;
+        try {
+            const stats = db.prepare('SELECT last_update_id FROM telegram_stats WHERE id = 1').get();
+            if (stats && stats.last_update_id) {
+                lastUpdateId = stats.last_update_id;
+                console.log(`📌 Последний обработанный update_id: ${lastUpdateId}`);
+            }
+        } catch (err) {
+            // Колонка может отсутствовать, создадим её позже
+            console.log('ℹ️ Колонка last_update_id еще не создана, начнем с 0');
+        }
+        
+        // Получаем обновления от бота с offset (только новые)
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?limit=100&offset=${lastUpdateId + 1}`;
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -2752,6 +2765,12 @@ async function syncTelegramReviews() {
         }
         
         console.log(`📨 Получено обновлений: ${data.result.length}`);
+        
+        // Находим максимальный update_id для сохранения
+        let maxUpdateId = lastUpdateId;
+        if (data.result && data.result.length > 0) {
+            maxUpdateId = Math.max(...data.result.map(u => u.update_id));
+        }
         
         let added = 0; // Счетчик только НОВЫХ комментариев
         const TARGET_POST_ID = 15; // ID сообщения в группе обсуждений (пост #19 в канале = сообщение #15 в группе)
