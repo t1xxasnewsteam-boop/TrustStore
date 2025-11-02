@@ -176,6 +176,20 @@
             color: #495057;
         }
         
+        .bank-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .bank-logo img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+        
         .amount-display {
             font-size: 24px;
             font-weight: 700;
@@ -293,7 +307,12 @@
             <div style="font-size: 14px; color: #666; margin-bottom: 5px;">Переведите на номер:</div>
             <div class="phone-number" id="phoneNumber">-</div>
             <div class="phone-copy-hint">📋 Нажмите, чтобы скопировать</div>
-            <div style="font-size: 16px; color: #666; margin-top: 8px; margin-bottom: 5px;" id="bankInfo">-</div>
+            <div style="font-size: 16px; color: #666; margin-top: 8px; margin-bottom: 5px;" id="bankInfo">
+                <span id="bankText">-</span>
+                <div class="bank-logo" id="bankLogo" style="display: none;">
+                    <img src="https://play-lh.googleusercontent.com/c1BqU5Hyk3wgjJdGPR831BP_gCTIQm6gue3QFjzPBvui72Dg0IE9dWHP_hGy6NaxAw" alt="Озон Банк" onerror="this.style.display='none'">
+                </div>
+            </div>
             <div style="font-size: 14px; color: #999; margin-bottom: 10px;" id="nameInfo">-</div>
             <div class="amount-display" id="amountDisplay">-</div>
         </div>
