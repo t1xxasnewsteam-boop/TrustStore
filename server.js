@@ -2773,9 +2773,6 @@ app.post('/api/fix-reviews', async (req, res) => {
             )
         `).run();
         
-        // Обновляем счетчик на основе реального количества
-        const reviewCount = db.prepare('SELECT COUNT(*) as count FROM telegram_reviews').get().count;
-        
         // Добавляем колонку last_update_id если её нет
         try {
             db.exec('ALTER TABLE telegram_stats ADD COLUMN last_update_id INTEGER DEFAULT 0');
@@ -2783,18 +2780,35 @@ app.post('/api/fix-reviews', async (req, res) => {
             // Игнорируем если колонка уже есть
         }
         
+        // Получаем текущий счетчик
+        const currentStats = db.prepare('SELECT total_comments FROM telegram_stats WHERE id = 1').get();
+        let currentCount = currentStats ? currentStats.total_comments : 0;
+        
+        // Если счетчик меньше 560, восстанавливаем его до 562 (было 561, добавили Aleksey T = 562)
+        if (currentCount < 560) {
+            currentCount = 562; // 561 было + 1 новый отзыв от Aleksey T
+            console.log(`⚠️ Восстановление счетчика до ${currentCount}`);
+        } else {
+            // Инкрементируем счетчик на 1 за добавленный отзыв от Aleksey T
+            currentCount += 1;
+        }
+        
+        // Обновляем счетчик
         db.prepare(`
             INSERT INTO telegram_stats (id, total_comments, last_updated)
             VALUES (1, ?, CURRENT_TIMESTAMP)
             ON CONFLICT(id) DO UPDATE SET 
                 total_comments = excluded.total_comments,
                 last_updated = CURRENT_TIMESTAMP
-        `).run(reviewCount);
+        `).run(currentCount);
+        
+        const reviewCount = db.prepare('SELECT COUNT(*) as count FROM telegram_reviews').get().count;
         
         res.json({ 
             success: true, 
             message: 'Отзыв добавлен, дубликаты удалены, счетчик обновлен',
             reviewCount,
+            totalComments: currentCount,
             deletedDuplicates: deleted.changes
         });
     } catch (error) {
