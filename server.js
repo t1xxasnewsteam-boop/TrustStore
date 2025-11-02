@@ -5458,18 +5458,6 @@ app.post('/api/telegram-webhook', async (req, res) => {
                 } catch (editError) {
                     console.error(`❌ Ошибка обновления сообщения об отклонении:`, editError.message);
                 }
-                
-                const editUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`;
-                await fetch(editUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: TELEGRAM_CHAT_ID,
-                        message_id: messageId,
-                        text: rejectMessage,
-                        parse_mode: 'HTML'
-                    })
-                });
             }
         }
         
