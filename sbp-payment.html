@@ -272,20 +272,29 @@
             font-weight: 600;
         }
         
-        .timer-display {
-            font-size: 14px;
-            color: #666;
-            margin-top: 15px;
-            text-align: center;
-            padding: 10px;
-            background: #fff3cd;
-            border-radius: 8px;
-            border: 1px solid #ffc107;
+        .payment-container {
+            position: relative;
         }
         
-        .timer-display strong {
+        .timer-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 18px;
+            font-weight: 700;
             color: #856404;
-            font-size: 16px;
+            padding: 10px 16px;
+            background: #fff3cd;
+            border-radius: 8px;
+            border: 2px solid #ffc107;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        
+        .timer-display.expired {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
         }
         
         .amount-display {
@@ -400,9 +409,6 @@
             <div class="info-row">
                 <span class="info-label">Сумма к оплате:</span>
                 <span class="info-value" id="amount">-</span>
-            </div>
-            <div class="timer-display" id="timerDisplay" style="display: none; margin-top: 15px; text-align: center;">
-                ⏱️ <strong>Время на оплату:</strong> <span id="timerValue">60:00</span>
             </div>
         </div>
         
