@@ -266,7 +266,8 @@
 /* Адаптивность */
 @media (max-width: 768px) {
     #search-modal {
-        padding-top: 50px;
+        padding: 10px;
+        align-items: center !important;
     }
     
     .search-modal-content {
