@@ -8,16 +8,17 @@
     height: 100%;
     background: rgba(0, 0, 0, 0.7);
     z-index: 10000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     padding: 20px;
     animation: fadeIn 0.3s ease;
     overflow-y: auto;
 }
 
-#search-modal[style*="display: flex"] {
+/* Когда модальное окно открыто - центрируем его */
+#search-modal[style*="display: flex"],
+#search-modal:not([style*="display: none"]) {
     display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
 }
 
 @keyframes fadeIn {
