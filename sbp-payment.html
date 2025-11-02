@@ -88,6 +88,62 @@
             color: #667eea;
             letter-spacing: 2px;
             margin: 10px 0;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.3s ease;
+            padding: 10px;
+            border-radius: 8px;
+            position: relative;
+        }
+        
+        .phone-number:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.05);
+        }
+        
+        .phone-number:active {
+            transform: scale(0.98);
+        }
+        
+        .phone-number::after {
+            content: '📋 Нажмите, чтобы скопировать';
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: #667eea;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+        
+        .phone-number:hover::after {
+            opacity: 1;
+        }
+        
+        .copy-feedback {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .copy-feedback.show {
+            opacity: 1;
+            transform: translateY(0);
         }
         
         .amount-display {
@@ -217,6 +273,8 @@
         <div class="loading" id="loading">⏳ Отправка уведомления...</div>
     </div>
     
+    <div class="copy-feedback" id="copyFeedback">✅ Номер скопирован!</div>
+    
     <script>
         // Получаем данные из URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -226,6 +284,9 @@
         const bank = decodeURIComponent(urlParams.get('bank') || '');
         const name = decodeURIComponent(urlParams.get('name') || '');
         
+        // Сохраняем оригинальный номер для копирования (без форматирования)
+        let originalPhone = phone;
+        
         // Заполняем данные
         document.getElementById('orderId').textContent = orderId || '-';
         document.getElementById('amount').textContent = amount ? amount + ' ₽' : '-';
@@ -234,6 +295,55 @@
         document.getElementById('nameInfo').textContent = name ? '👤 ' + name : '';
         document.getElementById('amountDisplay').textContent = amount ? amount + ' ₽' : '-';
         document.getElementById('amountInline').textContent = amount ? amount + ' ₽' : '-';
+        
+        // Функция копирования номера телефона
+        async function copyPhoneNumber() {
+            if (!originalPhone || originalPhone === '-') {
+                return;
+            }
+            
+            // Убираем форматирование (оставляем только цифры и +)
+            const phoneToCopy = originalPhone.replace(/[^\d+]/g, '');
+            
+            try {
+                // Используем современный Clipboard API
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(phoneToCopy);
+                    showCopyFeedback();
+                } else {
+                    // Fallback для старых браузеров
+                    const textArea = document.createElement('textarea');
+                    textArea.value = phoneToCopy;
+                    textArea.style.position = 'fixed';
+                    textArea.style.opacity = '0';
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showCopyFeedback();
+                }
+            } catch (error) {
+                console.error('Ошибка копирования:', error);
+                showCopyFeedback('❌ Не удалось скопировать');
+            }
+        }
+        
+        // Показываем уведомление о копировании
+        function showCopyFeedback(message = '✅ Номер скопирован!') {
+            const feedback = document.getElementById('copyFeedback');
+            feedback.textContent = message;
+            feedback.classList.add('show');
+            setTimeout(() => {
+                feedback.classList.remove('show');
+            }, 2000);
+        }
+        
+        // Добавляем обработчик клика на номер телефона
+        const phoneNumberElement = document.getElementById('phoneNumber');
+        if (phoneNumberElement && originalPhone && originalPhone !== '-') {
+            phoneNumberElement.style.cursor = 'pointer';
+            phoneNumberElement.addEventListener('click', copyPhoneNumber);
+        }
         
         async function confirmPayment() {
             if (!orderId) {
