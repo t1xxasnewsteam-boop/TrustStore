@@ -4714,6 +4714,43 @@ app.post('/api/manual-send-last-order', async (req, res) => {
     }
 });
 
+// ==================== CHECKOUT VISIT NOTIFICATION ====================
+// Уведомление когда клиент доходит до checkout
+app.post('/api/checkout-visit', async (req, res) => {
+    try {
+        const { items, totalAmount } = req.body;
+        
+        if (!items || items.length === 0) {
+            return res.json({ success: false, error: 'Нет товаров в корзине' });
+        }
+        
+        // Формируем список товаров для уведомления
+        const productNames = items.map(item => {
+            const name = item.name || item.productName || item.product_name || 'Товар';
+            const quantity = item.quantity || 1;
+            return quantity > 1 ? `${name} (x${quantity})` : name;
+        }).join(', ');
+        
+        const total = totalAmount || items.reduce((sum, item) => {
+            const price = item.unitPrice || item.price || 0;
+            const quantity = item.quantity || 1;
+            return sum + (price * quantity);
+        }, 0);
+        
+        const message = `🛒 <b>Клиент на странице оплаты!</b>\n\n` +
+            `📦 Товары: ${productNames}\n` +
+            `💰 Сумма: <b>${total.toLocaleString('ru-RU')} ₽</b>\n\n` +
+            `⏳ Ожидаем оплату...`;
+        
+        await sendTelegramNotification(message, false);
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Ошибка отправки уведомления о checkout:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
 // ==================== SBP PAYMENT (СБП) ====================
 // Номер телефона для СБП (настрой в .env или здесь)
 const SBP_PHONE = process.env.SBP_PHONE || '+79506718212'; // Озон Банк, Андрей С

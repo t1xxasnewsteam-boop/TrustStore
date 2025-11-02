@@ -1706,10 +1706,70 @@
             }
         }
         
+        // Функция отправки уведомления о посещении checkout
+        async function notifyCheckoutVisit() {
+            // Проверяем, не отправляли ли уже уведомление (защита от повторных отправок)
+            const lastNotifyTime = localStorage.getItem('lastCheckoutNotify');
+            const now = Date.now();
+            const notifyInterval = 5 * 60 * 1000; // 5 минут
+            
+            if (lastNotifyTime && (now - parseInt(lastNotifyTime)) < notifyInterval) {
+                // Не отправляем, если прошло менее 5 минут
+                return;
+            }
+            
+            // Проверяем, есть ли товары
+            if (!orderItems || orderItems.length === 0) {
+                return;
+            }
+            
+            try {
+                // Рассчитываем итоговую сумму
+                let total = orderItems.reduce((sum, item) => {
+                    const price = item.unitPrice || item.price || 0;
+                    const quantity = item.quantity || 1;
+                    let itemPrice = price * quantity;
+                    
+                    // Учитываем промокод если есть
+                    if (item.appliedPromo) {
+                        itemPrice = Math.round(itemPrice * (1 - item.appliedPromo.discount / 100));
+                    }
+                    
+                    return sum + itemPrice;
+                }, 0);
+                
+                // Учитываем общий промокод если есть
+                if (promoApplied && promoDiscount > 0) {
+                    total = Math.round(total * (100 - promoDiscount) / 100);
+                }
+                
+                const response = await fetch('/api/checkout-visit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        items: orderItems,
+                        totalAmount: total
+                    })
+                });
+                
+                if (response.ok) {
+                    // Сохраняем время отправки
+                    localStorage.setItem('lastCheckoutNotify', now.toString());
+                    console.log('✅ Уведомление о checkout отправлено');
+                }
+            } catch (error) {
+                console.error('Ошибка отправки уведомления о checkout:', error);
+            }
+        }
+        
         // Отображаем товары при загрузке
         // Сначала проверяем валидность промокодов, затем отображаем товары
         validateOrderPromoCodes().then(() => {
             displayOrderItems();
+            // Отправляем уведомление после отображения товаров
+            setTimeout(() => {
+                notifyCheckoutVisit();
+            }, 1000); // Небольшая задержка чтобы все данные точно загрузились
         });
         
         // Автоматическое применение промокода ОТКЛЮЧЕНО
