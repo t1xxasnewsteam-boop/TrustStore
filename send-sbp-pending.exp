@@ -1,0 +1,38 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+send "node -e \"const Database = require('better-sqlite3'); const db = new Database('analytics.db'); const order = db.prepare('SELECT * FROM orders WHERE payment_method = \\\"SBP\\\" AND status = \\\"payment_confirmed_by_customer\\\" ORDER BY created_at DESC LIMIT 1').get(); if (!order) { console.log('NOT_FOUND'); } else { console.log(JSON.stringify({orderId: order.order_id, email: order.customer_email, status: order.status})); } db.close();\" 2>/dev/null\r"
+expect "# "
+
+send "ORDER_DATA=\$(node -e \"const Database = require('better-sqlite3'); const db = new Database('analytics.db'); const order = db.prepare('SELECT * FROM orders WHERE payment_method = \\\"SBP\\\" AND status = \\\"payment_confirmed_by_customer\\\" ORDER BY created_at DESC LIMIT 1').get(); if (!order) { console.log(''); } else { console.log(order.order_id); } db.close();\" 2>/dev/null)\r"
+expect "# "
+
+send "if [ -n \"\$ORDER_DATA\" ]; then curl -X POST http://localhost:3000/api/manual-send-last-order -H 'Content-Type: application/json' -d \"{\\\"orderId\\\": \\\"\$ORDER_DATA\\\"}\" -s | python3 -m json.tool 2>/dev/null || cat; else echo 'Заказ не найден'; fi\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+send "exit\r"
+expect eof

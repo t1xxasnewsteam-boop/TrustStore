@@ -14,8 +14,7 @@
 }
 
 /* Когда модальное окно открыто - центрируем его */
-#search-modal[style*="display: flex"],
-#search-modal:not([style*="display: none"]) {
+#search-modal[style*="display: flex"] {
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
