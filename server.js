@@ -2785,8 +2785,10 @@ async function syncTelegramReviews() {
         }
         
         let added = 0; // Счетчик только НОВЫХ комментариев
-        // Допустимые ID постов (могут быть разные для разных постов в канале)
-        const TARGET_POST_IDS = [15, 19]; // По умолчанию 15, но могут быть и другие
+        // Допустимые ID постов для поста #19 в канале https://t.me/truststoreru/19
+        // ID в группе обсуждений может отличаться от номера поста в канале
+        // Пробуем разные варианты ID, которые могут соответствовать посту #19
+        const TARGET_POST_IDS = [15, 19, 20, 21, 22]; // Разные возможные ID
         
         // Обрабатываем каждое сообщение
         for (const update of data.result) {
@@ -2794,19 +2796,26 @@ async function syncTelegramReviews() {
             if (update.message && update.message.chat && update.message.from) {
                 const message = update.message;
                 
-                // Логируем все сообщения для отладки
-                if (message.text && message.text.length > 10) {
-                    console.log(`📨 Сообщение ${message.message_id}: reply_to=${message.reply_to_message?.message_id || 'нет'}, текст="${message.text.substring(0, 50)}..."`);
+                // Логируем ВСЕ сообщения с reply_to для отладки (чтобы увидеть реальные ID)
+                if (message.reply_to_message) {
+                    const authorName = `${message.from.first_name || ''} ${message.from.last_name || ''}`.trim() || message.from.username || 'Неизвестно';
+                    const textPreview = (message.text || message.caption || '').substring(0, 50);
+                    console.log(`📨 Комментарий от ${authorName} (msg_id=${message.message_id}): reply_to=${message.reply_to_message.message_id}, текст="${textPreview}..."`);
                 }
                 
-                // ВАЖНО: Проверяем что это комментарий к нужному посту
-                // Но также проверяем, если это просто сообщение в группе обсуждений (без reply_to)
+                // ВАЖНО: Проверяем что это комментарий к посту #19 (https://t.me/truststoreru/19)
+                // Комментарии к постам канала приходят через группу обсуждений как reply_to_message
                 if (message.reply_to_message) {
-                    if (!TARGET_POST_IDS.includes(message.reply_to_message.message_id)) {
-                        console.log(`⏭️ Пропущен комментарий: reply_to_message_id=${message.reply_to_message.message_id}, ожидается один из ${TARGET_POST_IDS.join(', ')}`);
+                    const replyToId = message.reply_to_message.message_id;
+                    if (!TARGET_POST_IDS.includes(replyToId)) {
+                        // Логируем только если это похоже на комментарий (не короткое сообщение)
+                        if ((message.text || message.caption || '').length > 20) {
+                            console.log(`⏭️ Пропущен комментарий: reply_to=${replyToId}, ожидается один из [${TARGET_POST_IDS.join(', ')}]`);
+                            console.log(`   💡 Если это комментарий к посту #19, нужно добавить ID ${replyToId} в TARGET_POST_IDS`);
+                        }
                         continue; // Пропускаем все сообщения НЕ под нужным постом
                     }
-                    console.log(`✅ Найден комментарий к посту ${message.reply_to_message.message_id}`);
+                    console.log(`✅ Найден комментарий к посту #19 (reply_to=${replyToId})`);
                 } else {
                     // Если нет reply_to_message, возможно это прямой комментарий в группе
                     // Проверяем chat.type и другие параметры
