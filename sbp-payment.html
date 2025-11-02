@@ -516,9 +516,7 @@
             if (timerSeconds > 0) {
                 timerSeconds--;
             } else {
-                timerDisplay.style.background = '#f8d7da';
-                timerDisplay.style.borderColor = '#dc3545';
-                timerDisplay.style.color = '#721c24';
+                timerDisplay.classList.add('expired');
                 timerValue.textContent = '00:00';
                 clearInterval(timerInterval);
             }
