@@ -190,6 +190,63 @@
             border-radius: 4px;
         }
         
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .timer-display {
+            font-size: 14px;
+            color: #666;
+            margin-top: 15px;
+            text-align: center;
+            padding: 10px;
+            background: #fff3cd;
+            border-radius: 8px;
+            border: 1px solid #ffc107;
+        }
+        
+        .timer-display strong {
+            color: #856404;
+            font-size: 16px;
+        }
+        
         .amount-display {
             font-size: 24px;
             font-weight: 700;
@@ -307,11 +364,14 @@
             <div style="font-size: 14px; color: #666; margin-bottom: 5px;">Переведите на номер:</div>
             <div class="phone-number" id="phoneNumber">-</div>
             <div class="phone-copy-hint">📋 Нажмите, чтобы скопировать</div>
-            <div style="font-size: 16px; color: #666; margin-top: 8px; margin-bottom: 5px;" id="bankInfo">
-                <span id="bankText">-</span>
+            <div style="font-size: 16px; color: #666; margin-top: 8px; margin-bottom: 5px; display: flex; align-items: center; gap: 8px;" id="bankInfo">
                 <div class="bank-logo" id="bankLogo" style="display: none;">
                     <img src="https://play-lh.googleusercontent.com/c1BqU5Hyk3wgjJdGPR831BP_gCTIQm6gue3QFjzPBvui72Dg0IE9dWHP_hGy6NaxAw" alt="Озон Банк" onerror="this.style.display='none'">
                 </div>
+                <span id="bankText">-</span>
+            </div>
+            <div class="timer-display" id="timerDisplay" style="display: none;">
+                ⏱️ <strong>Время на оплату:</strong> <span id="timerValue">60:00</span>
             </div>
             <div style="font-size: 14px; color: #999; margin-bottom: 10px;" id="nameInfo">-</div>
             <div class="amount-display" id="amountDisplay">-</div>
@@ -345,6 +405,11 @@
     </div>
     
     <div class="copy-feedback" id="copyFeedback">✅ Номер скопирован!</div>
+    
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Загрузка...</div>
+    </div>
     
     <script>
         // Получаем данные из URL
