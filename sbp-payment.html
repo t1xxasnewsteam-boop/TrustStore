@@ -82,6 +82,15 @@
             margin: 25px 0;
         }
         
+        .info-row-centered {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+            margin-bottom: 5px;
+        }
+        
         .phone-number {
             font-size: 32px;
             font-weight: 700;
@@ -402,14 +411,14 @@
             <div style="font-size: 14px; color: #666; margin-bottom: 5px;">Переведите на номер:</div>
             <div class="phone-number" id="phoneNumber">-</div>
             <div class="phone-copy-hint">📋 Нажмите, чтобы скопировать</div>
-            <div style="font-size: 16px; color: #666; margin-top: 8px; margin-bottom: 5px; display: flex; align-items: center; gap: 8px;" id="bankInfo">
+            <div class="info-row-centered" style="font-size: 16px; color: #666;" id="bankInfo">
                 <div class="info-icon" id="bankIcon" style="display: none;">
                     <img src="https://play-lh.googleusercontent.com/c1BqU5Hyk3wgjJdGPR831BP_gCTIQm6gue3QFjzPBvui72Dg0IE9dWHP_hGy6NaxAw" alt="Озон Банк" onerror="this.style.display='none'">
                 </div>
                 <div class="info-icon" style="display: none;" id="bankIconPlaceholder"></div>
                 <span id="bankText">-</span>
             </div>
-            <div style="font-size: 14px; color: #999; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;" id="nameInfo">
+            <div class="info-row-centered" style="font-size: 14px; color: #999; margin-bottom: 10px;" id="nameInfo">
                 <div class="info-icon">👤</div>
                 <span id="nameText">-</span>
             </div>
