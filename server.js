@@ -2734,10 +2734,61 @@ app.get('/api/telegram-reviews', (req, res) => {
 app.post('/api/sync-reviews', async (req, res) => {
     try {
         console.log('🔄 Ручная синхронизация отзывов...');
-        await syncTelegramReviews();
-        res.json({ success: true, message: 'Синхронизация завершена' });
+        const result = await syncTelegramReviews();
+        res.json({ success: true, message: 'Синхронизация завершена', added: result?.added || 0 });
     } catch (error) {
         console.error('❌ Ошибка синхронизации:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// API для отладки - получить информацию о последних обновлениях
+app.get('/api/debug-reviews', async (req, res) => {
+    try {
+        const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+        if (!TELEGRAM_BOT_TOKEN) {
+            return res.json({ error: 'TELEGRAM_BOT_TOKEN не настроен' });
+        }
+        
+        // Получаем последние обновления без offset
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?limit=50`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (!data.ok) {
+            return res.json({ error: 'Ошибка Telegram API', details: data });
+        }
+        
+        // Фильтруем только сообщения с reply_to_message
+        const comments = data.result
+            .filter(u => u.message && u.message.reply_to_message)
+            .map(u => ({
+                message_id: u.message.message_id,
+                reply_to: u.message.reply_to_message.message_id,
+                author: `${u.message.from.first_name || ''} ${u.message.from.last_name || ''}`.trim() || u.message.from.username,
+                text: (u.message.text || u.message.caption || '').substring(0, 100),
+                date: new Date(u.message.date * 1000).toLocaleString('ru-RU', {timeZone: 'Europe/Moscow'}),
+                chat_type: u.message.chat.type
+            }));
+        
+        // Получаем уникальные reply_to ID
+        const replyToIds = [...new Set(comments.map(c => c.reply_to))].sort((a, b) => a - b);
+        
+        // Проверяем, какие отзывы уже в базе
+        const existingIds = db.prepare('SELECT telegram_comment_id FROM telegram_reviews').all().map(r => r.telegram_comment_id);
+        
+        res.json({
+            success: true,
+            total_updates: data.result.length,
+            comments_count: comments.length,
+            unique_reply_to_ids: replyToIds,
+            current_target_ids: [15, 19, 20, 21, 22],
+            recent_comments: comments.slice(0, 10),
+            existing_in_db: existingIds.length,
+            missing_comments: comments.filter(c => !existingIds.includes(c.message_id))
+        });
+    } catch (error) {
+        console.error('❌ Ошибка отладки:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
