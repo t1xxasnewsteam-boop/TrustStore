@@ -1048,7 +1048,8 @@
             applyButton.textContent = 'Проверка...';
             
             try {
-                // Проверяем промокод через API
+                // Проверяем промокод через API (email не передаем, т.к. его нет на странице корзины)
+                // Проверка по email будет при создании заказа
                 const response = await fetch('/api/validate-promo', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
