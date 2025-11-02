@@ -362,7 +362,20 @@
         document.getElementById('orderId').textContent = orderId || '-';
         document.getElementById('amount').textContent = amount ? amount + ' ₽' : '-';
         document.getElementById('phoneNumber').textContent = phone || '-';
-        document.getElementById('bankInfo').textContent = bank ? '🏦 ' + bank : '';
+        
+        // Заполняем информацию о банке с логотипом
+        const bankTextElement = document.getElementById('bankText');
+        const bankLogoElement = document.getElementById('bankLogo');
+        if (bank) {
+            bankTextElement.textContent = '🏦 ' + bank;
+            // Показываем логотип для Озон Банка
+            if (bank.toLowerCase().includes('озон')) {
+                bankLogoElement.style.display = 'flex';
+            }
+        } else {
+            bankTextElement.textContent = '-';
+        }
+        
         document.getElementById('nameInfo').textContent = name ? '👤 ' + name : '';
         document.getElementById('amountDisplay').textContent = amount ? amount + ' ₽' : '-';
         document.getElementById('amountInline').textContent = amount ? amount + ' ₽' : '-';
