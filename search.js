@@ -101,64 +101,73 @@ const products = [
 ];
 
 // Открытие/закрытие модального окна поиска
-const searchModal = document.getElementById('search-modal');
-const searchInput = document.getElementById('searchInput') || document.getElementById('search-input');
-const searchResults = document.getElementById('searchResults') || document.getElementById('search-results');
-const closeSearchButton = document.querySelector('.search-modal-close') || document.getElementById('close-search');
-
-// Находим кнопку поиска (кнопка с иконкой 🔍)
-const searchButton = document.querySelector('.btn-icon')?.textContent?.includes('🔍') 
-    ? document.querySelector('.btn-icon')
-    : Array.from(document.querySelectorAll('.btn-icon')).find(btn => btn.textContent.includes('🔍'));
-
-// Открыть поиск
-if (searchButton && searchModal) {
-    searchButton.addEventListener('click', () => {
-        if (searchModal) {
-            // Убираем display: none и устанавливаем flex с правильным позиционированием
-            searchModal.style.display = 'flex';
-            searchModal.style.justifyContent = 'center';
-            searchModal.style.alignItems = 'center';
-            if (searchInput) {
-                // Небольшая задержка для гарантии что modal виден
-                setTimeout(() => {
-                    searchInput.focus();
-                }, 100);
-                searchInput.value = '';
-            }
-            if (searchResults) {
-                searchResults.innerHTML = '';
-            }
-        }
-    });
-}
-
-// Закрыть поиск по кнопке
-if (closeSearchButton && searchModal) {
-    closeSearchButton.addEventListener('click', () => {
+// Ждем полной загрузки DOM перед инициализацией
+document.addEventListener('DOMContentLoaded', function() {
+    const searchModal = document.getElementById('search-modal');
+    const searchInput = document.getElementById('searchInput') || document.getElementById('search-input');
+    const searchResults = document.getElementById('searchResults') || document.getElementById('search-results');
+    const closeSearchButton = document.querySelector('.search-modal-close') || document.getElementById('close-search');
+    
+    // Убеждаемся что модальное окно закрыто по умолчанию
+    if (searchModal) {
         searchModal.style.display = 'none';
-    });
-}
+    }
+    
+    // Находим кнопку поиска (кнопка с иконкой 🔍)
+    const searchButton = document.querySelector('.btn-icon')?.textContent?.includes('🔍') 
+        ? document.querySelector('.btn-icon')
+        : Array.from(document.querySelectorAll('.btn-icon')).find(btn => btn.textContent.includes('🔍'));
+    
+    // Открыть поиск
+    if (searchButton && searchModal) {
+        searchButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (searchModal) {
+                // Устанавливаем flex с правильным позиционированием
+                searchModal.style.display = 'flex';
+                searchModal.style.justifyContent = 'center';
+                searchModal.style.alignItems = 'center';
+                if (searchInput) {
+                    // Небольшая задержка для гарантии что modal виден
+                    setTimeout(() => {
+                        searchInput.focus();
+                    }, 100);
+                    searchInput.value = '';
+                }
+                if (searchResults) {
+                    searchResults.innerHTML = '';
+                }
+            }
+        });
+    }
 
-// Закрыть поиск по клику вне модального окна
-if (searchModal) {
-    searchModal.addEventListener('click', (e) => {
-        if (e.target === searchModal) {
+    // Закрыть поиск по кнопке
+    if (closeSearchButton && searchModal) {
+        closeSearchButton.addEventListener('click', () => {
+            searchModal.style.display = 'none';
+        });
+    }
+    
+    // Закрыть поиск по клику вне модального окна
+    if (searchModal) {
+        searchModal.addEventListener('click', (e) => {
+            if (e.target === searchModal) {
+                searchModal.style.display = 'none';
+            }
+        });
+    }
+    
+    // Закрыть поиск по ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && searchModal && searchModal.style.display === 'flex') {
             searchModal.style.display = 'none';
         }
     });
-}
-
-// Закрыть поиск по ESC
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && searchModal && searchModal.style.display === 'flex') {
-        searchModal.style.display = 'none';
-    }
-});
-
-// Поиск по товарам
-if (searchInput && searchResults) {
-    searchInput.addEventListener('input', (e) => {
+    
+    // Поиск по товарам
+    if (searchInput && searchResults) {
+        searchInput.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase().trim();
         
         if (query === '') {
