@@ -373,7 +373,6 @@
 <body>
     <div class="payment-container">
         <div class="header-top">
-            <div class="bank-name" id="bankNameHeader">Озон Банк</div>
             <div class="sbp-logo">
                 <svg viewBox="0 0 97 120" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="СБП" role="img" preserveAspectRatio="xMidYMid meet">
                     <!-- Официальный логотип СБП из Википедии -->
@@ -470,14 +469,6 @@
         
         // Сохраняем оригинальный номер для копирования (без форматирования)
         let originalPhone = phone;
-        
-        // Заполняем название банка в заголовке
-        const bankNameHeader = document.getElementById('bankNameHeader');
-        if (bank) {
-            bankNameHeader.textContent = bank;
-        } else {
-            bankNameHeader.textContent = 'Озон Банк'; // По умолчанию
-        }
         
         // Заполняем данные
         document.getElementById('orderId').textContent = orderId || '-';
