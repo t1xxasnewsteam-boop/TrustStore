@@ -87,13 +87,12 @@
             font-weight: 700;
             color: #667eea;
             letter-spacing: 2px;
-            margin: 10px 0;
+            margin: 10px 0 8px 0;
             cursor: pointer;
             user-select: none;
             transition: all 0.3s ease;
             padding: 10px;
             border-radius: 8px;
-            position: relative;
         }
         
         .phone-number:hover {
@@ -105,21 +104,20 @@
             transform: scale(0.98);
         }
         
-        .phone-number::after {
-            content: '📋 Нажмите, чтобы скопировать';
-            position: absolute;
-            bottom: -30px;
-            left: 50%;
-            transform: translateX(-50%);
+        .phone-copy-hint {
             font-size: 11px;
             color: #667eea;
+            margin: 0 0 12px 0;
             opacity: 0;
             transition: opacity 0.3s ease;
-            white-space: nowrap;
-            pointer-events: none;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        .phone-number:hover::after {
+        .phone-number:hover + .phone-copy-hint,
+        .phone-copy-hint:hover {
             opacity: 1;
         }
         
@@ -249,6 +247,7 @@
         <div class="phone-display">
             <div style="font-size: 14px; color: #666; margin-bottom: 5px;">Переведите на номер:</div>
             <div class="phone-number" id="phoneNumber">-</div>
+            <div class="phone-copy-hint">📋 Нажмите, чтобы скопировать</div>
             <div style="font-size: 16px; color: #666; margin-top: 8px; margin-bottom: 5px;" id="bankInfo">-</div>
             <div style="font-size: 14px; color: #999; margin-bottom: 10px;" id="nameInfo">-</div>
             <div class="amount-display" id="amountDisplay">-</div>
