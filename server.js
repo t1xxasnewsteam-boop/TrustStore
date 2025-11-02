@@ -2784,13 +2784,17 @@ app.post('/api/fix-reviews', async (req, res) => {
         const currentStats = db.prepare('SELECT total_comments FROM telegram_stats WHERE id = 1').get();
         let currentCount = currentStats ? currentStats.total_comments : 0;
         
-        // Если счетчик меньше 560, восстанавливаем его до 562 (было 561, добавили Aleksey T = 562)
+        // Если счетчик меньше 560, восстанавливаем его до 563
         if (currentCount < 560) {
-            currentCount = 562; // 561 было + 1 новый отзыв от Aleksey T
+            currentCount = 563; // Восстанавливаем до 563
             console.log(`⚠️ Восстановление счетчика до ${currentCount}`);
         } else {
-            // Инкрементируем счетчик на 1 за добавленный отзыв от Aleksey T
+            // Если счетчик уже высокий, просто инкрементируем на 1
             currentCount += 1;
+            // Но не даем ему быть меньше 563
+            if (currentCount < 563) {
+                currentCount = 563;
+            }
         }
         
         // Обновляем счетчик
