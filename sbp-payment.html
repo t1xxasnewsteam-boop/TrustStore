@@ -206,6 +206,15 @@
             border-radius: 4px;
         }
         
+        .info-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
         .loading-screen {
             position: fixed;
             top: 0;
@@ -387,13 +396,14 @@
             <div class="phone-number" id="phoneNumber">-</div>
             <div class="phone-copy-hint">📋 Нажмите, чтобы скопировать</div>
             <div style="font-size: 16px; color: #666; margin-top: 8px; margin-bottom: 5px; display: flex; align-items: center; gap: 8px;" id="bankInfo">
-                <div class="bank-logo" id="bankLogo" style="display: none;">
+                <div class="info-icon" id="bankIcon" style="display: none;">
                     <img src="https://play-lh.googleusercontent.com/c1BqU5Hyk3wgjJdGPR831BP_gCTIQm6gue3QFjzPBvui72Dg0IE9dWHP_hGy6NaxAw" alt="Озон Банк" onerror="this.style.display='none'">
                 </div>
+                <div class="info-icon" style="display: none;" id="bankIconPlaceholder"></div>
                 <span id="bankText">-</span>
             </div>
             <div style="font-size: 14px; color: #999; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;" id="nameInfo">
-                <span>👤</span>
+                <div class="info-icon">👤</div>
                 <span id="nameText">-</span>
             </div>
             <div class="amount-display" id="amountDisplay">-</div>
@@ -460,15 +470,20 @@
         
         // Заполняем информацию о банке с логотипом (без смайлика)
         const bankTextElement = document.getElementById('bankText');
-        const bankLogoElement = document.getElementById('bankLogo');
+        const bankIconElement = document.getElementById('bankIcon');
+        const bankIconPlaceholder = document.getElementById('bankIconPlaceholder');
         if (bank) {
             bankTextElement.textContent = bank;
             // Показываем логотип для Озон Банка
             if (bank.toLowerCase().includes('озон')) {
-                bankLogoElement.style.display = 'flex';
+                bankIconElement.style.display = 'flex';
+            } else {
+                // Если нет логотипа, показываем заглушку для выравнивания
+                bankIconPlaceholder.style.display = 'flex';
             }
         } else {
             bankTextElement.textContent = '-';
+            bankIconPlaceholder.style.display = 'flex';
         }
         
         document.getElementById('nameText').textContent = name || '-';
