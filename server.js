@@ -5307,6 +5307,7 @@ app.post('/api/telegram-webhook', async (req, res) => {
                 }
                 
                 // Сразу возвращаем OK для Telegram webhook, чтобы не было таймаута
+                // Важно: отправляем ответ и возвращаемся, чтобы не выполнять код дальше
                 res.status(200).send('OK');
                 
                 // Вся дальнейшая обработка идет асинхронно, после ответа Telegram
@@ -5484,36 +5485,46 @@ app.post('/api/telegram-webhook', async (req, res) => {
                 // Возвращаем OK сразу
                 res.status(200).send('OK');
                 
-                // Обновляем статус на "rejected"
-                db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('rejected', orderId);
-                
-                // Обновляем сообщение
-                try {
-                    const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(orderId);
-                    const rejectMessage = `❌ <b>Заказ отклонен</b>\n\n` +
-                        `🆔 Заказ: <code>${orderId}</code>\n` +
-                        `👤 Клиент: ${order ? order.customer_name : 'N/A'}\n` +
-                        `💵 Сумма: ${order ? order.total_amount : 'N/A'} ₽`;
+                // Обновляем статус и сообщение асинхронно
+                setTimeout(async () => {
+                    // Обновляем статус на "rejected"
+                    db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('rejected', orderId);
                     
-                    const editUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`;
-                    await fetch(editUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            chat_id: TELEGRAM_CHAT_ID,
-                            message_id: messageId,
-                            text: rejectMessage,
-                            parse_mode: 'HTML'
-                        })
-                    });
-                    console.log(`✅ Сообщение об отклонении обновлено для заказа ${orderId}`);
-                } catch (editError) {
-                    console.error(`❌ Ошибка обновления сообщения об отклонении:`, editError.message);
-                }
+                    // Обновляем сообщение
+                    try {
+                        const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(orderId);
+                        const rejectMessage = `❌ <b>Заказ отклонен</b>\n\n` +
+                            `🆔 Заказ: <code>${orderId}</code>\n` +
+                            `👤 Клиент: ${order ? order.customer_name : 'N/A'}\n` +
+                            `💵 Сумма: ${order ? order.total_amount : 'N/A'} ₽`;
+                        
+                        const editUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`;
+                        await fetch(editUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                chat_id: TELEGRAM_CHAT_ID,
+                                message_id: messageId,
+                                text: rejectMessage,
+                                parse_mode: 'HTML'
+                            })
+                        });
+                        console.log(`✅ Сообщение об отклонении обновлено для заказа ${orderId}`);
+                    } catch (editError) {
+                        console.error(`❌ Ошибка обновления сообщения об отклонении:`, editError.message);
+                    }
+                }, 100);
+                
+                return; // Важно: возвращаемся, чтобы не выполнять код дальше
             }
         }
         
-        res.status(200).send('OK');
+        // Отправляем ответ только если callback_query не был обработан
+        if (!update.callback_query || 
+            (!update.callback_query.data.startsWith('confirm_order_') && 
+             !update.callback_query.data.startsWith('reject_order_'))) {
+            res.status(200).send('OK');
+        }
     } catch (error) {
         console.error('❌ Ошибка обработки Telegram webhook:', error);
         res.status(500).send('Error');
