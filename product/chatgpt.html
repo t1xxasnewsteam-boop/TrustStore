@@ -615,33 +615,8 @@
     </script>
     
     <script>
-        // ПРОСТОЕ РЕШЕНИЕ - ВСЁ В ОДНОМ МЕСТЕ
-        
-        // Получить корзину
-        function getCart() {
-            const cart = localStorage.getItem('cart');
-            return cart ? JSON.parse(cart) : [];
-        }
-        
-        // Сохранить корзину
-        function saveCart(cart) {
-            localStorage.setItem('cart', JSON.stringify(cart));
-            updateCartCount();
-        }
-        
-        // Обновить счетчик
-        function updateCartCount() {
-            const cart = getCart();
-            const badges = document.querySelectorAll('.cart-count');
-            badges.forEach(badge => {
-                badge.textContent = cart.length;
-            });
-        }
-        
-        // Добавить в корзину - используем функцию из cart.js
-        // (она автоматически вызывает showCartNotification из notification.js)
-        
         // Функция добавления товара в корзину
+        // Используем addToCart из cart.js, который автоматически вызывает showCartNotification из notification.js
         function addProductToCart() {
             const product = {
                 name: 'ChatGPT Plus',
