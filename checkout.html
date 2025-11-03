@@ -1279,6 +1279,24 @@
             const productImage = productImageMap[productName] || 'logo.png';
             const unitPrice = parseInt(productPrice.replace(/\s/g, ''));
             
+            // Проверяем, есть ли промокод из страницы товара
+            let appliedPromo = null;
+            const tempPromo = localStorage.getItem('tempPromoCode');
+            if (tempPromo) {
+                try {
+                    const promoData = JSON.parse(tempPromo);
+                    appliedPromo = {
+                        code: promoData.code,
+                        discount: promoData.discount
+                    };
+                    // Очищаем tempPromoCode после применения
+                    localStorage.removeItem('tempPromoCode');
+                    console.log('✅ Применен промокод из страницы товара:', promoData.code);
+                } catch (error) {
+                    console.error('Ошибка парсинга tempPromoCode:', error);
+                }
+            }
+            
             orderItems = [{
                 name: productName,
                 price: unitPrice,
@@ -1286,7 +1304,8 @@
                 duration: productDuration,
                 image: productImage,
                 id: Date.now(),
-                quantity: 1
+                quantity: 1,
+                appliedPromo: appliedPromo // Применяем промокод если он есть
             }];
         }
         
