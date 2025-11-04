@@ -5061,9 +5061,9 @@ app.post('/api/checkout-visit', async (req, res) => {
 
 // ==================== SBP PAYMENT (СБП) ====================
 // Номер телефона для СБП (настрой в .env или здесь)
-const SBP_PHONE = process.env.SBP_PHONE || '+79521115948'; // Озон Банк, Сергей И
+const SBP_PHONE = process.env.SBP_PHONE || '+79520514147'; // Озон Банк, Владимир Ш
 const SBP_BANK = process.env.SBP_BANK || 'Озон Банк';
-const SBP_NAME = process.env.SBP_NAME || 'Сергей И';
+const SBP_NAME = process.env.SBP_NAME || 'Владимир Ш';
 
 // API для создания заказа с оплатой через СБП
 app.post('/api/payment/sbp/create', async (req, res) => {
