@@ -5281,9 +5281,16 @@ app.post('/api/telegram-webhook', async (req, res) => {
             const callbackData = update.callback_query.data;
             const messageId = update.callback_query.message.message_id;
             
+            console.log(`🔔 Telegram callback_query получен:`, {
+                callback_data: callbackData,
+                message_id: messageId,
+                query_id: update.callback_query.id
+            });
+            
             // Проверяем что это наш callback
             if (callbackData.startsWith('confirm_order_')) {
                 const orderId = callbackData.replace('confirm_order_', '');
+                console.log(`✅ Обработка подтверждения заказа ${orderId}...`);
                 
                 // Отвечаем на callback СРАЗУ, чтобы кнопка перестала показывать "loading"
                 const answerUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`;
