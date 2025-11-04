@@ -586,19 +586,14 @@
         // Функция для перехода на страницу оформления заказа
         function goToCheckout() {
             const productName = 'ChatGPT Plus';
-            const finalPrice = document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '');
+            // ✅ Передаем ОРИГИНАЛЬНУЮ цену БЕЗ скидки - промокод применится в checkout из localStorage
+            const originalPrice = currentPrice;
             const duration = window.selectedDuration;
             
-            // Если применен промокод, сохраняем его для checkout
-            if (discountApplied && appliedPromoCode) {
-                localStorage.setItem('tempPromoCode', JSON.stringify({ 
-                    code: appliedPromoCode, 
-                    discount: appliedPromoDiscount 
-                }));
-            }
+            // Промокод уже сохранен в localStorage в applyPromoCode(), не нужно сохранять здесь
             
             // Формируем URL с параметрами
-            const checkoutURL = `/checkout?product=${encodeURIComponent(productName)}&price=${finalPrice}&duration=${encodeURIComponent(duration)}`;
+            const checkoutURL = `/checkout?product=${encodeURIComponent(productName)}&price=${originalPrice}&duration=${encodeURIComponent(duration)}`;
             
             // Переходим на страницу оформления
             window.location.href = checkoutURL;

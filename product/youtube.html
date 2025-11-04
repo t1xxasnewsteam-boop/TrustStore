@@ -604,18 +604,13 @@
         
         function goToCheckout() {
             const productName = 'YouTube Premium + Music Premium';
-            const finalPrice = document.getElementById('selected-price').textContent.replace(' ₽', '').replace(/\s/g, '');
+            // ✅ Передаем ОРИГИНАЛЬНУЮ цену БЕЗ скидки - промокод применится в checkout из localStorage
+            const originalPrice = currentPrice;
             const duration = window.selectedDuration;
             
-            // Если применен промокод, сохраняем его для checkout
-            if (discountApplied && appliedPromoCode) {
-                localStorage.setItem('tempPromoCode', JSON.stringify({ 
-                    code: appliedPromoCode, 
-                    discount: appliedPromoDiscount 
-                }));
-            }
+            // Промокод уже сохранен в localStorage в applyPromoCode(), не нужно сохранять здесь
             
-            window.location.href = `/checkout?product=${encodeURIComponent(productName)}&price=${finalPrice}&duration=${encodeURIComponent(duration)}`;
+            window.location.href = `/checkout?product=${encodeURIComponent(productName)}&price=${originalPrice}&duration=${encodeURIComponent(duration)}`;
         }
     </script>
     
