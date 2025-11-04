@@ -5174,6 +5174,9 @@ app.post('/api/payment/sbp/confirm', async (req, res) => {
 // Webhook для обработки callback от Telegram бота (кнопки подтверждения/отклонения)
 app.post('/api/telegram-webhook', async (req, res) => {
     try {
+        // Логируем RAW тело запроса для отладки
+        console.log(`\n📥 Telegram webhook получен (RAW):`, JSON.stringify(req.body, null, 2).substring(0, 500));
+        
         const update = req.body;
         
         // Логируем ВСЕ входящие запросы для отладки
@@ -5182,7 +5185,9 @@ app.post('/api/telegram-webhook', async (req, res) => {
             has_callback_query: !!update.callback_query,
             update_id: update.update_id,
             callback_data: update.callback_query?.data,
-            message_text: update.message?.text?.substring(0, 50)
+            message_text: update.message?.text?.substring(0, 50),
+            callback_query_id: update.callback_query?.id,
+            message_id: update.callback_query?.message?.message_id
         });
         
         // Обрабатываем комментарии к постам (отзывы)
