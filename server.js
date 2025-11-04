@@ -5463,6 +5463,8 @@ app.post('/api/telegram-webhook', async (req, res) => {
                     }
                 }, 100); // Небольшая задержка для гарантии отправки ответа
                 
+                return; // Важно: возвращаемся, чтобы не выполнять код дальше
+                
             } else if (callbackData.startsWith('reject_order_')) {
                 const orderId = callbackData.replace('reject_order_', '');
                 
