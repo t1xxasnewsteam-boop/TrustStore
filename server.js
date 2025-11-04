@@ -5176,6 +5176,15 @@ app.post('/api/telegram-webhook', async (req, res) => {
     try {
         const update = req.body;
         
+        // Логируем ВСЕ входящие запросы для отладки
+        console.log(`\n📥 Telegram webhook получен:`, {
+            has_message: !!update.message,
+            has_callback_query: !!update.callback_query,
+            update_id: update.update_id,
+            callback_data: update.callback_query?.data,
+            message_text: update.message?.text?.substring(0, 50)
+        });
+        
         // Обрабатываем комментарии к постам (отзывы)
         if (update.message && update.message.reply_to_message) {
             const message = update.message;
