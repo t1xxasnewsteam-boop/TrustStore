@@ -5357,8 +5357,8 @@ app.post('/api/checkout-visit', async (req, res) => {
 
 // ==================== CARDLINK PAYMENT ====================
 // Cardlink настройки
-const CARDLINK_API_TOKEN = process.env.CARDLINK_API_TOKEN || ''; // API токен из личного кабинета Cardlink
-const CARDLINK_SHOP_ID = process.env.CARDLINK_SHOP_ID || ''; // Shop ID из личного кабинета Cardlink
+const CARDLINK_API_TOKEN = process.env.CARDLINK_API_TOKEN || '9PmRwbY25J'; // API токен из личного кабинета Cardlink
+const CARDLINK_SHOP_ID = process.env.CARDLINK_SHOP_ID || ''; // Shop ID из личного кабинета Cardlink (нужно добавить!)
 const CARDLINK_API_URL = process.env.CARDLINK_API_URL || 'https://cardlink.link/api/v1';
 
 // ==================== SBP PAYMENT (СБП) ====================
