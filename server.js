@@ -2717,7 +2717,7 @@ app.post('/api/payment/cardlink/create', async (req, res) => {
         formData.append('type', 'normal');
         formData.append('shop_id', CARDLINK_SHOP_ID);
         formData.append('currency_in', 'RUB');
-        formData.append('payer_pays_commission', '1'); // Плательщик оплачивает комиссию
+        formData.append('payer_pays_commission', '0'); // Продавец оплачивает комиссию (6%)
         formData.append('name', `Оплата заказа #${orderId}`);
         
         // Добавляем callback URLs (если они не указаны в настройках магазина, можно передать здесь)
