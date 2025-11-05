@@ -5100,6 +5100,26 @@ app.post('/api/payment/sbp/create', async (req, res) => {
     }
 });
 
+// API для получения актуальных реквизитов СБП (для динамического обновления на странице)
+app.get('/api/payment/sbp/details', (req, res) => {
+    try {
+        // Форматируем номер телефона для отображения
+        const cleanPhone = SBP_PHONE.replace(/\D/g, '');
+        const formattedPhone = cleanPhone.replace(/(\d{1})(\d{3})(\d{3})(\d{2})(\d{2})/, '+$1 ($2) $3-$4-$5');
+        
+        res.json({
+            success: true,
+            phone: SBP_PHONE,
+            formattedPhone,
+            bank: SBP_BANK,
+            name: SBP_NAME
+        });
+    } catch (error) {
+        console.error('❌ Ошибка получения реквизитов СБП:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // API для подтверждения клиентом что он перевел деньги (кнопка "Я перевел")
 app.post('/api/payment/sbp/confirm', async (req, res) => {
     try {

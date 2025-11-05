@@ -479,32 +479,83 @@
         // Сохраняем оригинальный номер для копирования (без форматирования)
         let originalPhone = phone;
         
-        // Заполняем данные
-        document.getElementById('orderId').textContent = orderId || '-';
-        document.getElementById('amount').textContent = amount ? amount + ' ₽' : '-';
-        document.getElementById('phoneNumber').textContent = phone || '-';
-        
-        // Заполняем информацию о банке с логотипом (без смайлика)
-        const bankTextElement = document.getElementById('bankText');
-        const bankIconElement = document.getElementById('bankIcon');
-        const bankIconPlaceholder = document.getElementById('bankIconPlaceholder');
-        if (bank) {
-            bankTextElement.textContent = bank;
-            // Показываем логотип для Озон Банка
-            if (bank.toLowerCase().includes('озон')) {
-                bankIconElement.style.display = 'flex';
-            } else {
-                // Если нет логотипа, показываем заглушку для выравнивания
-                bankIconPlaceholder.style.display = 'flex';
+        // Функция для обновления реквизитов СБП с сервера
+        async function updateSBPDetails() {
+            try {
+                const response = await fetch('/api/payment/sbp/details');
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Обновляем номер телефона
+                    document.getElementById('phoneNumber').textContent = data.formattedPhone || data.phone || '-';
+                    originalPhone = data.phone || originalPhone;
+                    
+                    // Обновляем информацию о банке
+                    const bankTextElement = document.getElementById('bankText');
+                    const bankIconElement = document.getElementById('bankIcon');
+                    const bankIconPlaceholder = document.getElementById('bankIconPlaceholder');
+                    
+                    if (data.bank) {
+                        bankTextElement.textContent = data.bank;
+                        // Показываем логотип для Озон Банка
+                        if (data.bank.toLowerCase().includes('озон')) {
+                            bankIconElement.style.display = 'flex';
+                            bankIconPlaceholder.style.display = 'none';
+                        } else {
+                            bankIconElement.style.display = 'none';
+                            bankIconPlaceholder.style.display = 'flex';
+                        }
+                    }
+                    
+                    // Обновляем имя получателя
+                    if (data.name) {
+                        document.getElementById('nameText').textContent = data.name;
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка обновления реквизитов СБП:', error);
+                // Если ошибка, используем данные из URL (fallback)
             }
-        } else {
-            bankTextElement.textContent = '-';
-            bankIconPlaceholder.style.display = 'flex';
         }
         
-        document.getElementById('nameText').textContent = name || '-';
-        document.getElementById('amountDisplay').textContent = amount ? amount + ' ₽' : '-';
-        document.getElementById('amountInline').textContent = amount ? amount + ' ₽' : '-';
+        // Функция для заполнения данных (из URL или с сервера)
+        function fillPaymentDetails(phoneData, bankData, nameData) {
+            document.getElementById('orderId').textContent = orderId || '-';
+            document.getElementById('amount').textContent = amount ? amount + ' ₽' : '-';
+            document.getElementById('phoneNumber').textContent = phoneData || '-';
+            
+            // Заполняем информацию о банке с логотипом
+            const bankTextElement = document.getElementById('bankText');
+            const bankIconElement = document.getElementById('bankIcon');
+            const bankIconPlaceholder = document.getElementById('bankIconPlaceholder');
+            if (bankData) {
+                bankTextElement.textContent = bankData;
+                // Показываем логотип для Озон Банка
+                if (bankData.toLowerCase().includes('озон')) {
+                    bankIconElement.style.display = 'flex';
+                    bankIconPlaceholder.style.display = 'none';
+                } else {
+                    bankIconElement.style.display = 'none';
+                    bankIconPlaceholder.style.display = 'flex';
+                }
+            } else {
+                bankTextElement.textContent = '-';
+                bankIconPlaceholder.style.display = 'flex';
+            }
+            
+            document.getElementById('nameText').textContent = nameData || '-';
+            document.getElementById('amountDisplay').textContent = amount ? amount + ' ₽' : '-';
+            document.getElementById('amountInline').textContent = amount ? amount + ' ₽' : '-';
+        }
+        
+        // Сначала заполняем данными из URL (fallback)
+        fillPaymentDetails(phone, bank, name);
+        
+        // Сразу запрашиваем актуальные реквизиты с сервера
+        updateSBPDetails();
+        
+        // Обновляем реквизиты каждые 10 секунд (на случай если они изменятся)
+        setInterval(updateSBPDetails, 10000);
         
         // Запускаем таймер на 1 час
         let timerSeconds = 60 * 60; // 1 час = 3600 секунд
