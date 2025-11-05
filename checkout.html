@@ -1040,6 +1040,21 @@
                                     <div class="payment-method-desc">Система быстрых платежей</div>
                                 </div>
                             </div>
+                            <div class="payment-method" data-method="cardlink" style="position: relative; display: flex !important; visibility: visible !important; opacity: 1 !important; cursor: pointer;">
+                                <div class="payment-method-icon">
+                                    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="2" y="8" width="40" height="28" rx="4" fill="#667eea"/>
+                                        <rect x="4" y="10" width="36" height="20" rx="2" fill="white" opacity="0.2"/>
+                                        <rect x="6" y="14" width="32" height="3" rx="1.5" fill="white" opacity="0.6"/>
+                                        <rect x="6" y="20" width="24" height="3" rx="1.5" fill="white" opacity="0.4"/>
+                                        <circle cx="34" cy="24" r="4" fill="white" opacity="0.3"/>
+                                    </svg>
+                                </div>
+                                <div class="payment-method-info">
+                                    <div class="payment-method-name">Банковская карта</div>
+                                    <div class="payment-method-desc">Visa • Mastercard • МИР</div>
+                                </div>
+                            </div>
                             <div class="payment-method" data-method="heleket" style="position: relative; display: flex !important; visibility: visible !important; opacity: 1 !important; cursor: pointer;">
                                 <div class="payment-method-icon">
                                     <svg width="44" height="28" viewBox="0 0 56 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Криптовалютный кошелек" role="img">
@@ -2037,6 +2052,43 @@
                                 }
                                 
                                 alert(errorMsg);
+                                return;
+                            }
+                        } else if (selectedPaymentMethod === 'cardlink') {
+                            // Оплата через Cardlink
+                            console.log('💳 Переход на оплату через Cardlink');
+                            try {
+                                const paymentResponse = await fetch('/api/payment/cardlink/create', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        orderId: result.orderId,
+                                        amount: currentTotalPrice,
+                                        description: fullDescription,
+                                        customerEmail: email,
+                                        customerName: name
+                                    })
+                                });
+                                
+                                if (!paymentResponse.ok) {
+                                    const errorData = await paymentResponse.json();
+                                    throw new Error(errorData.error || `HTTP ${paymentResponse.status}`);
+                                }
+                                
+                                const paymentData = await paymentResponse.json();
+                                console.log('✅ Ответ Cardlink API:', paymentData);
+                                
+                                if (paymentData.success && paymentData.payment_url) {
+                                    console.log('🚀 Редирект на Cardlink:', paymentData.payment_url);
+                                    // Редирект на страницу оплаты Cardlink
+                                    window.location.href = paymentData.payment_url;
+                                    return; // Важно! Прекращаем выполнение
+                                } else {
+                                    throw new Error(paymentData.error || 'Ошибка создания платежа');
+                                }
+                            } catch (error) {
+                                console.error('❌ Ошибка создания платежа Cardlink:', error);
+                                alert('❌ Ошибка создания платежа. Попробуйте позже.');
                                 return;
                             }
                         }
