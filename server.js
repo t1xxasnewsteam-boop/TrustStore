@@ -2708,7 +2708,8 @@ app.post('/api/payment/cardlink/create', async (req, res) => {
         const host = req.get('host');
         const protocol = req.protocol;
         
-        // Формируем данные для создания счета
+        // Формируем данные для создания счета (Cardlink использует multipart/form-data)
+        // Используем встроенный FormData из node-fetch или создаем multipart вручную
         const formData = new URLSearchParams();
         formData.append('amount', String(amount));
         formData.append('order_id', String(orderId));
@@ -2719,6 +2720,11 @@ app.post('/api/payment/cardlink/create', async (req, res) => {
         formData.append('payer_pays_commission', '1'); // Плательщик оплачивает комиссию
         formData.append('name', `Оплата заказа #${orderId}`);
         
+        // Добавляем callback URLs (если они не указаны в настройках магазина, можно передать здесь)
+        formData.append('url_success', `${protocol}://${host}/api/payment/cardlink/success`);
+        formData.append('url_fail', `${protocol}://${host}/api/payment/cardlink/fail`);
+        formData.append('url_result', `${protocol}://${host}/api/payment/cardlink/result`);
+        
         // Добавляем custom данные для отслеживания
         if (customerEmail) {
             formData.append('custom', JSON.stringify({ email: customerEmail, orderId }));
@@ -2728,7 +2734,10 @@ app.post('/api/payment/cardlink/create', async (req, res) => {
             url: `${CARDLINK_API_URL}/bill/create`,
             shop_id: CARDLINK_SHOP_ID,
             order_id: orderId,
-            amount: amount
+            amount: amount,
+            success_url: `${protocol}://${host}/api/payment/cardlink/success`,
+            fail_url: `${protocol}://${host}/api/payment/cardlink/fail`,
+            result_url: `${protocol}://${host}/api/payment/cardlink/result`
         });
         
         const response = await fetch(`${CARDLINK_API_URL}/bill/create`, {
