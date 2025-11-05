@@ -2088,7 +2088,26 @@
                                 }
                             } catch (error) {
                                 console.error('❌ Ошибка создания платежа Cardlink:', error);
-                                alert('❌ Ошибка создания платежа. Попробуйте позже.');
+                                
+                                let errorMsg = '❌ Ошибка создания платежа.';
+                                
+                                try {
+                                    const errorData = error.response ? await error.response.json() : null;
+                                    if (errorData && errorData.error) {
+                                        errorMsg += '\n\n' + errorData.error;
+                                        if (errorData.details) {
+                                            errorMsg += '\n\n' + errorData.details;
+                                        }
+                                    } else if (error.message) {
+                                        errorMsg += '\n\n' + error.message;
+                                    }
+                                } catch (e) {
+                                    if (error.message) {
+                                        errorMsg += '\n\n' + error.message;
+                                    }
+                                }
+                                
+                                alert(errorMsg);
                                 return;
                             }
                         }

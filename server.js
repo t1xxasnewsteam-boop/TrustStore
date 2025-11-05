@@ -2752,29 +2752,58 @@ app.post('/api/payment/cardlink/create', async (req, res) => {
         const responseText = await response.text();
         let data;
         
+        console.log('📥 Raw ответ Cardlink:', {
+            status: response.status,
+            statusText: response.statusText,
+            headers: Object.fromEntries(response.headers.entries()),
+            body: responseText.substring(0, 500)
+        });
+        
         try {
             data = JSON.parse(responseText);
         } catch (error) {
             console.error('❌ Cardlink вернул не JSON:', responseText);
+            console.error('❌ Ошибка парсинга:', error.message);
             throw new Error(`Cardlink response not JSON: status=${response.status} body=${responseText.substring(0, 200)}`);
         }
         
-        console.log('📥 Ответ Cardlink:', {
+        console.log('📥 Parsed ответ Cardlink:', {
             status: response.status,
             success: data.success,
-            hasLink: !!data.link_page_url
+            hasLink: !!data.link_page_url,
+            data: data
         });
         
-        if (!response.ok || !data.success || !data.link_page_url) {
-            console.error('❌ Ошибка Cardlink:', {
+        if (!response.ok) {
+            console.error('❌ HTTP ошибка от Cardlink:', {
+                status: response.status,
+                statusText: response.statusText,
+                data: data,
+                fullResponse: responseText
+            });
+            const errorMessage = data.message || data.error || data.error_message || data.description || `HTTP ${response.status}: ${response.statusText}`;
+            throw new Error(errorMessage);
+        }
+        
+        if (!data.success) {
+            console.error('❌ Cardlink вернул success=false:', {
                 status: response.status,
                 data: data
             });
-            throw new Error(data.message || data.error || `Cardlink error: status=${response.status}`);
+            const errorMessage = data.message || data.error || data.error_message || data.description || 'Неизвестная ошибка от Cardlink';
+            throw new Error(errorMessage);
         }
         
-        const paymentUrl = data.link_page_url;
-        const billId = data.bill_id;
+        if (!data.link_page_url && !data.link_url) {
+            console.error('❌ Cardlink не вернул URL платежа:', {
+                status: response.status,
+                data: data
+            });
+            throw new Error('Cardlink не вернул URL платежа. Проверь логи на сервере.');
+        }
+        
+        const paymentUrl = data.link_page_url || data.link_url;
+        const billId = data.bill_id || data.link_id;
         
         console.log('✅ Платеж Cardlink создан, URL:', paymentUrl);
         
@@ -2790,9 +2819,13 @@ app.post('/api/payment/cardlink/create', async (req, res) => {
         
     } catch (error) {
         console.error('❌ Ошибка создания платежа Cardlink:', error);
+        console.error('❌ Stack trace:', error.stack);
+        
+        // Возвращаем детальную информацию об ошибке для отладки
         res.status(500).json({ 
             error: error.message || 'Ошибка создания платежа',
-            details: error.message
+            details: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 });
