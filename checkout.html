@@ -1898,7 +1898,7 @@
                 console.log('💳 Выбранный метод оплаты:', selectedPaymentMethod);
                 console.log('📋 Элемент:', selectedPaymentMethodElement);
                 
-                if (!selectedPaymentMethod || (selectedPaymentMethod !== 'sbp' && selectedPaymentMethod !== 'heleket')) {
+                if (!selectedPaymentMethod || (selectedPaymentMethod !== 'sbp' && selectedPaymentMethod !== 'heleket' && selectedPaymentMethod !== 'cardlink')) {
                     console.error('❌ Неизвестный метод оплаты:', selectedPaymentMethod);
                     alert('❌ Выберите способ оплаты');
                     return;
