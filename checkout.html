@@ -1902,13 +1902,23 @@
                     return;
                 }
                     
+                // Определяем paymentMethod
+                let paymentMethod = 'YooMoney'; // по умолчанию
+                if (selectedPaymentMethod === 'sbp') {
+                    paymentMethod = 'SBP';
+                } else if (selectedPaymentMethod === 'heleket') {
+                    paymentMethod = 'Heleket';
+                } else if (selectedPaymentMethod === 'cardlink') {
+                    paymentMethod = 'Cardlink';
+                }
+                
                 const orderData = {
                     customerName: name,
                     customerEmail: email,
                     customerPhone: phone,
                     products: orderItems,
                     totalAmount: currentTotalPrice,
-                    paymentMethod: selectedPaymentMethod === 'sbp' ? 'SBP' : 'Heleket',
+                    paymentMethod: paymentMethod,
                     comment: comment
                 };
                     

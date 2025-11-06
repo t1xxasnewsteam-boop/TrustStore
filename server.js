@@ -5299,14 +5299,25 @@ app.post('/api/manual-send-last-order', async (req, res) => {
                 lastOrder.status = 'paid';
             }
         } else {
-            // Сначала пробуем найти последний СБП заказ со статусом payment_confirmed_by_customer
+            // Сначала пробуем найти последний Cardlink заказ со статусом awaiting_payment или paid
             lastOrder = db.prepare(`
                 SELECT * FROM orders 
-                WHERE payment_method = 'SBP' 
-                AND status = 'payment_confirmed_by_customer'
+                WHERE payment_method = 'Cardlink' 
+                AND (status = 'awaiting_payment' OR status = 'paid')
                 ORDER BY created_at DESC 
                 LIMIT 1
             `).get();
+            
+            // Если не найден, пробуем найти последний СБП заказ со статусом payment_confirmed_by_customer
+            if (!lastOrder) {
+                lastOrder = db.prepare(`
+                    SELECT * FROM orders 
+                    WHERE payment_method = 'SBP' 
+                    AND status = 'payment_confirmed_by_customer'
+                    ORDER BY created_at DESC 
+                    LIMIT 1
+                `).get();
+            }
             
             // Если не найден, ищем последний оплаченный заказ
             if (!lastOrder) {
