@@ -2880,13 +2880,51 @@ app.post('/api/payment/cardlink/result', async (req, res) => {
             const products = JSON.parse(order.products || '[]');
             const productNames = products.map(p => p.name || p.productName || p.product_name).join(', ');
             
-            // Отправляем email клиенту
-            try {
-                await sendOrderEmail(order.customer_email, order.customer_name, orderId, products, order.total_amount);
-                console.log(`✅ Email отправлен клиенту ${order.customer_email}`);
-            } catch (emailError) {
-                console.error('❌ Ошибка отправки email:', emailError);
+            // ОТПРАВКА EMAIL КЛИЕНТУ (как в Heleket/YooMoney)
+            console.log('\n📧 ОТПРАВКА EMAIL КЛИЕНТУ (с повторными попытками)...\n');
+            let emailsSent = 0;
+            let emailsFailed = 0;
+            
+            for (const product of products) {
+                const productName = product.name || product.productName || product.product_name || 'Неизвестный товар';
+                const quantity = product.quantity || 1;
+                
+                console.log(`\n📦 Товар: "${productName}" (x${quantity})`);
+                
+                // Поиск информации о товаре
+                let productInfo = db.prepare('SELECT * FROM products WHERE name = ?').get(productName);
+                if (!productInfo) {
+                    const baseName = productName.split('(')[0].split('-')[0].split('|')[0].split('[')[0].trim();
+                    productInfo = db.prepare('SELECT * FROM products WHERE name LIKE ?').get(baseName + '%');
+                }
+                
+                // Отправка для каждого товара
+                for (let i = 0; i < quantity; i++) {
+                    const emailData = {
+                        to: order.customer_email,
+                        orderNumber: orderId,
+                        productName: productName,
+                        productImage: productInfo ? productInfo.image : (product.image || null),
+                        productCategory: productInfo ? productInfo.category : null,
+                        productDescription: productInfo ? productInfo.description : null,
+                        login: null,
+                        password: null,
+                        instructions: productInfo ? productInfo.description : 'Спасибо за покупку! Инструкции по использованию товара будут отправлены отдельно.'
+                    };
+                    
+                    const emailResult = await sendOrderEmailWithRetry(emailData, 3);
+                    
+                    if (emailResult.success) {
+                        emailsSent++;
+                        console.log(`   ✅ Email ${i + 1}/${quantity} отправлен`);
+                    } else {
+                        emailsFailed++;
+                        console.error(`   ❌ Email ${i + 1}/${quantity} НЕ отправлен после всех попыток`);
+                    }
+                }
             }
+            
+            console.log(`\n📊 ИТОГО EMAILS: отправлено ${emailsSent}, ошибок ${emailsFailed}`);
             
             // Отправляем уведомление в Telegram
             const telegramMessage = `✅ <b>ПЛАТЕЖ CARDLINK ПОДТВЕРЖДЕН!</b>\n\n` +
