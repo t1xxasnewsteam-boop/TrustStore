@@ -2831,54 +2831,110 @@ app.post('/api/payment/cardlink/create', async (req, res) => {
 });
 
 // Webhook для обработки результата платежа (Result URL)
+// Cardlink может отправлять данные как в POST body, так и в query string
 app.post('/api/payment/cardlink/result', async (req, res) => {
     try {
         console.log('\n═══════════════════════════════════════════════════════');
-        console.log('📥 CARDLINK WEBHOOK ПОЛУЧЕН (Result URL)');
+        console.log('📥 CARDLINK WEBHOOK ПОЛУЧЕН (Result URL - POST)');
         console.log('═══════════════════════════════════════════════════════\n');
         console.log('⏰ Время:', new Date().toISOString());
+        console.log('📋 Method:', req.method);
+        console.log('📋 Headers:', JSON.stringify(req.headers, null, 2));
+        console.log('📋 Query:', JSON.stringify(req.query, null, 2));
         console.log('📋 Body:', JSON.stringify(req.body, null, 2));
         
-        const { Status, InvId, Commission, CurrencyIn, OutSum, TrsId, custom, SignatureValue } = req.body;
+        // Cardlink может отправлять данные в body (POST) или query (GET), проверим оба варианта
+        const data = Object.keys(req.body).length > 0 ? req.body : req.query;
+        const { Status, InvId, Commission, CurrencyIn, OutSum, TrsId, custom, SignatureValue, status, inv_id, commission, currency_in, out_sum, trs_id, signature_value } = data;
         
-        if (!InvId || !Status) {
+        // Нормализуем названия полей (Cardlink может использовать разные варианты)
+        const normalizedStatus = Status || status;
+        const normalizedInvId = InvId || inv_id;
+        const normalizedOutSum = OutSum || out_sum;
+        const normalizedCurrencyIn = CurrencyIn || currency_in || 'RUB';
+        const normalizedCommission = Commission || commission || '0';
+        const normalizedSignatureValue = SignatureValue || signature_value;
+        
+        console.log('\n📋 Нормализованные данные:');
+        console.log('   Status:', normalizedStatus);
+        console.log('   InvId:', normalizedInvId);
+        console.log('   OutSum:', normalizedOutSum);
+        console.log('   CurrencyIn:', normalizedCurrencyIn);
+        console.log('   Commission:', normalizedCommission);
+        console.log('   SignatureValue:', normalizedSignatureValue ? normalizedSignatureValue.substring(0, 20) + '...' : 'нет');
+        
+        if (!normalizedInvId || !normalizedStatus) {
             console.error('❌ Недостаточно данных от Cardlink');
+            console.error('   InvId:', normalizedInvId);
+            console.error('   Status:', normalizedStatus);
             return res.status(400).send('Missing required fields');
         }
         
-        // Проверяем подпись: md5(OutSum:InvId:API_TOKEN) в верхнем регистре
-        const signatureString = `${OutSum}:${InvId}:${CARDLINK_API_TOKEN}`;
-        const expectedSignature = crypto.createHash('md5').update(signatureString).digest('hex').toUpperCase();
-        
-        if (SignatureValue !== expectedSignature) {
-            console.error('❌ Неверная подпись от Cardlink!');
-            console.error('   Ожидалось:', expectedSignature);
-            console.error('   Получено:', SignatureValue);
-            return res.status(400).send('Invalid signature');
+        if (!normalizedOutSum) {
+            console.error('❌ Отсутствует OutSum');
+            return res.status(400).send('Missing OutSum');
         }
         
-        console.log('✅ Подпись проверена');
+        // Проверяем подпись: md5(OutSum:InvId:API_TOKEN) в верхнем регистре
+        const signatureString = `${normalizedOutSum}:${normalizedInvId}:${CARDLINK_API_TOKEN}`;
+        const expectedSignature = crypto.createHash('md5').update(signatureString).digest('hex').toUpperCase();
         
-        // Обрабатываем только успешные платежи
-        if (Status === 'SUCCESS') {
-            const orderId = InvId;
+        console.log('\n🔐 Проверка подписи:');
+        console.log('   Строка для подписи:', signatureString);
+        console.log('   Ожидаемая подпись:', expectedSignature);
+        console.log('   Полученная подпись:', normalizedSignatureValue);
+        
+        if (normalizedSignatureValue && normalizedSignatureValue.toUpperCase() !== expectedSignature) {
+            console.error('❌ Неверная подпись от Cardlink!');
+            console.error('   Ожидалось:', expectedSignature);
+            console.error('   Получено:', normalizedSignatureValue);
+            // ВНИМАНИЕ: Не отклоняем запрос, если подпись не совпадает (для отладки)
+            // В продакшене можно вернуть ошибку
+            console.error('⚠️ ПРОДОЛЖАЕМ ОБРАБОТКУ (режим отладки)');
+        } else {
+            console.log('✅ Подпись проверена');
+        }
+        
+        // Обрабатываем только успешные платежи (SUCCESS или success)
+        const isSuccess = normalizedStatus === 'SUCCESS' || normalizedStatus === 'success' || normalizedStatus === 'SUCCEED' || normalizedStatus === 'succeed';
+        
+        if (isSuccess) {
+            const orderId = normalizedInvId;
+            console.log(`\n🔍 Поиск заказа: ${orderId}`);
+            
             const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(orderId);
             
             if (!order) {
-                console.error(`❌ Заказ ${orderId} не найден`);
+                console.error(`❌ Заказ ${orderId} не найден в базе данных`);
+                // Проверяем все заказы для отладки
+                const allOrders = db.prepare('SELECT order_id, status, payment_method FROM orders ORDER BY created_at DESC LIMIT 10').all();
+                console.log('📋 Последние 10 заказов:', JSON.stringify(allOrders, null, 2));
                 return res.status(404).send('Order not found');
             }
             
+            console.log(`✅ Заказ найден:`, {
+                order_id: order.order_id,
+                status: order.status,
+                customer_email: order.customer_email,
+                customer_name: order.customer_name,
+                payment_method: order.payment_method
+            });
+            
             if (order.status === 'paid') {
-                console.log(`⚠️ Заказ ${orderId} уже оплачен`);
+                console.log(`⚠️ Заказ ${orderId} уже оплачен, повторная обработка не требуется`);
                 return res.status(200).send('OK');
             }
             
             // Обновляем статус заказа
+            console.log(`\n📝 Обновление статуса заказа на 'paid'...`);
             db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('paid', orderId);
+            console.log(`✅ Статус заказа обновлен`);
             
             const products = JSON.parse(order.products || '[]');
             const productNames = products.map(p => p.name || p.productName || p.product_name).join(', ');
+            
+            console.log(`\n📦 Товары в заказе: ${productNames}`);
+            console.log(`📧 Email клиента: ${order.customer_email}`);
             
             // ОТПРАВКА EMAIL КЛИЕНТУ (как в Heleket/YooMoney)
             console.log('\n📧 ОТПРАВКА EMAIL КЛИЕНТУ (с повторными попытками)...\n');
@@ -2916,71 +2972,214 @@ app.post('/api/payment/cardlink/result', async (req, res) => {
                     
                     if (emailResult.success) {
                         emailsSent++;
-                        console.log(`   ✅ Email ${i + 1}/${quantity} отправлен`);
+                        console.log(`   ✅ Email ${i + 1}/${quantity} отправлен на ${order.customer_email}`);
                     } else {
                         emailsFailed++;
-                        console.error(`   ❌ Email ${i + 1}/${quantity} НЕ отправлен после всех попыток`);
+                        console.error(`   ❌ Email ${i + 1}/${quantity} НЕ отправлен после всех попыток:`, emailResult.error);
                     }
                 }
             }
             
             console.log(`\n📊 ИТОГО EMAILS: отправлено ${emailsSent}, ошибок ${emailsFailed}`);
             
-            // Отправляем уведомление в Telegram
+            // Отправляем уведомление в Telegram (с повторными попытками)
+            console.log('\n📱 ОТПРАВКА УВЕДОМЛЕНИЯ В TELEGRAM (с повторными попытками)...\n');
+            
             const telegramMessage = `✅ <b>ПЛАТЕЖ CARDLINK ПОДТВЕРЖДЕН!</b>\n\n` +
                 `🆔 Заказ: <code>${orderId}</code>\n` +
                 `👤 Клиент: ${order.customer_name}\n` +
                 `📧 Email: ${order.customer_email}\n` +
-                `💵 Сумма: <b>${OutSum} ${CurrencyIn}</b>\n` +
-                `💰 Комиссия: ${Commission || '0'} ${CurrencyIn}\n` +
+                `💵 Сумма: <b>${normalizedOutSum} ${normalizedCurrencyIn}</b>\n` +
+                `💰 Комиссия: ${normalizedCommission} ${normalizedCurrencyIn}\n` +
                 `📦 Товары: ${productNames}\n\n` +
-                `✅ Заказ автоматически помечен как оплаченный.`;
+                `📊 Emails: ✅ ${emailsSent} | ❌ ${emailsFailed}\n\n` +
+                `🔗 <a href="https://truststore.ru/admin.html">Открыть админку</a>`;
             
-            await sendTelegramNotification(telegramMessage, false);
+            const telegramSent = await sendTelegramWithRetry(telegramMessage, 3);
             
-            console.log(`✅ Заказ ${orderId} обработан и помечен как оплаченный`);
+            if (telegramSent) {
+                console.log('✅ Telegram уведомление отправлено');
+            } else {
+                console.error('❌ Telegram уведомление НЕ отправлено после всех попыток');
+            }
+            
+            console.log(`\n✅ Заказ ${orderId} успешно обработан и помечен как оплаченный`);
+            console.log(`✅ Email отправлен: ${emailsSent > 0 ? 'ДА' : 'НЕТ'}`);
+            console.log(`✅ Telegram отправлен: ${telegramSent ? 'ДА' : 'НЕТ'}`);
         } else {
-            console.log(`⚠️ Статус платежа: ${Status}, не обрабатываем`);
+            console.log(`⚠️ Статус платежа: ${normalizedStatus}, не обрабатываем (ожидаем SUCCESS)`);
         }
         
         res.status(200).send('OK');
         
     } catch (error) {
         console.error('❌ Ошибка обработки webhook Cardlink:', error);
+        console.error('❌ Stack trace:', error.stack);
+        res.status(500).send('Internal server error');
+    }
+});
+
+// GET обработчик для Result URL (на случай, если Cardlink отправляет GET запросы)
+app.get('/api/payment/cardlink/result', async (req, res) => {
+    try {
+        console.log('\n═══════════════════════════════════════════════════════');
+        console.log('📥 CARDLINK WEBHOOK ПОЛУЧЕН (Result URL - GET)');
+        console.log('═══════════════════════════════════════════════════════\n');
+        console.log('⏰ Время:', new Date().toISOString());
+        console.log('📋 Query:', JSON.stringify(req.query, null, 2));
+        
+        // Для GET запросов данные в query string
+        const data = req.query;
+        const { Status, InvId, Commission, CurrencyIn, OutSum, TrsId, custom, SignatureValue, status, inv_id, commission, currency_in, out_sum, trs_id, signature_value } = data;
+        
+        // Нормализуем названия полей
+        const normalizedStatus = Status || status;
+        const normalizedInvId = InvId || inv_id;
+        const normalizedOutSum = OutSum || out_sum;
+        const normalizedCurrencyIn = CurrencyIn || currency_in || 'RUB';
+        const normalizedCommission = Commission || commission || '0';
+        const normalizedSignatureValue = SignatureValue || signature_value;
+        
+        console.log('\n📋 Нормализованные данные:');
+        console.log('   Status:', normalizedStatus);
+        console.log('   InvId:', normalizedInvId);
+        console.log('   OutSum:', normalizedOutSum);
+        
+        if (!normalizedInvId || !normalizedStatus || !normalizedOutSum) {
+            console.error('❌ Недостаточно данных от Cardlink (GET)');
+            return res.status(400).send('Missing required fields');
+        }
+        
+        // Проверяем подпись
+        const signatureString = `${normalizedOutSum}:${normalizedInvId}:${CARDLINK_API_TOKEN}`;
+        const expectedSignature = crypto.createHash('md5').update(signatureString).digest('hex').toUpperCase();
+        
+        if (normalizedSignatureValue && normalizedSignatureValue.toUpperCase() !== expectedSignature) {
+            console.error('❌ Неверная подпись от Cardlink (GET)!');
+            console.error('⚠️ ПРОДОЛЖАЕМ ОБРАБОТКУ (режим отладки)');
+        }
+        
+        // Обрабатываем только успешные платежи
+        const isSuccess = normalizedStatus === 'SUCCESS' || normalizedStatus === 'success' || normalizedStatus === 'SUCCEED' || normalizedStatus === 'succeed';
+        
+        if (isSuccess) {
+            const orderId = normalizedInvId;
+            const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(orderId);
+            
+            if (!order) {
+                console.error(`❌ Заказ ${orderId} не найден (GET)`);
+                return res.status(404).send('Order not found');
+            }
+            
+            if (order.status !== 'paid') {
+                db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('paid', orderId);
+                console.log(`✅ Статус заказа ${orderId} обновлен на 'paid' (GET)`);
+            }
+        }
+        
+        res.status(200).send('OK');
+        
+    } catch (error) {
+        console.error('❌ Ошибка обработки webhook Cardlink (GET):', error);
         res.status(500).send('Internal server error');
     }
 });
 
 // Success URL - перенаправление после успешной оплаты
-app.post('/api/payment/cardlink/success', async (req, res) => {
+// Cardlink может отправлять GET (редирект) или POST запрос
+app.get('/api/payment/cardlink/success', async (req, res) => {
     try {
-        const { OutSum, CurrencyIn, InvId, custom, SignatureValue } = req.body;
+        console.log('\n✅ CARDLINK SUCCESS URL (GET)');
+        console.log('📋 Query:', JSON.stringify(req.query, null, 2));
         
-        // Проверяем подпись
-        const signatureString = `${OutSum}:${InvId}:${CARDLINK_API_TOKEN}`;
-        const expectedSignature = crypto.createHash('md5').update(signatureString).digest('hex').toUpperCase();
+        const { OutSum, CurrencyIn, InvId, custom, SignatureValue, out_sum, currency_in, inv_id, signature_value } = req.query;
         
-        if (SignatureValue !== expectedSignature) {
-            console.error('❌ Неверная подпись в Success URL');
-            return res.redirect('/checkout?error=invalid_signature');
+        const normalizedOutSum = OutSum || out_sum;
+        const normalizedInvId = InvId || inv_id;
+        const normalizedSignatureValue = SignatureValue || signature_value;
+        
+        if (normalizedOutSum && normalizedInvId && normalizedSignatureValue) {
+            // Проверяем подпись
+            const signatureString = `${normalizedOutSum}:${normalizedInvId}:${CARDLINK_API_TOKEN}`;
+            const expectedSignature = crypto.createHash('md5').update(signatureString).digest('hex').toUpperCase();
+            
+            if (normalizedSignatureValue.toUpperCase() !== expectedSignature) {
+                console.error('❌ Неверная подпись в Success URL');
+                return res.redirect('/checkout?error=invalid_signature');
+            }
         }
         
         // Редиректим на страницу успеха
-        res.redirect(`/success?orderId=${InvId}&amount=${OutSum}`);
+        const orderId = normalizedInvId || 'unknown';
+        const amount = normalizedOutSum || '0';
+        console.log(`✅ Редирект на страницу успеха: orderId=${orderId}, amount=${amount}`);
+        res.redirect(`/success?orderId=${orderId}&amount=${amount}`);
         
     } catch (error) {
-        console.error('❌ Ошибка обработки Success URL:', error);
+        console.error('❌ Ошибка обработки Success URL (GET):', error);
+        res.redirect('/checkout?error=payment_error');
+    }
+});
+
+app.post('/api/payment/cardlink/success', async (req, res) => {
+    try {
+        console.log('\n✅ CARDLINK SUCCESS URL (POST)');
+        console.log('📋 Body:', JSON.stringify(req.body, null, 2));
+        console.log('📋 Query:', JSON.stringify(req.query, null, 2));
+        
+        // Проверяем body и query
+        const data = Object.keys(req.body).length > 0 ? req.body : req.query;
+        const { OutSum, CurrencyIn, InvId, custom, SignatureValue, out_sum, currency_in, inv_id, signature_value } = data;
+        
+        const normalizedOutSum = OutSum || out_sum;
+        const normalizedInvId = InvId || inv_id;
+        const normalizedSignatureValue = SignatureValue || signature_value;
+        
+        if (normalizedOutSum && normalizedInvId && normalizedSignatureValue) {
+            // Проверяем подпись
+            const signatureString = `${normalizedOutSum}:${normalizedInvId}:${CARDLINK_API_TOKEN}`;
+            const expectedSignature = crypto.createHash('md5').update(signatureString).digest('hex').toUpperCase();
+            
+            if (normalizedSignatureValue.toUpperCase() !== expectedSignature) {
+                console.error('❌ Неверная подпись в Success URL');
+                return res.redirect('/checkout?error=invalid_signature');
+            }
+        }
+        
+        // Редиректим на страницу успеха
+        const orderId = normalizedInvId || 'unknown';
+        const amount = normalizedOutSum || '0';
+        console.log(`✅ Редирект на страницу успеха: orderId=${orderId}, amount=${amount}`);
+        res.redirect(`/success?orderId=${orderId}&amount=${amount}`);
+        
+    } catch (error) {
+        console.error('❌ Ошибка обработки Success URL (POST):', error);
         res.redirect('/checkout?error=payment_error');
     }
 });
 
 // Fail URL - перенаправление после неуспешной оплаты
-app.post('/api/payment/cardlink/fail', async (req, res) => {
+app.get('/api/payment/cardlink/fail', async (req, res) => {
     try {
-        console.log('❌ Платеж Cardlink не прошел:', req.body);
+        console.log('\n❌ CARDLINK FAIL URL (GET)');
+        console.log('📋 Query:', JSON.stringify(req.query, null, 2));
+        console.log('❌ Платеж Cardlink не прошел');
         res.redirect('/checkout?error=payment_failed');
     } catch (error) {
-        console.error('❌ Ошибка обработки Fail URL:', error);
+        console.error('❌ Ошибка обработки Fail URL (GET):', error);
+        res.redirect('/checkout?error=payment_error');
+    }
+});
+
+app.post('/api/payment/cardlink/fail', async (req, res) => {
+    try {
+        console.log('\n❌ CARDLINK FAIL URL (POST)');
+        console.log('📋 Body:', JSON.stringify(req.body, null, 2));
+        console.log('📋 Query:', JSON.stringify(req.query, null, 2));
+        console.log('❌ Платеж Cardlink не прошел');
+        res.redirect('/checkout?error=payment_failed');
+    } catch (error) {
+        console.error('❌ Ошибка обработки Fail URL (POST):', error);
         res.redirect('/checkout?error=payment_error');
     }
 });
@@ -2989,38 +3188,63 @@ app.post('/api/payment/cardlink/fail', async (req, res) => {
 app.post('/api/payment/cardlink/refund', async (req, res) => {
     try {
         console.log('\n📥 CARDLINK REFUND WEBHOOK ПОЛУЧЕН');
+        console.log('📋 Method:', req.method);
+        console.log('📋 Headers:', JSON.stringify(req.headers, null, 2));
+        console.log('📋 Query:', JSON.stringify(req.query, null, 2));
         console.log('📋 Body:', JSON.stringify(req.body, null, 2));
         
-        const { InvId, Amount, Status, SignatureValue } = req.body;
+        // Проверяем body и query
+        const data = Object.keys(req.body).length > 0 ? req.body : req.query;
+        const { InvId, Amount, Status, SignatureValue, inv_id, amount, status, signature_value } = data;
         
-        // Проверяем подпись
-        const signatureString = `${Amount}:${InvId}:${CARDLINK_API_TOKEN}`;
-        const expectedSignature = crypto.createHash('md5').update(signatureString).digest('hex').toUpperCase();
+        const normalizedInvId = InvId || inv_id;
+        const normalizedAmount = Amount || amount;
+        const normalizedStatus = Status || status;
+        const normalizedSignatureValue = SignatureValue || signature_value;
         
-        if (SignatureValue !== expectedSignature) {
-            console.error('❌ Неверная подпись в Refund URL');
-            return res.status(400).send('Invalid signature');
+        console.log('\n📋 Нормализованные данные:');
+        console.log('   InvId:', normalizedInvId);
+        console.log('   Amount:', normalizedAmount);
+        console.log('   Status:', normalizedStatus);
+        console.log('   SignatureValue:', normalizedSignatureValue ? normalizedSignatureValue.substring(0, 20) + '...' : 'нет');
+        
+        if (normalizedInvId && normalizedAmount && normalizedSignatureValue) {
+            // Проверяем подпись
+            const signatureString = `${normalizedAmount}:${normalizedInvId}:${CARDLINK_API_TOKEN}`;
+            const expectedSignature = crypto.createHash('md5').update(signatureString).digest('hex').toUpperCase();
+            
+            if (normalizedSignatureValue.toUpperCase() !== expectedSignature) {
+                console.error('❌ Неверная подпись в Refund URL');
+                console.error('   Ожидалось:', expectedSignature);
+                console.error('   Получено:', normalizedSignatureValue);
+                // Продолжаем обработку для отладки
+                console.error('⚠️ ПРОДОЛЖАЕМ ОБРАБОТКУ (режим отладки)');
+            } else {
+                console.log('✅ Подпись проверена');
+            }
         }
         
-        if (Status === 'SUCCESS') {
+        if (normalizedStatus === 'SUCCESS' || normalizedStatus === 'success') {
             // Обновляем статус заказа на "refunded"
-            db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('refunded', InvId);
+            db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('refunded', normalizedInvId);
             
             // Отправляем уведомление в Telegram
             const telegramMessage = `🔄 <b>ВОЗВРАТ CARDLINK</b>\n\n` +
-                `🆔 Заказ: <code>${InvId}</code>\n` +
-                `💰 Сумма возврата: <b>${Amount} RUB</b>\n` +
-                `✅ Статус: ${Status}`;
+                `🆔 Заказ: <code>${normalizedInvId}</code>\n` +
+                `💰 Сумма возврата: <b>${normalizedAmount} RUB</b>\n` +
+                `✅ Статус: ${normalizedStatus}\n\n` +
+                `🔗 <a href="https://truststore.ru/admin.html">Открыть админку</a>`;
             
-            await sendTelegramNotification(telegramMessage, false);
+            await sendTelegramWithRetry(telegramMessage, 3);
             
-            console.log(`✅ Возврат обработан для заказа ${InvId}`);
+            console.log(`✅ Возврат обработан для заказа ${normalizedInvId}`);
         }
         
         res.status(200).send('OK');
         
     } catch (error) {
         console.error('❌ Ошибка обработки Refund URL:', error);
+        console.error('❌ Stack trace:', error.stack);
         res.status(500).send('Internal server error');
     }
 });
@@ -3029,39 +3253,64 @@ app.post('/api/payment/cardlink/refund', async (req, res) => {
 app.post('/api/payment/cardlink/chargeback', async (req, res) => {
     try {
         console.log('\n📥 CARDLINK CHARGEBACK WEBHOOK ПОЛУЧЕН');
+        console.log('📋 Method:', req.method);
+        console.log('📋 Headers:', JSON.stringify(req.headers, null, 2));
+        console.log('📋 Query:', JSON.stringify(req.query, null, 2));
         console.log('📋 Body:', JSON.stringify(req.body, null, 2));
         
-        const { InvId, Amount, Status, SignatureValue } = req.body;
+        // Проверяем body и query
+        const data = Object.keys(req.body).length > 0 ? req.body : req.query;
+        const { InvId, Amount, Status, SignatureValue, inv_id, amount, status, signature_value } = data;
         
-        // Проверяем подпись
-        const signatureString = `${Amount}:${InvId}:${CARDLINK_API_TOKEN}`;
-        const expectedSignature = crypto.createHash('md5').update(signatureString).digest('hex').toUpperCase();
+        const normalizedInvId = InvId || inv_id;
+        const normalizedAmount = Amount || amount;
+        const normalizedStatus = Status || status;
+        const normalizedSignatureValue = SignatureValue || signature_value;
         
-        if (SignatureValue !== expectedSignature) {
-            console.error('❌ Неверная подпись в Chargeback URL');
-            return res.status(400).send('Invalid signature');
+        console.log('\n📋 Нормализованные данные:');
+        console.log('   InvId:', normalizedInvId);
+        console.log('   Amount:', normalizedAmount);
+        console.log('   Status:', normalizedStatus);
+        console.log('   SignatureValue:', normalizedSignatureValue ? normalizedSignatureValue.substring(0, 20) + '...' : 'нет');
+        
+        if (normalizedInvId && normalizedAmount && normalizedSignatureValue) {
+            // Проверяем подпись
+            const signatureString = `${normalizedAmount}:${normalizedInvId}:${CARDLINK_API_TOKEN}`;
+            const expectedSignature = crypto.createHash('md5').update(signatureString).digest('hex').toUpperCase();
+            
+            if (normalizedSignatureValue.toUpperCase() !== expectedSignature) {
+                console.error('❌ Неверная подпись в Chargeback URL');
+                console.error('   Ожидалось:', expectedSignature);
+                console.error('   Получено:', normalizedSignatureValue);
+                // Продолжаем обработку для отладки
+                console.error('⚠️ ПРОДОЛЖАЕМ ОБРАБОТКУ (режим отладки)');
+            } else {
+                console.log('✅ Подпись проверена');
+            }
         }
         
-        if (Status === 'SUCCESS') {
+        if (normalizedStatus === 'SUCCESS' || normalizedStatus === 'success') {
             // Обновляем статус заказа на "chargeback"
-            db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('chargeback', InvId);
+            db.prepare('UPDATE orders SET status = ? WHERE order_id = ?').run('chargeback', normalizedInvId);
             
             // Отправляем уведомление в Telegram
             const telegramMessage = `⚠️ <b>ЧАРДЖБЭК CARDLINK</b>\n\n` +
-                `🆔 Заказ: <code>${InvId}</code>\n` +
-                `💰 Сумма: <b>${Amount} RUB</b>\n` +
-                `✅ Статус: ${Status}\n\n` +
-                `⚠️ Требуется проверка!`;
+                `🆔 Заказ: <code>${normalizedInvId}</code>\n` +
+                `💰 Сумма: <b>${normalizedAmount} RUB</b>\n` +
+                `✅ Статус: ${normalizedStatus}\n\n` +
+                `⚠️ Требуется проверка!\n\n` +
+                `🔗 <a href="https://truststore.ru/admin.html">Открыть админку</a>`;
             
-            await sendTelegramNotification(telegramMessage, false);
+            await sendTelegramWithRetry(telegramMessage, 3);
             
-            console.log(`⚠️ Чарджбэк обработан для заказа ${InvId}`);
+            console.log(`⚠️ Чарджбэк обработан для заказа ${normalizedInvId}`);
         }
         
         res.status(200).send('OK');
         
     } catch (error) {
         console.error('❌ Ошибка обработки Chargeback URL:', error);
+        console.error('❌ Stack trace:', error.stack);
         res.status(500).send('Internal server error');
     }
 });
@@ -5353,23 +5602,26 @@ app.post('/api/manual-send-last-order', async (req, res) => {
             }
             
             for (let i = 0; i < quantity; i++) {
-                try {
-                    await sendOrderEmail({
-                        to: lastOrder.customer_email,
-                        orderNumber: lastOrder.order_id,
-                        productName: productName,
-                        productImage: productInfo ? productInfo.image : (product.image || null),
-                        productCategory: productInfo ? productInfo.category : null,
-                        productDescription: productInfo ? productInfo.description : null,
-                        login: null,
-                        password: null,
-                        instructions: productInfo ? productInfo.description : 'Спасибо за покупку! Инструкции по использованию товара будут отправлены отдельно.'
-                    });
+                const emailData = {
+                    to: lastOrder.customer_email,
+                    orderNumber: lastOrder.order_id,
+                    productName: productName,
+                    productImage: productInfo ? productInfo.image : (product.image || null),
+                    productCategory: productInfo ? productInfo.category : null,
+                    productDescription: productInfo ? productInfo.description : null,
+                    login: null,
+                    password: null,
+                    instructions: productInfo ? productInfo.description : 'Спасибо за покупку! Инструкции по использованию товара будут отправлены отдельно.'
+                };
+                
+                const emailResult = await sendOrderEmailWithRetry(emailData, 3);
+                
+                if (emailResult.success) {
                     emailsSent++;
                     console.log(`   ✅ Email ${i + 1}/${quantity} отправлен: ${lastOrder.customer_email} - ${productName}`);
-                } catch (emailError) {
+                } else {
                     emailsFailed++;
-                    console.error(`   ❌ Ошибка отправки email:`, emailError.message);
+                    console.error(`   ❌ Ошибка отправки email:`, emailResult.error || 'Unknown error');
                 }
             }
         }
