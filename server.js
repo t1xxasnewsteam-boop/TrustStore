@@ -2839,21 +2839,69 @@ app.post('/api/payment/cardlink/result', async (req, res) => {
         console.log('═══════════════════════════════════════════════════════\n');
         console.log('⏰ Время:', new Date().toISOString());
         console.log('📋 Method:', req.method);
+        console.log('📋 URL:', req.url);
         console.log('📋 Headers:', JSON.stringify(req.headers, null, 2));
+        console.log('📋 Content-Type:', req.headers['content-type']);
         console.log('📋 Query:', JSON.stringify(req.query, null, 2));
         console.log('📋 Body:', JSON.stringify(req.body, null, 2));
+        console.log('📋 Body type:', typeof req.body);
+        console.log('📋 Body keys:', Object.keys(req.body || {}));
         
-        // Cardlink может отправлять данные в body (POST) или query (GET), проверим оба варианта
-        const data = Object.keys(req.body).length > 0 ? req.body : req.query;
-        const { Status, InvId, Commission, CurrencyIn, OutSum, TrsId, custom, SignatureValue, status, inv_id, commission, currency_in, out_sum, trs_id, signature_value } = data;
+        // Cardlink может отправлять данные в разных местах:
+        // 1. POST body (application/x-www-form-urlencoded или application/json)
+        // 2. Query string (даже для POST запросов)
+        // 3. Комбинация обоих
+        
+        // Сначала проверяем query string (часто используется для GET и иногда для POST)
+        let data = {};
+        if (Object.keys(req.query).length > 0) {
+            console.log('✅ Найдены данные в query string');
+            data = { ...data, ...req.query };
+        }
+        
+        // Затем проверяем body
+        if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
+            console.log('✅ Найдены данные в body');
+            data = { ...data, ...req.body };
+        } else if (req.body && typeof req.body === 'string') {
+            console.log('⚠️ Body - строка, пробуем распарсить');
+            try {
+                // Пробуем распарсить как URL-encoded
+                const parsed = new URLSearchParams(req.body);
+                const parsedObj = Object.fromEntries(parsed);
+                if (Object.keys(parsedObj).length > 0) {
+                    data = { ...data, ...parsedObj };
+                    console.log('✅ Распарсено как URL-encoded:', parsedObj);
+                }
+            } catch (e) {
+                console.log('⚠️ Не удалось распарсить body как URL-encoded:', e.message);
+            }
+        }
+        
+        console.log('\n📋 ИТОГОВЫЕ ДАННЫЕ (все источники объединены):');
+        console.log(JSON.stringify(data, null, 2));
+        console.log('📋 Количество полей:', Object.keys(data).length);
+        
+        // Если данных все еще нет, выводим подробную информацию для отладки
+        if (Object.keys(data).length === 0) {
+            console.error('❌ ВНИМАНИЕ: Данные не найдены ни в query, ни в body!');
+            console.error('❌ Это может означать, что:');
+            console.error('   1. Cardlink отправляет данные в другом формате');
+            console.error('   2. Нужно настроить middleware для парсинга body');
+            console.error('   3. Данные приходят в headers или другом месте');
+            return res.status(400).send('No data received');
+        }
+        
+        const { Status, InvId, Commission, CurrencyIn, OutSum, TrsId, custom, SignatureValue, status, inv_id, commission, currency_in, out_sum, trs_id, signature_value, OrderID, OrderId, order_id, ORDER_ID } = data;
         
         // Нормализуем названия полей (Cardlink может использовать разные варианты)
-        const normalizedStatus = Status || status;
-        const normalizedInvId = InvId || inv_id;
-        const normalizedOutSum = OutSum || out_sum;
-        const normalizedCurrencyIn = CurrencyIn || currency_in || 'RUB';
-        const normalizedCommission = Commission || commission || '0';
-        const normalizedSignatureValue = SignatureValue || signature_value;
+        // Проверяем все возможные варианты названий полей
+        const normalizedStatus = Status || status || data.Status || data.status || data.STATUS;
+        const normalizedInvId = InvId || inv_id || OrderID || OrderId || order_id || ORDER_ID || data.InvId || data.inv_id || data.OrderID || data.OrderId || data.order_id || data.ORDER_ID;
+        const normalizedOutSum = OutSum || out_sum || data.OutSum || data.out_sum || data.OutSUM || data.OUTSUM || data.amount || data.Amount || data.AMOUNT;
+        const normalizedCurrencyIn = CurrencyIn || currency_in || data.CurrencyIn || data.currency_in || data.Currency || data.currency || 'RUB';
+        const normalizedCommission = Commission || commission || data.Commission || data.commission || '0';
+        const normalizedSignatureValue = SignatureValue || signature_value || data.SignatureValue || data.signature_value || data.Signature || data.signature || data.sign || data.Sign;
         
         console.log('\n📋 Нормализованные данные:');
         console.log('   Status:', normalizedStatus);
@@ -2867,11 +2915,16 @@ app.post('/api/payment/cardlink/result', async (req, res) => {
             console.error('❌ Недостаточно данных от Cardlink');
             console.error('   InvId:', normalizedInvId);
             console.error('   Status:', normalizedStatus);
-            return res.status(400).send('Missing required fields');
+            console.error('   Все доступные ключи в данных:', Object.keys(data));
+            console.error('   Все данные:', JSON.stringify(data, null, 2));
+            console.error('   Попробуйте найти order_id вручную в данных выше');
+            return res.status(400).send('Missing required fields: InvId or Status');
         }
         
         if (!normalizedOutSum) {
             console.error('❌ Отсутствует OutSum');
+            console.error('   Все доступные ключи в данных:', Object.keys(data));
+            console.error('   Все данные:', JSON.stringify(data, null, 2));
             return res.status(400).send('Missing OutSum');
         }
         
