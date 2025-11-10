@@ -2367,10 +2367,15 @@ app.post('/api/validate-promo', (req, res) => {
         }
         
         // Проверяем срок действия
-        const now = new Date();
-        const expiresAt = new Date(promoCode.expires_at);
-        if (now > expiresAt) {
-            return res.json({ valid: false, message: 'Промокод истек' });
+        // Если expires_at = NULL или очень далёкая дата (2099+), то промокод бессрочный
+        if (promoCode.expires_at) {
+            const now = new Date();
+            const expiresAt = new Date(promoCode.expires_at);
+            // Если дата истечения > 2099, считаем промокод бессрочным
+            const year2099 = new Date('2099-12-31');
+            if (expiresAt < year2099 && now > expiresAt) {
+                return res.json({ valid: false, message: 'Промокод истек' });
+            }
         }
         
         // Проверяем количество использований (глобальное)
@@ -2470,6 +2475,30 @@ app.post('/api/promo-codes/:id/toggle', authMiddleware, (req, res) => {
         res.json({ success: true });
     } catch (error) {
         console.error('Ошибка переключения промокода:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Обновление даты истечения промокода (админ)
+app.put('/api/promo-codes/:id/expires', authMiddleware, (req, res) => {
+    try {
+        const { id } = req.params;
+        const { expires_at } = req.body;
+        
+        if (!expires_at) {
+            return res.status(400).json({ error: 'Дата истечения обязательна' });
+        }
+        
+        db.prepare(`
+            UPDATE promo_codes 
+            SET expires_at = ?
+            WHERE id = ?
+        `).run(expires_at, id);
+        
+        console.log(`📅 Обновлена дата истечения промокода ID ${id} на ${expires_at}`);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Ошибка обновления даты истечения промокода:', error);
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 });

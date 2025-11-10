@@ -2975,7 +2975,9 @@
             
             tbody.innerHTML = allPromoCodes.map(promo => {
                 const expiresAt = new Date(promo.expires_at);
-                const isExpired = new Date() > expiresAt;
+                const year2099 = new Date('2099-12-31');
+                const isForever = expiresAt >= year2099;
+                const isExpired = !isForever && new Date() > expiresAt;
                 const isExhausted = promo.current_uses >= promo.max_uses;
                 
                 let statusBadge = '';
@@ -2989,12 +2991,14 @@
                     statusBadge = '<span class="badge badge-success">Активен</span>';
                 }
                 
+                const expiresDisplay = isForever ? '<span style="color: var(--primary);">Бессрочный</span>' : expiresAt.toLocaleDateString('ru-RU');
+                
                 return `
                     <tr>
                         <td><strong>${promo.code}</strong></td>
                         <td><span style="color: var(--primary); font-weight: 600;">-${promo.discount}%</span></td>
                         <td>${promo.current_uses} / ${promo.max_uses}</td>
-                        <td>${expiresAt.toLocaleDateString('ru-RU')}</td>
+                        <td>${expiresDisplay}</td>
                         <td>${statusBadge}</td>
                         <td>
                             <button class="btn btn-sm ${promo.is_active ? 'btn-warning' : 'btn-success'}" onclick="togglePromoCode(${promo.id})">
