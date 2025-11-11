@@ -1,0 +1,33 @@
+ВЫПОЛНИ ЭТИ КОМАНДЫ НА СЕРВЕРЕ:
+
+ssh root@45.95.234.173
+# Пароль: o-4zWa6SFWUGo,
+
+cd /root/TrustStore
+
+# Проверка
+grep 'data-method=' checkout.html
+
+# Удаление блока sbp (удалит 20 строк начиная со строки с data-method="sbp")
+sed -i '/data-method="sbp"/,+20d' checkout.html
+
+# ИЛИ через Python (более надежно):
+python3 << 'PYTHON'
+import re
+with open('checkout.html', 'r', encoding='utf-8') as f:
+    content = f.read()
+content = re.sub(r'<div class="payment-method"[^>]*data-method="sbp"[^>]*>.*?</div>\s*</div>', '', content, flags=re.DOTALL)
+content = re.sub(r'<div class="payment-method"[^>]*data-method="sbp"[^>]*>.*?</div>', '', content, flags=re.DOTALL)
+with open('checkout.html', 'w', encoding='utf-8') as f:
+    f.write(content)
+print("OK")
+PYTHON
+
+# Проверка
+grep 'data-method=' checkout.html
+
+# Перезапуск
+pm2 restart trust-store
+
+
+

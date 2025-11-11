@@ -1,6 +1,6 @@
 #!/usr/bin/expect -f
 
-set timeout 60
+set timeout 120
 set server "root@45.95.234.173"
 set password "o-4zWa6SFWUGo,"
 
@@ -22,24 +22,21 @@ expect "# "
 send "cd /root/TrustStore\r"
 expect "# "
 
-# Обновляем код
-send "echo '📥 Обновление кода...'\r"
-expect "# "
-
-send "pm2 stop trust-store\r"
+send "echo '📥 Обновление кода с GitHub...'\r"
 expect "# "
 
 send "git pull origin main\r"
 expect "# "
 
-# Запускаем сервер
+send "echo '🔄 Перезапуск сервера...'\r"
+expect "# "
+
 send "pm2 restart trust-store\r"
 expect "# "
 
 send "sleep 3\r"
 expect "# "
 
-# Отправляем конкретный заказ ORD-1762507451113
 send "echo '📤 Отправка заказа ORD-1762507451113...'\r"
 expect "# "
 
@@ -49,19 +46,19 @@ expect "# "
 send "echo ''\r"
 expect "# "
 
-send "echo '📋 Проверка логов последних 50 строк...'\r"
+send "echo '📋 Проверка заказа в базе данных...'\r"
 expect "# "
 
-send "pm2 logs trust-store --lines 50 --nostream | tail -50\r"
+send "sqlite3 analytics.db \"SELECT order_id, customer_email, customer_name, status, payment_method, total_amount, created_at FROM orders WHERE order_id = 'ORD-1762507451113';\" 2>/dev/null\r"
 expect "# "
 
 send "echo ''\r"
 expect "# "
 
-send "echo '📋 Проверка заказа в базе...'\r"
+send "echo '📋 Проверка логов последних 100 строк...'\r"
 expect "# "
 
-send "sqlite3 analytics.db \"SELECT order_id, customer_email, customer_name, status, payment_method, total_amount, created_at FROM orders WHERE order_id = 'ORD-1762507451113';\" 2>/dev/null\r"
+send "pm2 logs trust-store --lines 100 --nostream | tail -100\r"
 expect "# "
 
 send "echo ''\r"
@@ -72,4 +69,8 @@ expect "# "
 
 send "exit\r"
 expect eof
+
+
+
+
 

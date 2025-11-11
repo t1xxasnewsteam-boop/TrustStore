@@ -440,7 +440,8 @@
     <script src="../cart-widget.js"></script>
     <script src="../notification.js"></script>
     <script>
-        let currentPrice = 2250;
+        let originalPrice = 2250; // ✅ ОРИГИНАЛЬНАЯ цена БЕЗ промокода
+        let currentPrice = 2250; // Текущая отображаемая цена (может быть со скидкой)
         let discountApplied = false;
         
         function selectPlan(element, price, duration) {
@@ -452,16 +453,20 @@
             // Add active class to selected option
             element.classList.add('active');
             
-            // Update price
-            currentPrice = price;
+            // Update prices
+            originalPrice = price; // ✅ Сохраняем оригинальную цену
+            currentPrice = price; // Обновляем текущую цену
             
             // Reset promo
             if (discountApplied) {
                 discountApplied = false;
+                appliedPromoDiscount = 0;
+                appliedPromoCode = '';
                 document.getElementById('old-price').style.display = 'none';
                 document.getElementById('discount-badge').style.display = 'none';
                 document.getElementById('promo-code').value = '';
                 document.getElementById('promo-message').style.display = 'none';
+                localStorage.removeItem('tempPromoCode');
             }
             
             const priceElement = document.getElementById('selected-price');
@@ -516,12 +521,12 @@
                     // Промокод валиден
                     appliedPromoDiscount = data.discount;
                     appliedPromoCode = data.code;
-                    const newPrice = Math.round(currentPrice * (1 - data.discount / 100));
+                    const discountedPrice = Math.round(originalPrice * (1 - data.discount / 100));
                     
-                    oldPriceEl.textContent = currentPrice.toLocaleString('ru-RU') + ' ₽';
+                    oldPriceEl.textContent = originalPrice.toLocaleString('ru-RU') + ' ₽';
                     oldPriceEl.style.display = 'block';
                     
-                    priceElement.textContent = newPrice.toLocaleString('ru-RU') + ' ₽';
+                    priceElement.textContent = discountedPrice.toLocaleString('ru-RU') + ' ₽';
                     priceElement.style.animation = 'none';
                     setTimeout(() => {
                         priceElement.style.animation = 'priceUpdate 0.3s ease';
@@ -535,7 +540,8 @@
                     message.style.display = 'block';
                     
                     discountApplied = true;
-                    currentPrice = newPrice;
+                    currentPrice = discountedPrice; // Обновляем только отображаемую цену
+                    // ✅ originalPrice НЕ изменяем!
                     
                     input.disabled = true;
                     input.style.backgroundColor = '#f0f0f0';
@@ -575,7 +581,7 @@
         function addProductToCart() {
             const product = {
                 name: 'Google Gemini + Veo 3',
-                price: currentPrice, // ✅ ОРИГИНАЛЬНАЯ цена БЕЗ промокода!
+                price: originalPrice, // ✅ Используем ОРИГИНАЛЬНУЮ цену БЕЗ промокода!
                 duration: window.selectedDuration || '1 месяц',
                 category: 'AI Генерация',
                 image: '/gemini-image.png'
@@ -595,7 +601,6 @@
         function goToCheckout() {
             const productName = 'Google Gemini + Veo 3';
             // ✅ Передаем ОРИГИНАЛЬНУЮ цену БЕЗ скидки - промокод применится в checkout из localStorage
-            const originalPrice = currentPrice;
             const duration = window.selectedDuration;
             
             // Промокод уже сохранен в localStorage в applyPromoCode(), не нужно сохранять здесь

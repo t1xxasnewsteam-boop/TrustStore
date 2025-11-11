@@ -1,0 +1,64 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "cd /root/TrustStore\r"
+expect "# "
+
+# Ищем последний заказ с Claude
+send "echo '🔍 Поиск последнего заказа на Claude...'\r"
+expect "# "
+
+send "sqlite3 analytics.db \"SELECT order_id, customer_email, customer_name, status, payment_method, total_amount, created_at, products FROM orders WHERE products LIKE '%Claude%' OR products LIKE '%claude%' ORDER BY created_at DESC LIMIT 1;\" 2>/dev/null\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+# Находим order_id последнего заказа с Claude
+send "ORDER_ID=\$(sqlite3 analytics.db \"SELECT order_id FROM orders WHERE (products LIKE '%Claude%' OR products LIKE '%claude%') ORDER BY created_at DESC LIMIT 1;\" 2>/dev/null)\r"
+expect "# "
+
+send "echo \"📦 Найден заказ: \$ORDER_ID\"\r"
+expect "# "
+
+send "if [ -z \"\$ORDER_ID\" ]; then echo '❌ Заказ не найден'; exit; fi\r"
+expect "# "
+
+# Отправляем заказ
+send "echo '📤 Отправка заказа...'\r"
+expect "# "
+
+send "curl -X POST http://localhost:3000/api/manual-send-last-order -H 'Content-Type: application/json' -d \"{\\\"orderId\\\": \\\"\$ORDER_ID\\\"}\" -s | python3 -m json.tool 2>/dev/null || curl -X POST http://localhost:3000/api/manual-send-last-order -H 'Content-Type: application/json' -d \"{\\\"orderId\\\": \\\"\$ORDER_ID\\\"}\" -s\r"
+expect "# "
+
+send "echo ''\r"
+expect "# "
+
+send "echo '✅ ГОТОВО!'\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
+
+
+
+

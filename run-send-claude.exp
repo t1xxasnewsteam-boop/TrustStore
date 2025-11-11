@@ -1,0 +1,49 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set server "root@45.95.234.173"
+set password "o-4zWa6SFWUGo,"
+
+spawn scp send-claude-order.sh $server:/tmp/send-claude-order.sh
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+expect eof
+
+spawn ssh $server
+
+expect {
+    "password:" {
+        send "$password\r"
+    }
+    "(yes/no)?" {
+        send "yes\r"
+        expect "password:"
+        send "$password\r"
+    }
+}
+
+expect "# "
+
+send "chmod +x /tmp/send-claude-order.sh && /tmp/send-claude-order.sh\r"
+expect "# "
+
+send "rm /tmp/send-claude-order.sh\r"
+expect "# "
+
+send "exit\r"
+expect eof
+
+
+
+
+
