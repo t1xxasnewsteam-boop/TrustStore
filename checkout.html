@@ -1040,19 +1040,6 @@
                                     <div class="payment-method-desc">Без комиссии</div>
                                 </div>
                             </div>
-                            <div class="payment-method" data-method="sbp" style="position: relative; display: flex !important; visibility: visible !important; opacity: 1 !important; cursor: pointer;">
-                                <div class="payment-method-icon">
-                                    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M22 2 L30 14 L14 14 Z" fill="#667eea" opacity="0.8"/>
-                                        <circle cx="22" cy="22" r="8" fill="#667eea" opacity="0.6"/>
-                                        <path d="M22 30 L22 42 M14 22 L2 22 M30 22 L42 22" stroke="#667eea" stroke-width="2" stroke-linecap="round"/>
-                                    </svg>
-                                </div>
-                                <div class="payment-method-info">
-                                    <div class="payment-method-name">Перевод</div>
-                                    <div class="payment-method-desc">Перевод по номеру телефона/номеру карты</div>
-                                </div>
-                            </div>
                             <div class="payment-method" data-method="heleket" style="position: relative; display: flex !important; visibility: visible !important; opacity: 1 !important; cursor: pointer;">
                                 <div class="payment-method-icon">
                                     <svg width="44" height="28" viewBox="0 0 56 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Криптовалютный кошелек" role="img">
@@ -1293,21 +1280,33 @@
             const unitPrice = parseInt(productPrice.replace(/\s/g, ''));
             
             // Проверяем, есть ли промокод из страницы товара
+            // ✅ Применяем промокод ТОЛЬКО если товар еще не имеет промокода
             let appliedPromo = null;
             const tempPromo = localStorage.getItem('tempPromoCode');
             if (tempPromo) {
                 try {
                     const promoData = JSON.parse(tempPromo);
+                    // ✅ Применяем промокод только если он еще не применен
+                    // Проверяем, нет ли уже промокода в товаре из корзины
                     appliedPromo = {
                         code: promoData.code,
                         discount: promoData.discount
                     };
-                    // Очищаем tempPromoCode после применения
+                    // Очищаем tempPromoCode после применения (чтобы не применять дважды)
                     localStorage.removeItem('tempPromoCode');
                     console.log('✅ Применен промокод из страницы товара:', promoData.code);
                 } catch (error) {
                     console.error('Ошибка парсинга tempPromoCode:', error);
                 }
+            }
+            
+            // ✅ Проверяем, нет ли уже промокода в товаре из корзины (если товар добавлен через корзину)
+            // Если товар уже имеет промокод, не применяем промокод из localStorage
+            const cart = getCart();
+            const cartItem = cart.find(item => item.name === productName && item.price === unitPrice);
+            if (cartItem && cartItem.appliedPromo) {
+                appliedPromo = cartItem.appliedPromo;
+                console.log('✅ Используем промокод из корзины:', cartItem.appliedPromo.code);
             }
             
             orderItems = [{
@@ -1318,7 +1317,7 @@
                 image: productImage,
                 id: Date.now(),
                 quantity: 1,
-                appliedPromo: appliedPromo // Применяем промокод если он есть
+                appliedPromo: appliedPromo // Применяем промокод если он есть (только один раз!)
             }];
         }
         
@@ -1891,12 +1890,12 @@
             try {
                 // ⚠️ ВАЖНО: Определяем выбранный метод оплаты ПРЯМО СЕЙЧАС, а не из кэша!
                 const selectedPaymentMethodElement = document.querySelector('.payment-method.selected');
-                const selectedPaymentMethod = selectedPaymentMethodElement?.dataset.method || 'sbp';
+                const selectedPaymentMethod = selectedPaymentMethodElement?.dataset.method || 'cardlink';
                 
                 console.log('💳 Выбранный метод оплаты:', selectedPaymentMethod);
                 console.log('📋 Элемент:', selectedPaymentMethodElement);
                 
-                if (!selectedPaymentMethod || (selectedPaymentMethod !== 'sbp' && selectedPaymentMethod !== 'heleket' && selectedPaymentMethod !== 'cardlink')) {
+                if (!selectedPaymentMethod || (selectedPaymentMethod !== 'heleket' && selectedPaymentMethod !== 'cardlink')) {
                     console.error('❌ Неизвестный метод оплаты:', selectedPaymentMethod);
                     alert('❌ Выберите способ оплаты');
                     return;
@@ -1904,9 +1903,7 @@
                     
                 // Определяем paymentMethod
                 let paymentMethod = 'YooMoney'; // по умолчанию
-                if (selectedPaymentMethod === 'sbp') {
-                    paymentMethod = 'SBP';
-                } else if (selectedPaymentMethod === 'heleket') {
+                if (selectedPaymentMethod === 'heleket') {
                     paymentMethod = 'Heleket';
                 } else if (selectedPaymentMethod === 'cardlink') {
                     paymentMethod = 'Cardlink';
@@ -1971,39 +1968,7 @@
                         localStorage.removeItem('appliedPromoCode'); // Удаляем промокод
                         
                         // Оплата в зависимости от выбранного метода
-                        if (selectedPaymentMethod === 'sbp') {
-                            // Оплата через СБП
-                            console.log('💳 Переход на оплату через СБП');
-                            try {
-                                const paymentResponse = await fetch('/api/payment/sbp/create', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        orderId: result.orderId,
-                                        amount: currentTotalPrice,
-                                        customerName: name,
-                                        customerEmail: email,
-                                        customerPhone: phone
-                                    })
-                                });
-                                
-                                if (!paymentResponse.ok) {
-                                    const errorData = await paymentResponse.json();
-                                    throw new Error(errorData.error || `HTTP ${paymentResponse.status}`);
-                                }
-                                
-                                const paymentData = await paymentResponse.json();
-                                console.log('✅ Ответ СБП API:', paymentData);
-                                
-                                // Редирект на страницу оплаты СБП
-                                window.location.href = `/sbp-payment.html?orderId=${result.orderId}&amount=${currentTotalPrice}&phone=${encodeURIComponent(paymentData.formattedPhone)}&bank=${encodeURIComponent(paymentData.bank)}&name=${encodeURIComponent(paymentData.name)}`;
-                                return; // Важно! Прекращаем выполнение
-                            } catch (error) {
-                                console.error('❌ Ошибка создания платежа СБП:', error);
-                                alert('❌ Ошибка создания платежа. Попробуйте позже.');
-                                return;
-                            }
-                        } else if (selectedPaymentMethod === 'heleket') {
+                        if (selectedPaymentMethod === 'heleket') {
                             // Оплата через Heleket
                             console.log('💎 Переход на оплату через HELEKET');
                             try {
