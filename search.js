@@ -97,6 +97,14 @@ const products = [
         price: 'от 500 ₽', 
         image: 'vpn-image.png',
         aliases: ['впн', 'вин', 'vpn', 'вепеэн']
+    },
+    { 
+        name: 'ElevenLabs Creator', 
+        url: '/product/elevenlabs', 
+        category: 'AI Голос', 
+        price: 'от 2 700 ₽', 
+        image: 'elevenlabs-image.png',
+        aliases: ['элевенлабс', 'элевен лабс', 'elevenlabs', 'eleven labs', 'голос', 'ai голос', 'озвучка', 'токены', '100000']
     }
 ];
 
