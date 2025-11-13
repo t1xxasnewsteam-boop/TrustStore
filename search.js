@@ -105,6 +105,14 @@ const products = [
         price: 'от 2 700 ₽', 
         image: 'elevenlabs-image.png',
         aliases: ['элевенлабс', 'элевен лабс', 'elevenlabs', 'eleven labs', 'голос', 'ai голос', 'озвучка', 'токены', '100000']
+    },
+    { 
+        name: 'Microsoft Office 365', 
+        url: '/product/microsoft', 
+        category: 'Офис', 
+        price: 'от 5 000 ₽', 
+        image: 'microsoft.png',
+        aliases: ['микрософт', 'майкрософт', 'microsoft', 'office', 'офис', 'ворд', 'word', 'excel', 'эксель', 'powerpoint', 'пауэрпоинт', '365']
     }
 ];
 
