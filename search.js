@@ -113,6 +113,14 @@ const products = [
         price: 'от 5 000 ₽', 
         image: 'microsoft.png',
         aliases: ['микрософт', 'майкрософт', 'microsoft', 'office', 'офис', 'ворд', 'word', 'excel', 'эксель', 'powerpoint', 'пауэрпоинт', '365']
+    },
+    { 
+        name: 'Perplexity Pro', 
+        url: '/product/perplexity', 
+        category: 'AI Поиск', 
+        price: 'от 2 000 ₽', 
+        image: 'perplexity-image.png',
+        aliases: ['перплексити', 'перплекси', 'perplexity', 'поиск', 'ai поиск', 'умный поиск']
     }
 ];
 
