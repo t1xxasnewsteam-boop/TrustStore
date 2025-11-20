@@ -121,6 +121,14 @@ const products = [
         price: 'от 2 000 ₽', 
         image: 'perplexity-image.png',
         aliases: ['перплексити', 'перплекси', 'perplexity', 'поиск', 'ai поиск', 'умный поиск']
+    },
+    { 
+        name: 'Canva Pro', 
+        url: '/product/canva', 
+        category: 'Дизайн', 
+        price: 'от 1 200 ₽', 
+        image: 'canva-image.png',
+        aliases: ['канва', 'canva', 'дизайн', 'дизайнер', 'шаблоны', 'графика', 'креатив']
     }
 ];
 
