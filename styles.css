@@ -717,20 +717,13 @@ body {
 .product-badge.badge-category {
     background: white;
     color: #1a1a1a;
-    top: 73px;
+    top: 25px;
     right: 12px;
 }
 
-/* Для карточек без "Хит" - поднимаем бейджи наверх */
-.product-card:nth-child(2) .product-badge.badge-category,
-.product-card:nth-child(3) .product-badge.badge-category,
-.product-card:nth-child(4) .product-badge.badge-category,
-.product-card:nth-child(5) .product-badge.badge-category,
-.product-card:nth-child(6) .product-badge.badge-category,
-.product-card:nth-child(7) .product-badge.badge-category,
-.product-card:nth-child(8) .product-badge.badge-category,
-.product-card:nth-child(9) .product-badge.badge-category {
-    top: 35px;
+/* Для карточек с "Хит" бейджем - опускаем бейдж категории ниже */
+.product-card:nth-child(1) .product-badge.badge-category {
+    top: 73px;
 }
 
 .product-badge.hot {
