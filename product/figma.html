@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Figma Professional - Trust Store</title>
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="shortcut icon" type="image/png" href="../favicon.png">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../search.css">
+    <link rel="stylesheet" href="../cart-widget.css">
+    <link rel="stylesheet" href="../chat-widget.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .product-page {
+            padding: 40px 0 80px;
+            background: white;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            transform: translateX(-5px);
+        }
+        
+        .product-detail {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            margin-top: 40px;
+        }
+        
+        .product-image-large {
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: visible;
+        }
+        
+        .badge-container {
+            position: absolute;
+            top: 25px;
+            right: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+            z-index: 10;
+        }
+        
+        .badge-container .product-badge {
+            position: static;
+        }
+        
+        .product-detail-info h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+        }
+        
+        .product-detail-desc {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 25px;
+        }
+        
+        .price-large {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        
+        @keyframes strikethrough {
+            from {
+                text-decoration: none;
+                opacity: 1;
+            }
+            to {
+                text-decoration: line-through;
+                opacity: 0.6;
+            }
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes priceUpdate {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        .product-detail-info h3 {
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .features-list {
+            list-style: none;
+            margin: 10px 0 20px 0;
+        }
+        
+        .features-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 16px;
+            color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .features-list li:before {
+            content: "✓";
+            color: #667eea;
+            font-weight: 700;
+            font-size: 20px;
+        }
+        
+        .info-block {
+            background: #f8f9ff;
+            padding: 30px;
+            border-radius: 20px;
+            margin-top: 30px;
+        }
+        
+        .info-block h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1a1a1a;
+        }
+        
+        .info-block p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .pricing-options {
+            margin: 30px 0;
+        }
+        
+        .pricing-options h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1a1a1a;
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .pricing-option {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .pricing-option:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+        }
+        
+        .pricing-option.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+        
+        .pricing-option.popular::after {
+            content: "Популярно";
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            background: #FFD700;
+            color: #1a1a1a;
+            padding: 4px 12px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .pricing-duration {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 6px;
+            text-align: left;
+        }
+        
+        .pricing-price {
+            font-size: 22px;
+            font-weight: 700;
+            color: #667eea;
+            text-align: left;
+        }
+        
+        .pricing-per-month {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+            text-align: left;
+        }
+        
+        @media (max-width: 768px) {
+            .back-link {
+                margin-bottom: 16px;
+                font-size: 14px;
+            }
+            
+            .product-page {
+                padding: 20px 0 40px;
+            }
+            
+            .product-detail {
+                grid-template-columns: 1fr;
+                gap: 16px;
+                margin-top: 16px;
+            }
+            
+            .product-image-large {
+                height: 250px;
+                margin-bottom: 8px;
+            }
+            
+            .badge-container {
+                top: 12px;
+                right: 12px;
+                gap: 6px;
+            }
+            
+            .badge-container .product-badge {
+                font-size: 10px;
+                padding: 4px 10px;
+            }
+            
+            .product-detail-info h1 {
+                font-size: 24px;
+                margin-bottom: 8px;
+                margin-top: 0;
+            }
+            
+            .product-detail-desc {
+                font-size: 14px;
+                margin-bottom: 16px;
+            }
+            
+            .price-large {
+                font-size: 28px;
+            }
+            
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="logo-wrapper">
+                        <a href="/" style="text-decoration: none;">
+                            <div class="logo">
+                                <img src="../logo.png" alt="Trust Store" class="logo-image">
+                                <h1>Trust Store</h1>
+                            </div>
+                        </a>
+                        <span class="logo-subtitle" style="pointer-events: none;">магазин цифровых товаров</span>
+                    </div>
+                </div>
+                <div class="header-center">
+                    <nav class="nav">
+                        <a href="/" class="nav-link">Главная</a>
+                        <a href="/catalog" class="nav-link">Каталог</a>
+                        <a href="/socials" class="nav-link">Мы в соцсетях</a>
+                    </nav>
+                </div>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <button class="btn-icon">🔍</button>
+                        <button class="btn-icon cart-button" onclick="toggleCartWidget()">🛒 <span class="badge cart-count">0</span></button>
+                        <script>(function(){try{var c=JSON.parse(localStorage.getItem('trustStoreCart')||'[]'),t=0;c.forEach(function(i){t+=(i.quantity||1)});var b=document.currentScript.previousElementSibling.querySelector('.cart-count');if(b)b.textContent=t;}catch(e){}})();</script>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Product Page -->
+    <section class="product-page">
+        <div class="container">
+            <a href="/catalog" class="back-link">← Назад к каталогу</a>
+            
+            <div class="product-detail">
+                <div class="product-image-large">
+                    <div class="badge-container" style="top: 35px;">
+                        <div class="product-badge badge-category">Дизайн</div>
+                    </div>
+                    <img src="../figma-image.png" alt="Figma Professional" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 20px; transform: translateY(-40px);">
+                </div>
+                
+                <div class="product-detail-info">
+                    <h1>Figma Professional</h1>
+                    <p class="product-detail-desc">Твоя мощная платформа для дизайна и совместной работы</p>
+                    
+                    <div class="pricing-options">
+                        <h3>Выберите срок подписки:</h3>
+                        <div class="pricing-grid">
+                            <div class="pricing-option active" onclick="selectPlan(this, 1800, '1 месяц')">
+                                <div class="pricing-duration">1 месяц</div>
+                                <div class="pricing-price">1 800 ₽</div>
+                                <div class="pricing-per-month">1 800 ₽/мес</div>
+                            </div>
+                            
+                            <div class="pricing-option popular" onclick="selectPlan(this, 10000, '2 года')">
+                                <div class="pricing-duration">2 года</div>
+                                <div class="pricing-price">10 000 ₽</div>
+                                <div class="pricing-per-month">417 ₽/мес</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
+                        <div class="price-large" id="selected-price">1 800 ₽</div>
+                        <div id="old-price" style="display: none; font-size: 28px; font-weight: 600; color: #999; text-decoration: line-through; animation: strikethrough 0.5s ease;"></div>
+                        <div id="discount-badge" style="display: none; background: #26de81; color: white; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; animation: scaleIn 0.5s ease;">-10%</div>
+                    </div>
+                    
+                    <!-- Promo Code -->
+                    <div style="margin: 20px 0;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input 
+                                type="text" 
+                                id="promo-code" 
+                                placeholder="Введите промокод" 
+                                style="flex: 1; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 14px; transition: all 0.3s ease; font-family: 'Inter', sans-serif;"
+                                onfocus="this.style.borderColor='#667eea'"
+                                onblur="this.style.borderColor='#e0e0e0'"
+                            >
+                            <button 
+                                onclick="applyPromoCode()" 
+                                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; white-space: nowrap;"
+                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.4)'"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"
+                            >
+                                Применить
+                            </button>
+                        </div>
+                        <div id="promo-message" style="margin-top: 8px; font-size: 13px; display: none;"></div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; margin-bottom: 30px;">
+                        <button class="btn-buy-large" onclick="goToCheckout()">Купить сейчас</button>
+                        <button class="btn-add-cart" onclick="addProductToCart()">🛒 В корзину</button>
+                    </div>
+                    
+                    <h3>✨ Что входит:</h3>
+                    <ul class="features-list">
+                        <li>🎨 Figma Professional — твоя мощная платформа для дизайна и совместной работы</li>
+                        <li>⚡ Создавай интерфейсы, прототипы и дизайн-системы быстро, гибко и без ограничений</li>
+                        <li>🖥 Продвинутое проектирование: компоненты, вариативность, автолэйауты — всё для чистых, масштабируемых интерфейсов</li>
+                        <li>🧩 Расширенные компоненты и библиотеки: создавай собственные UI-киты и делись ими с командой, чтобы все работали в едином стиле</li>
+                        <li>🔗 Улучшенная командная работа: комментируйте, редактируйте и обсуждайте дизайн в реальном времени — все видят изменения мгновенно</li>
+                        <li>🧪 Интерактивные прототипы с переходами, анимациями и пользовательскими потоками — проверяй идею прежде, чем писать код</li>
+                        <li>⚙️ Интеграции и плагины: автоматизация рутинных задач, генерация контента, проверка макетов, экспорт — всё в один клик</li>
+                        <li>🎨 Расширенная поддержка дизайн-систем: версия библиотеки, контроль публикаций и прозрачная документация</li>
+                        <li>📁 Удобная организация файлов: приватные проекты, гибкие разрешения и совместный доступ</li>
+                        <li>🚀 Мощь в масштабе — от стартапов до крупных продуктовых команд</li>
+                        <li>⚡ Единая среда. Удобная коллаборация. Дизайн будущего — уже сейчас</li>
+                        <li>💎 Подписка Professional на ваш аккаунт</li>
+                        <li>✅ Гарантия работы</li>
+                        <li>💬 Поддержка 24/7</li>
+                    </ul>
+                    
+                    <div class="info-block">
+                        <h3>📦 Как получить товар?</h3>
+                        <p>После оплаты вы получите инструкцию по активации на email. Активация займет 5-10 минут. Все безопасно и конфиденциально!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Trust Store</h3>
+                    <p>Ваш надежный магазин цифровых товаров</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Компания</h4>
+                    <a href="/about">О нас</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Помощь</h4>
+                    <a href="/faq">FAQ</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Связь</h4>
+                    <span>Email: orders@truststore.ru</span>
+                    <span style="color: white; white-space: nowrap;">Telegram: <a href="https://t.me/truststore_admin" target="_blank" style="color: white; text-decoration: underline;">@truststore_admin</a> (кликабельно)</span>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Trust Store. Все права защищены. ИНН: 523802785027</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../script.js"></script>
+    <script src="../tracking.js"></script>
+    <script>
+        let currentPrice = 1800; // Оригинальная цена без скидки
+        let discountApplied = false;
+        
+        function selectPlan(element, price, duration) {
+            // Убрать active со всех опций
+            document.querySelectorAll('.pricing-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            // Добавить active к выбранной опции
+            element.classList.add('active');
+            
+            // Сохранить текущую цену (оригинальную)
+            currentPrice = price;
+            
+            // Сбросить промокод при смене тарифа
+            if (discountApplied) {
+                discountApplied = false;
+                appliedPromoDiscount = 0;
+                appliedPromoCode = '';
+                document.getElementById('promo-code').value = '';
+                document.getElementById('promo-code').disabled = false;
+                document.getElementById('promo-code').style.backgroundColor = '';
+                document.getElementById('promo-message').style.display = 'none';
+                const applyButton = document.getElementById('promo-code').nextElementSibling;
+                applyButton.disabled = false;
+                applyButton.textContent = 'Применить';
+            }
+            
+            // Обновить цену (учитываем скидку если применена)
+            updatePrice();
+        }
+        
+        let appliedPromoDiscount = 0;
+        let appliedPromoCode = '';
+        
+        function updatePrice() {
+            const priceElement = document.getElementById('selected-price');
+            const oldPriceElement = document.getElementById('old-price');
+            const discountBadge = document.getElementById('discount-badge');
+            let finalPrice = currentPrice;
+            
+            if (discountApplied && appliedPromoDiscount > 0) {
+                const discountMultiplier = (100 - appliedPromoDiscount) / 100;
+                finalPrice = Math.round(currentPrice * discountMultiplier);
+                
+                // Показываем старую цену зачеркнутой
+                oldPriceElement.textContent = currentPrice.toLocaleString('ru-RU') + ' ₽';
+                oldPriceElement.style.display = 'block';
+                
+                // Показываем бейдж со скидкой
+                discountBadge.textContent = `-${appliedPromoDiscount}%`;
+                discountBadge.style.display = 'block';
+                
+                // Анимация новой цены
+                priceElement.style.animation = 'priceUpdate 0.3s ease';
+                setTimeout(() => {
+                    priceElement.style.animation = '';
+                }, 600);
+            } else {
+                oldPriceElement.style.display = 'none';
+                discountBadge.style.display = 'none';
+            }
+            
+            priceElement.textContent = finalPrice.toLocaleString('ru-RU') + ' ₽';
+            priceElement.style.animation = 'none';
+            setTimeout(() => {
+                priceElement.style.animation = 'priceUpdate 0.3s ease';
+            }, 10);
+        }
+        
+        async function applyPromoCode() {
+            const promoInput = document.getElementById('promo-code');
+            const promoCode = promoInput.value.trim().toUpperCase();
+            const messageElement = document.getElementById('promo-message');
+            const applyButton = promoInput.nextElementSibling;
+            
+            if (promoCode === '') {
+                messageElement.style.display = 'block';
+                messageElement.style.color = '#ff6b6b';
+                messageElement.textContent = '❌ Введите промокод';
+                return;
+            }
+            
+            if (discountApplied) {
+                messageElement.style.display = 'block';
+                messageElement.style.color = '#ff6b6b';
+                messageElement.textContent = '⚠️ Промокод уже применён';
+                return;
+            }
+            
+            // Показываем загрузку
+            applyButton.disabled = true;
+            applyButton.textContent = 'Проверка...';
+            
+            try {
+                // Проверяем промокод через API
+                const response = await fetch('/api/validate-promo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: promoCode })
+                });
+                
+                const data = await response.json();
+                
+                if (data.valid) {
+                    // Промокод валиден
+                    appliedPromoDiscount = data.discount;
+                    appliedPromoCode = data.code;
+                    discountApplied = true;
+                    updatePrice();
+                    
+                    messageElement.style.display = 'block';
+                    messageElement.style.color = '#26de81';
+                    messageElement.textContent = `✓ Промокод применен! Скидка ${data.discount}%`;
+                    
+                    promoInput.disabled = true;
+                    promoInput.style.backgroundColor = '#f0f0f0';
+                    applyButton.disabled = true;
+                    applyButton.textContent = 'Применен';
+                    
+                    // Сохраняем промокод для передачи в checkout
+                    localStorage.setItem('tempPromoCode', JSON.stringify({ code: data.code, discount: data.discount }));
+                } else {
+                    // Промокод невалиден
+                    messageElement.style.display = 'block';
+                    messageElement.style.color = '#ff6b6b';
+                    messageElement.textContent = `❌ ${data.message || 'Неверный промокод'}`;
+                    
+                    applyButton.disabled = false;
+                    applyButton.textContent = 'Применить';
+                }
+            } catch (error) {
+                console.error('Error validating promo code:', error);
+                messageElement.style.display = 'block';
+                messageElement.style.color = '#ff6b6b';
+                messageElement.textContent = '❌ Ошибка проверки промокода';
+                
+                applyButton.disabled = false;
+                applyButton.textContent = 'Применить';
+            }
+        }
+        
+        // Глобальная переменная для выбранного срока
+        window.selectedDuration = '1 месяц'; // По умолчанию
+        
+        // Функция для перехода на страницу оформления заказа
+        function goToCheckout() {
+            const productName = 'Figma Professional';
+            // ✅ Передаем ОРИГИНАЛЬНУЮ цену БЕЗ скидки - промокод применится в checkout из localStorage
+            // currentPrice всегда содержит оригинальную цену без скидки
+            const originalPrice = currentPrice;
+            const duration = window.selectedDuration;
+            
+            // Формируем URL с параметрами
+            const checkoutURL = `/checkout?product=${encodeURIComponent(productName)}&price=${originalPrice}&duration=${encodeURIComponent(duration)}`;
+            
+            // Переходим на страницу оформления
+            window.location.href = checkoutURL;
+        }
+        
+        // Обновляем функцию selectPlan, чтобы сохранять выбранный срок
+        const originalSelectPlan = selectPlan;
+        selectPlan = function(element, price, duration) {
+            originalSelectPlan(element, price, duration);
+            window.selectedDuration = duration;
+        };
+    </script>
+    
+    <script>
+        // Функция добавления товара в корзину
+        // Используем addToCart из cart.js, который автоматически вызывает showCartNotification из notification.js
+        function addProductToCart() {
+            const product = {
+                name: 'Figma Professional',
+                price: currentPrice, // ✅ ОРИГИНАЛЬНАЯ цена БЕЗ промокода! (currentPrice всегда оригинальная)
+                duration: window.selectedDuration || '1 месяц',
+                category: 'Дизайн',
+                image: '/figma-image.png'
+            };
+            
+            // Если применен промокод, добавляем его к товару
+            if (discountApplied && appliedPromoCode) {
+                product.appliedPromo = {
+                    code: appliedPromoCode,
+                    discount: appliedPromoDiscount
+                };
+            }
+            
+            addToCart(product);
+        }
+        
+        // При загрузке обновляем счетчик
+        document.addEventListener('DOMContentLoaded', updateCartCount);
+    </script>
+    
+    <script src="../cart.js"></script>
+    <script src="../cart-widget.js"></script>
+    <script src="../notification.js"></script>
+    
+    <!-- Search Modal -->
+    <div id="search-modal" style="display: none;">
+        <div class="search-modal-content">
+            <div class="search-modal-header">
+                <h2>🔍 Поиск</h2>
+                <button id="close-search">✕</button>
+            </div>
+            <div class="search-modal-body">
+                <div class="search-input-wrapper">
+                    <span class="search-input-icon">🔍</span>
+                    <input type="text" id="search-input" placeholder="Введите название товара...">
+                </div>
+                <div id="search-results"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cart Widget Overlay -->
+    <div id="cartWidgetOverlay" class="cart-widget-overlay"></div>
+    
+    <!-- Cart Widget -->
+    <div id="cartWidget" class="cart-widget">
+        <div class="cart-widget-header">
+            <h3>🛒 Корзина</h3>
+            <button class="cart-widget-close" onclick="closeCartWidget()">×</button>
+        </div>
+        <div class="cart-widget-items" id="cartWidgetItems">
+            <!-- Items will be inserted here by JavaScript -->
+        </div>
+        <div class="cart-widget-footer" id="cartWidgetFooter">
+            <div class="cart-widget-total">
+                <span class="cart-widget-total-label">Итого:</span>
+                <span class="cart-widget-total-price" id="cartWidgetTotalPrice">0 ₽</span>
+            </div>
+            <div class="cart-widget-actions">
+                <button class="btn-view-full-cart" onclick="window.location.href='/cart'">
+                    Открыть корзину
+                </button>
+                <button class="btn-cart-checkout" onclick="checkoutFromWidget()">
+                    Оформить
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="../search.js"></script>
+    <script src="../chat-widget.js"></script>
+</body>
+</html>
+

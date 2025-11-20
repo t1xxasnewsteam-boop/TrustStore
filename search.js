@@ -129,6 +129,14 @@ const products = [
         price: 'от 1 200 ₽', 
         image: 'canva-image.png',
         aliases: ['канва', 'canva', 'дизайн', 'дизайнер', 'шаблоны', 'графика', 'креатив']
+    },
+    { 
+        name: 'Figma Professional', 
+        url: '/product/figma', 
+        category: 'Дизайн', 
+        price: 'от 1 800 ₽', 
+        image: 'figma-image.png',
+        aliases: ['фигма', 'figma', 'прототип', 'ui', 'ux', 'интерфейс', 'дизайн', 'дизайнер']
     }
 ];
 
