@@ -5605,6 +5605,29 @@ app.listen(PORT, () => {
     👤 Логин: t1xxas
     🔑 Пароль: Gaga00723
     `);
+    
+    // Проверка и исправление счетчика отзывов при старте
+    try {
+        const realReviewCount = db.prepare('SELECT COUNT(*) as count FROM telegram_reviews').get().count;
+        const currentStats = db.prepare('SELECT total_comments FROM telegram_stats WHERE id = 1').get();
+        const currentTotal = currentStats ? currentStats.total_comments : 0;
+        
+        if (currentTotal !== realReviewCount) {
+            console.log(`⚠️ Исправление счетчика отзывов: ${currentTotal} → ${realReviewCount} (реальное количество в БД)`);
+            db.prepare(`
+                INSERT INTO telegram_stats (id, total_comments, last_updated)
+                VALUES (1, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(id) DO UPDATE SET 
+                    total_comments = excluded.total_comments,
+                    last_updated = CURRENT_TIMESTAMP
+            `).run(realReviewCount);
+            console.log(`✅ Счетчик отзывов исправлен: ${realReviewCount}`);
+        } else {
+            console.log(`✅ Счетчик отзывов корректен: ${realReviewCount}`);
+        }
+    } catch (error) {
+        console.error('❌ Ошибка проверки счетчика отзывов:', error.message);
+    }
 });
 
 // ==================== MANUAL ORDER PROCESSING ====================
