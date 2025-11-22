@@ -8,7 +8,7 @@ const products = [
         category: 'Подписка', 
         price: 'от 2 250 ₽', 
         image: 'gpt-image.png',
-        aliases: ['чатджипити', 'чат джипити', 'чат', 'джипити', 'гпт', 'chatgpt', 'gpt', 'чатгпт', 'openai', 'опенэй', 'нейросеть', 'нейросети', 'ai', 'ии']
+        aliases: ['чатджипити', 'чат джипити', 'чат', 'джипити', 'гпт', 'chatgpt', 'gpt', 'чатгпт', 'openai', 'опенэй', 'опенэйаи', 'нейросеть', 'нейросети', 'ai', 'ии', 'чат гпт', 'чат gpt', 'плюс', 'plus', 'чатгпт плюс']
     },
     { 
         name: 'Midjourney', 
@@ -16,7 +16,7 @@ const products = [
         category: 'AI Генерация', 
         price: 'от 500 ₽', 
         image: 'midjourney-image.png',
-        aliases: ['миджорни', 'миджёрни', 'мидджорни', 'midjourney', 'mj', 'миджорней', 'изображения', 'генерация изображений', 'картинки', 'арт']
+        aliases: ['миджорни', 'миджёрни', 'мидджорни', 'midjourney', 'mj', 'мидж', 'миджорней', 'миджорн', 'изображения', 'генерация изображений', 'картинки', 'арт', 'рисунки', 'рисование', 'ai арт', 'нейроарт']
     },
     { 
         name: 'Личный VPN', 
@@ -32,7 +32,7 @@ const products = [
         category: 'AI Генерация', 
         price: 'от 2 250 ₽', 
         image: 'gemini-image.png',
-        aliases: ['гемини', 'джемини', 'гугл гемини', 'google gemini', 'gemini', 'google', 'veo', 'вео', 'veo 3', 'вео 3', 'гемини вео', 'гугл', 'нейросеть гугл', 'ai гугл']
+        aliases: ['гемини', 'джемини', 'гугл гемини', 'google gemini', 'gemini', 'google', 'veo', 'вео', 'veo 3', 'вео 3', 'вео3', 'гемини вео', 'гугл', 'нейросеть гугл', 'ai гугл', 'gemini pro', 'гемини про', 'видео генерация', 'генерация видео']
     },
     { 
         name: 'Cursor AI', 
@@ -40,7 +40,7 @@ const products = [
         category: 'AI Генерация', 
         price: 'от 2 250 ₽', 
         image: 'cursor-image.png',
-        aliases: ['курсор', 'курзор', 'cursor', 'кёрсор', 'cursor ai', 'курсор аи', 'код', 'программирование', 'разработка', 'редактор кода']
+        aliases: ['курсор', 'курзор', 'cursor', 'кёрсор', 'cursor ai', 'курсор аи', 'код', 'программирование', 'разработка', 'редактор кода', 'ide', 'айди', 'редактор', 'автокод', 'нейрокод']
     },
     { 
         name: 'Claude AI Pro', 
@@ -48,7 +48,7 @@ const products = [
         category: 'AI Генерация', 
         price: 'от 2 250 ₽', 
         image: 'claude-image.png',
-        aliases: ['клод', 'клауд', 'claude', 'claude ai', 'клод аи', 'клод про', 'anthropic', 'антропик', 'нейросеть', 'код']
+        aliases: ['клод', 'клауд', 'claude', 'claude ai', 'клод аи', 'клод про', 'claude pro', 'anthropic', 'антропик', 'антропик аи', 'нейросеть', 'код', 'клод антропик']
     },
     { 
         name: 'YouTube Premium', 
@@ -56,15 +56,7 @@ const products = [
         category: 'Видео', 
         price: 'от 800 ₽', 
         image: 'youtube-image.png',
-        aliases: ['ютуб', 'ютюб', 'youtube', 'ютьюб', 'youtube premium', 'ютуб премиум', 'премиум', 'без рекламы', 'офлайн', 'фоновое воспроизведение', 'музыка']
-    },
-    { 
-        name: 'YouTube Premium', 
-        url: '/product/youtube', 
-        category: 'Видео', 
-        price: 'от 800 ₽', 
-        image: 'youtube-image.png',
-        aliases: ['музыка', 'мюзик', 'music', 'ютуб музыка', 'youtube music', 'музыка премиум']
+        aliases: ['ютуб', 'ютюб', 'youtube', 'ютьюб', 'youtube premium', 'ютуб премиум', 'премиум', 'без рекламы', 'офлайн', 'фоновое воспроизведение', 'музыка', 'мюзик', 'music', 'ютуб музыка', 'youtube music', 'музыка премиум', 'ютубе', 'ютуб про', 'видео', 'подписка']
     },
     { 
         name: 'Adobe Creative Cloud', 
@@ -72,7 +64,7 @@ const products = [
         category: 'Дизайн', 
         price: 'от 1 700 ₽', 
         image: 'adobe-image.png',
-        aliases: ['адоб', 'адобе', 'adobe', 'adobe creative cloud', 'creative cloud', 'фотошоп', 'photoshop', 'иллюстратор', 'illustrator', 'after effects', 'премиер', 'premiere', 'дизайн', 'графика']
+        aliases: ['адоб', 'адобе', 'adobe', 'adobe creative cloud', 'creative cloud', 'фотошоп', 'photoshop', 'пс', 'ps', 'иллюстратор', 'illustrator', 'ai', 'after effects', 'ae', 'премиер', 'premiere', 'pr', 'дизайн', 'графика', 'adobe cc', 'адобе цц', 'фш', 'редактор', 'монтаж']
     },
     { 
         name: 'CapCut Pro', 
@@ -80,7 +72,7 @@ const products = [
         category: 'Монтаж', 
         price: 'от 1 250 ₽', 
         image: 'capcut-image.png',
-        aliases: ['капкат', 'капкут', 'capcut', 'капкат про', 'capcut pro', 'монтаж', 'видео', 'видеомонтаж', 'редактор видео', 'клипы']
+        aliases: ['капкат', 'капкут', 'capcut', 'капкат про', 'capcut pro', 'монтаж', 'видео', 'видеомонтаж', 'редактор видео', 'клипы', 'видеоредактор', 'капкат', 'кап кут', 'видео монтаж']
     },
     { 
         name: 'ElevenLabs Creator', 
@@ -88,7 +80,7 @@ const products = [
         category: 'AI Голос', 
         price: 'от 2 700 ₽', 
         image: 'elevenlabs-image.png',
-        aliases: ['элевенлабс', 'элевен лабс', 'elevenlabs', 'eleven labs', 'elevenlabs creator', 'голос', 'ai голос', 'озвучка', 'токены', '100000', '100к', 'синтез речи', 'tts', 'voice']
+        aliases: ['элевенлабс', 'элевен лабс', 'elevenlabs', 'eleven labs', 'elevenlabs creator', 'элевенлабс креатор', 'голос', 'ai голос', 'озвучка', 'токены', '100000', '100к', '100 тысяч', 'синтез речи', 'tts', 'voice', 'голосовой', 'озвучивание', 'элевен']
     },
     { 
         name: 'Microsoft Office 365', 
@@ -96,7 +88,7 @@ const products = [
         category: 'Офис', 
         price: 'от 5 000 ₽', 
         image: 'microsoft.png',
-        aliases: ['микрософт', 'майкрософт', 'microsoft', 'microsoft office', 'office 365', 'office', 'офис', 'ворд', 'word', 'excel', 'эксель', 'powerpoint', 'пауэрпоинт', '365', 'офисный пакет', 'документы', 'таблицы', 'презентации']
+        aliases: ['микрософт', 'майкрософт', 'microsoft', 'microsoft office', 'office 365', 'office', 'офис', 'ворд', 'word', 'excel', 'эксель', 'powerpoint', 'пауэрпоинт', '365', 'офисный пакет', 'документы', 'таблицы', 'презентации', 'ms office', 'мс офис', 'офис 365', 'майкрософт офис', 'офис майкрософт']
     },
     { 
         name: 'Perplexity Pro', 
@@ -104,7 +96,7 @@ const products = [
         category: 'AI Поиск', 
         price: 'от 2 000 ₽', 
         image: 'perplexity-image.png',
-        aliases: ['перплексити', 'перплекси', 'perplexity', 'perplexity pro', 'поиск', 'ai поиск', 'умный поиск', 'ассистент', 'поисковик', 'поисковая система']
+        aliases: ['перплексити', 'перплекси', 'perplexity', 'perplexity pro', 'перплексити про', 'поиск', 'ai поиск', 'умный поиск', 'ассистент', 'поисковик', 'поисковая система', 'перплекс', 'поиск аи', 'нейро поиск']
     },
     { 
         name: 'Canva Pro', 
@@ -112,7 +104,7 @@ const products = [
         category: 'Дизайн', 
         price: 'от 1 200 ₽', 
         image: 'canva-image.png',
-        aliases: ['канва', 'canva', 'canva pro', 'канва про', 'дизайн', 'дизайнер', 'шаблоны', 'графика', 'креатив', 'баннеры', 'соцсети', 'постеры']
+        aliases: ['канва', 'canva', 'canva pro', 'канва про', 'дизайн', 'дизайнер', 'шаблоны', 'графика', 'креатив', 'баннеры', 'соцсети', 'постеры', 'редактор', 'онлайн дизайн', 'конструктор', 'макеты']
     },
     { 
         name: 'Figma Professional', 
@@ -120,7 +112,7 @@ const products = [
         category: 'Дизайн', 
         price: 'от 1 800 ₽', 
         image: 'figma-image.png',
-        aliases: ['фигма', 'figma', 'figma professional', 'фигма про', 'прототип', 'прототипирование', 'ui', 'ux', 'интерфейс', 'интерфейсы', 'дизайн', 'дизайнер', 'веб дизайн', 'мобильный дизайн']
+        aliases: ['фигма', 'figma', 'figma professional', 'фигма про', 'фигма профессиональ', 'прототип', 'прототипирование', 'ui', 'ux', 'интерфейс', 'интерфейсы', 'дизайн', 'дизайнер', 'веб дизайн', 'мобильный дизайн', 'редактор', 'веб', 'сайт', 'приложение']
     }
 ];
 
