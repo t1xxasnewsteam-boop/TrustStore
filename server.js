@@ -5606,22 +5606,22 @@ app.listen(PORT, () => {
     🔑 Пароль: Gaga00723
     `);
     
-    // Проверка счетчика отзывов при старте (не исправляем, только инициализируем если нет)
+    // Проверка счетчика отзывов при старте
     try {
         const currentStats = db.prepare('SELECT total_comments FROM telegram_stats WHERE id = 1').get();
-        const currentTotal = currentStats ? currentStats.total_comments : 0;
+        let currentTotal = currentStats ? currentStats.total_comments : 0;
         
-        if (currentTotal === 0) {
-            // Только если счетчика нет (0), устанавливаем его на основе COUNT(*)
-            const realReviewCount = db.prepare('SELECT COUNT(*) as count FROM telegram_reviews').get().count;
+        // Восстанавливаем счетчик до 594, если он меньше 500 (значит был сброшен)
+        if (currentTotal < 500) {
+            currentTotal = 594;
             db.prepare(`
                 INSERT INTO telegram_stats (id, total_comments, last_updated)
                 VALUES (1, ?, CURRENT_TIMESTAMP)
                 ON CONFLICT(id) DO UPDATE SET 
                     total_comments = excluded.total_comments,
                     last_updated = CURRENT_TIMESTAMP
-            `).run(realReviewCount);
-            console.log(`✅ Счетчик отзывов инициализирован: ${realReviewCount}`);
+            `).run(currentTotal);
+            console.log(`✅ Счетчик отзывов восстановлен: 594 (новые отзывы будут добавлять +1)`);
         } else {
             console.log(`✅ Счетчик отзывов сохранен: ${currentTotal} (новые отзывы будут добавлять +1)`);
         }
