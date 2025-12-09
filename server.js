@@ -827,6 +827,35 @@ if (!checkAdmin) {
     console.log('✅ Создан дефолтный админ: t1xxas / Gaga00723');
 }
 
+// Создаем/обновляем промокод GPT5 с бессрочными активациями (скидка 10%)
+try {
+    const existingGPT5 = db.prepare('SELECT * FROM promo_codes WHERE code = ?').get('GPT5');
+    if (!existingGPT5) {
+        db.prepare(`
+            INSERT INTO promo_codes (code, discount, max_uses, current_uses, expires_at, is_active)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `).run('GPT5', 10, 999999999, 0, '2099-12-31 23:59:59', 1);
+        console.log('✅ Промокод GPT5 создан: скидка 10%, бессрочные активации');
+    } else {
+        // Обновляем промокод, если он существует, чтобы убедиться, что он бессрочный
+        if (existingGPT5.max_uses !== 999999999) {
+            db.prepare(`
+                UPDATE promo_codes 
+                SET discount = 10, 
+                    max_uses = 999999999, 
+                    expires_at = '2099-12-31 23:59:59',
+                    is_active = 1
+                WHERE code = 'GPT5'
+            `).run();
+            console.log('✅ Промокод GPT5 обновлен: скидка 10%, бессрочные активации');
+        } else {
+            console.log('✅ Промокод GPT5 уже существует с бессрочными активациями');
+        }
+    }
+} catch (error) {
+    console.error('⚠️ Ошибка создания/обновления промокода GPT5:', error.message);
+}
+
 // Добавляем товары если их нет
 const productsCount = db.prepare('SELECT COUNT(*) as count FROM products').get();
 if (productsCount.count === 0) {
@@ -2379,7 +2408,8 @@ app.post('/api/validate-promo', (req, res) => {
         }
         
         // Проверяем количество использований (глобальное)
-        if (promoCode.current_uses >= promoCode.max_uses) {
+        // Если max_uses >= 999999999, считаем промокод бессрочным (не проверяем лимит)
+        if (promoCode.max_uses < 999999999 && promoCode.current_uses >= promoCode.max_uses) {
             return res.json({ valid: false, message: 'Промокод исчерпан' });
         }
         
