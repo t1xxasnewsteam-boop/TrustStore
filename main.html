@@ -13,6 +13,45 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Мгновенная детекция слабых устройств
+        (function() {
+            function isWeakDevice() {
+                // Проверяем мобильное устройство
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                if (!isMobile) return false; // На ПК не оптимизируем
+                
+                // Получаем характеристики устройства
+                const cores = navigator.hardwareConcurrency || 4;
+                const memory = navigator.deviceMemory || 4; // Может быть undefined в некоторых браузерах
+                const userAgent = navigator.userAgent;
+                
+                // Определяем бюджетные модели по User Agent
+                const isBudget = /Redmi|realme|TECNO|Infinix|POCO/i.test(userAgent);
+                
+                // Определяем iPhone (обычно мощные)
+                const isIPhone = /iPhone/i.test(userAgent);
+                
+                // Слабое устройство если:
+                // 1. Мало ядер (≤4) ИЛИ
+                // 2. Мало памяти (≤3GB, если доступно) ИЛИ
+                // 3. Бюджетная модель Android
+                // И при этом это НЕ iPhone (iPhone обычно мощные)
+                if (isIPhone) return false; // iPhone не считаем слабыми
+                
+                const isWeak = (cores <= 4) || 
+                              (memory && memory <= 3) || 
+                              isBudget;
+                
+                return isWeak;
+            }
+            
+            // Применяем класс немедленно, до загрузки стилей
+            if (isWeakDevice()) {
+                document.documentElement.classList.add('weak-device');
+            }
+        })();
+    </script>
 </head>
 <body>
     <!-- Header -->
@@ -50,12 +89,92 @@
 
     <!-- Hero Section -->
     <section class="hero">
+        <div class="hero-snowflakes">
+            <div class="hero-snowflake">❄</div>
+            <div class="hero-snowflake">❄</div>
+            <div class="hero-snowflake">❄</div>
+            <div class="hero-snowflake">❄</div>
+            <div class="hero-snowflake">❄</div>
+            <div class="hero-snowflake">❄</div>
+            <div class="hero-snowflake">❄</div>
+            <div class="hero-snowflake">❄</div>
+            <div class="hero-snowflake">❄</div>
+            <div class="hero-snowflake">❄</div>
+            <div class="hero-snowflake">❄</div>
+            <div class="hero-snowflake">❄</div>
+            <div class="hero-snowflake">❄</div>
+            <div class="hero-snowflake">❄</div>
+            <div class="hero-snowflake">❄</div>
+            <div class="hero-snowflake">❄</div>
+            <div class="hero-snowflake">❄</div>
+        </div>
         <div class="container">
             <div class="hero-content">
                 <h2 class="hero-title">Лучшие цифровые товары</h2>
                 <p class="hero-subtitle">Безопасные покупки. Мгновенная доставка. Гарантия качества.</p>
                 <a href="#products" class="btn-primary">Популярные товары</a>
                 <a href="#reviews" class="reviews-link smooth-scroll">Отзывы о нашей работе</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Promo Banner -->
+    <section id="promo-banner-section" class="promo-banner-section">
+        <div class="container">
+            <p class="new-year-text">🎉 С наступающим новым годом!</p>
+            <div class="promo-banner">
+                <div class="promo-banner-image">
+                    <!-- Изображение будет через CSS background -->
+                </div>
+                <div class="promo-banner-content">
+                    <h3 class="promo-banner-title">🎁 Premium VPN</h3>
+                    <p class="promo-banner-text" style="margin-bottom: 8px;">При покупке ChatGPT Plus на любой срок</p>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 0; margin-bottom: 1px;">
+                        <span style="color: #10b981; font-size: 18px;">✓</span>
+                        <span style="font-size: 14px; color: #666;">Работает в России</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 1px;">
+                        <span style="color: #10b981; font-size: 18px;">✓</span>
+                        <span style="font-size: 14px; color: #666;">Максимальная скорость</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 1px;">
+                        <span style="color: #10b981; font-size: 18px;">✓</span>
+                        <span style="font-size: 14px; color: #666;">Полное отсутствие блокировок</span>
+                    </div>
+                    <div style="display: flex; align-items: flex-start; gap: 8px; margin-bottom: 1px;" class="ideal-checkmark-wrapper">
+                        <span style="color: #10b981; font-size: 18px; line-height: 1.4;" class="ideal-checkmark">✓</span>
+                        <span style="font-size: 14px; color: #666; line-height: 1.4;">Идеально подходит для <strong style="color: #000; font-weight: 700;">ChatGPT</strong>,<br><strong style="color: #000; font-weight: 700;">Youtube</strong>, <strong style="color: #000; font-weight: 700;">Instagram</strong> и многое другое</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                        <span style="color: #10b981; font-size: 18px;">✓</span>
+                        <span style="font-size: 14px; color: #666;">Работает на всех устройствах</span>
+                    </div>
+                    <div class="timer-wrapper">
+                        <p class="timer-label-text">истекает через</p>
+                        <div class="promo-banner-timer" id="promo-banner-timer">
+                            <div class="timer-item">
+                                <span class="timer-value" id="timer-days">00</span>
+                                <span class="timer-label">дней</span>
+                            </div>
+                            <div class="timer-separator">:</div>
+                            <div class="timer-item">
+                                <span class="timer-value" id="timer-hours">00</span>
+                                <span class="timer-label">часов</span>
+                            </div>
+                            <div class="timer-separator">:</div>
+                            <div class="timer-item">
+                                <span class="timer-value" id="timer-minutes">00</span>
+                                <span class="timer-label">минут</span>
+                            </div>
+                            <div class="timer-separator">:</div>
+                            <div class="timer-item">
+                                <span class="timer-value" id="timer-seconds">00</span>
+                                <span class="timer-label">секунд</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="promo-banner-button" onclick="window.location.href='/product/chatgpt'">Воспользоваться</button>
+                </div>
             </div>
         </div>
     </section>
@@ -1009,6 +1128,47 @@
         
         // Загружаем новости при загрузке страницы
         loadNews();
+        
+        // Таймер обратного отсчета до 1 января 2026 00:00 МСК
+        (function() {
+            const timerDays = document.getElementById('timer-days');
+            const timerHours = document.getElementById('timer-hours');
+            const timerMinutes = document.getElementById('timer-minutes');
+            const timerSeconds = document.getElementById('timer-seconds');
+            
+            if (!timerDays || !timerHours || !timerMinutes || !timerSeconds) return;
+            
+            // 1 января 2026 00:00 МСК = 31 декабря 2025 21:00 UTC
+            const expiryDate = new Date('2025-12-31T21:00:00Z');
+            
+            function updateTimer() {
+                const now = new Date();
+                const diff = expiryDate - now;
+                
+                if (diff <= 0) {
+                    // Время истекло
+                    timerDays.textContent = '00';
+                    timerHours.textContent = '00';
+                    timerMinutes.textContent = '00';
+                    timerSeconds.textContent = '00';
+                    return;
+                }
+                
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                timerDays.textContent = String(days).padStart(2, '0');
+                timerHours.textContent = String(hours).padStart(2, '0');
+                timerMinutes.textContent = String(minutes).padStart(2, '0');
+                timerSeconds.textContent = String(seconds).padStart(2, '0');
+            }
+            
+            // Обновляем таймер каждую секунду
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        })();
     </script>
 </body>
 </html>

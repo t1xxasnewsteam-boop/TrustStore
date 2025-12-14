@@ -453,6 +453,7 @@
             display: flex;
             align-items: center;
             gap: 15px;
+            position: relative;
         }
         
         .payment-method:hover {
@@ -1010,7 +1011,7 @@
                         <div class="form-group" data-icon="✉️">
                             <label for="customer-email">Email *</label>
                             <input type="email" id="customer-email" name="email" required placeholder="example@mail.ru">
-                            <div class="hint">На этот email придет вся информация о товаре</div>
+                            <div class="hint">На этот email придет вся информация для получения товара</div>
                         </div>
                     </div>
                     
@@ -1018,8 +1019,8 @@
                     <div class="form-section">
                         <h3>Способ оплаты</h3>
                         <div class="payment-methods" style="display: grid !important; grid-template-columns: 1fr !important; gap: 15px !important;">
-                            <div class="payment-method selected" data-method="cardlink" style="position: relative; display: flex !important; padding-top: 35px;">
-                                <div style="position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; pointer-events: none; z-index: 10;">
+                            <div class="payment-method selected" data-method="cardlink" style="position: relative; display: flex !important; align-items: center !important;">
+                                <div style="position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; pointer-events: none; z-index: 10;">
                                     🔥 Популярно
                                 </div>
                                 <div class="payment-method-icon">

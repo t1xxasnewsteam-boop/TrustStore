@@ -5,10 +5,10 @@ const products = [
     { 
         name: 'ChatGPT Plus', 
         url: '/product/chatgpt', 
-        category: 'Подписка', 
+        category: 'AI Генерация', 
         price: 'от 2 250 ₽', 
         image: 'gpt-image.png',
-        aliases: ['чатджипити', 'чат джипити', 'чат', 'джипити', 'гпт', 'chatgpt', 'gpt', 'чатгпт', 'openai', 'опенэй', 'опенэйаи', 'нейросеть', 'нейросети', 'ai', 'ии', 'чат гпт', 'чат gpt', 'плюс', 'plus', 'чатгпт плюс']
+        aliases: ['чатджипити', 'чат джипити', 'чат', 'джипити', 'гпт', 'chatgpt', 'gpt']
     },
     { 
         name: 'Midjourney', 
@@ -16,7 +16,7 @@ const products = [
         category: 'AI Генерация', 
         price: 'от 500 ₽', 
         image: 'midjourney-image.png',
-        aliases: ['миджорни', 'миджёрни', 'мидджорни', 'midjourney', 'mj', 'мидж', 'миджорней', 'миджорн', 'изображения', 'генерация изображений', 'картинки', 'арт', 'рисунки', 'рисование', 'ai арт', 'нейроарт']
+        aliases: ['миджорни', 'миджёрни', 'мидджорни', 'midjourney', 'mj']
     },
     { 
         name: 'Личный VPN', 
@@ -24,23 +24,31 @@ const products = [
         category: 'Безопасность', 
         price: 'от 500 ₽', 
         image: 'vpn-image.png',
-        aliases: ['впн', 'вин', 'vpn', 'вепеэн', 'личный впн', 'безопасность', 'защита', 'приватность', 'анонимность']
+        aliases: ['впн', 'вин', 'vpn', 'вепеэн']
     },
     { 
-        name: 'Google Gemini + Veo 3', 
+        name: 'Google Gemini', 
         url: '/product/gemini', 
         category: 'AI Генерация', 
         price: 'от 2 250 ₽', 
         image: 'gemini-image.png',
-        aliases: ['гемини', 'джемини', 'гугл гемини', 'google gemini', 'gemini', 'google', 'veo', 'вео', 'veo 3', 'вео 3', 'вео3', 'гемини вео', 'гугл', 'нейросеть гугл', 'ai гугл', 'gemini pro', 'гемини про', 'видео генерация', 'генерация видео']
+        aliases: ['гемини', 'джемини', 'гугл', 'gemini', 'google']
     },
     { 
-        name: 'Cursor AI', 
+        name: 'Gemini Veo 3', 
+        url: '/product/gemini', 
+        category: 'AI Генерация', 
+        price: 'от 2 250 ₽', 
+        image: 'gemini-image.png',
+        aliases: ['гемини', 'джемини', 'гугл', 'veo', 'вео']
+    },
+    { 
+        name: 'Cursor AI Pro', 
         url: '/product/cursor', 
         category: 'AI Генерация', 
         price: 'от 2 250 ₽', 
         image: 'cursor-image.png',
-        aliases: ['курсор', 'курзор', 'cursor', 'кёрсор', 'cursor ai', 'курсор аи', 'код', 'программирование', 'разработка', 'редактор кода', 'ide', 'айди', 'редактор', 'автокод', 'нейрокод']
+        aliases: ['курсор', 'курзор', 'cursor', 'кёрсор']
     },
     { 
         name: 'Claude AI Pro', 
@@ -48,7 +56,7 @@ const products = [
         category: 'AI Генерация', 
         price: 'от 2 250 ₽', 
         image: 'claude-image.png',
-        aliases: ['клод', 'клауд', 'claude', 'claude ai', 'клод аи', 'клод про', 'claude pro', 'anthropic', 'антропик', 'антропик аи', 'нейросеть', 'код', 'клод антропик']
+        aliases: ['клод', 'клауд', 'claude']
     },
     { 
         name: 'YouTube Premium', 
@@ -56,7 +64,15 @@ const products = [
         category: 'Видео', 
         price: 'от 800 ₽', 
         image: 'youtube-image.png',
-        aliases: ['ютуб', 'ютюб', 'youtube', 'ютьюб', 'youtube premium', 'ютуб премиум', 'премиум', 'без рекламы', 'офлайн', 'фоновое воспроизведение', 'музыка', 'мюзик', 'music', 'ютуб музыка', 'youtube music', 'музыка премиум', 'ютубе', 'ютуб про', 'видео', 'подписка']
+        aliases: ['ютуб', 'ютюб', 'youtube', 'ютьюб', 'музыка']
+    },
+    { 
+        name: 'Music Premium', 
+        url: '/product/youtube', 
+        category: 'Видео', 
+        price: 'от 800 ₽', 
+        image: 'youtube-image.png',
+        aliases: ['музыка', 'мюзик', 'music', 'ютуб музыка']
     },
     { 
         name: 'Adobe Creative Cloud', 
@@ -64,7 +80,7 @@ const products = [
         category: 'Дизайн', 
         price: 'от 1 700 ₽', 
         image: 'adobe-image.png',
-        aliases: ['адоб', 'адобе', 'adobe', 'adobe creative cloud', 'creative cloud', 'фотошоп', 'photoshop', 'пс', 'ps', 'иллюстратор', 'illustrator', 'ai', 'after effects', 'ae', 'премиер', 'premiere', 'pr', 'дизайн', 'графика', 'adobe cc', 'адобе цц', 'фш', 'редактор', 'монтаж']
+        aliases: ['адоб', 'адобе', 'adobe', 'фотошоп', 'photoshop']
     },
     { 
         name: 'CapCut Pro', 
@@ -72,47 +88,15 @@ const products = [
         category: 'Монтаж', 
         price: 'от 1 250 ₽', 
         image: 'capcut-image.png',
-        aliases: ['капкат', 'капкут', 'capcut', 'капкат про', 'capcut pro', 'монтаж', 'видео', 'видеомонтаж', 'редактор видео', 'клипы', 'видеоредактор', 'капкат', 'кап кут', 'видео монтаж']
+        aliases: ['капкат', 'капкут', 'capcut', 'монтаж']
     },
     { 
-        name: 'ElevenLabs Creator', 
-        url: '/product/elevenlabs', 
-        category: 'AI Голос', 
-        price: 'от 2 700 ₽', 
-        image: 'elevenlabs-image.png',
-        aliases: ['элевенлабс', 'элевен лабс', 'elevenlabs', 'eleven labs', 'elevenlabs creator', 'элевенлабс креатор', 'голос', 'ai голос', 'озвучка', 'токены', '100000', '100к', '100 тысяч', 'синтез речи', 'tts', 'voice', 'голосовой', 'озвучивание', 'элевен']
-    },
-    { 
-        name: 'Microsoft Office 365', 
-        url: '/product/microsoft', 
-        category: 'Офис', 
-        price: 'от 5 000 ₽', 
-        image: 'microsoft.png',
-        aliases: ['микрософт', 'майкрософт', 'microsoft', 'microsoft office', 'office 365', 'office', 'офис', 'ворд', 'word', 'excel', 'эксель', 'powerpoint', 'пауэрпоинт', '365', 'офисный пакет', 'документы', 'таблицы', 'презентации', 'ms office', 'мс офис', 'офис 365', 'майкрософт офис', 'офис майкрософт']
-    },
-    { 
-        name: 'Perplexity Pro', 
-        url: '/product/perplexity', 
-        category: 'AI Поиск', 
-        price: 'от 2 000 ₽', 
-        image: 'perplexity-image.png',
-        aliases: ['перплексити', 'перплекси', 'perplexity', 'perplexity pro', 'перплексити про', 'поиск', 'ai поиск', 'умный поиск', 'ассистент', 'поисковик', 'поисковая система', 'перплекс', 'поиск аи', 'нейро поиск']
-    },
-    { 
-        name: 'Canva Pro', 
-        url: '/product/canva', 
-        category: 'Дизайн', 
-        price: 'от 1 200 ₽', 
-        image: 'canva-image.png',
-        aliases: ['канва', 'canva', 'canva pro', 'канва про', 'дизайн', 'дизайнер', 'шаблоны', 'графика', 'креатив', 'баннеры', 'соцсети', 'постеры', 'редактор', 'онлайн дизайн', 'конструктор', 'макеты']
-    },
-    { 
-        name: 'Figma Professional', 
-        url: '/product/figma', 
-        category: 'Дизайн', 
-        price: 'от 1 800 ₽', 
-        image: 'figma-image.png',
-        aliases: ['фигма', 'figma', 'figma professional', 'фигма про', 'фигма профессиональ', 'прототип', 'прототипирование', 'ui', 'ux', 'интерфейс', 'интерфейсы', 'дизайн', 'дизайнер', 'веб дизайн', 'мобильный дизайн', 'редактор', 'веб', 'сайт', 'приложение']
+        name: 'VPN', 
+        url: '/product/vpn', 
+        category: 'Безопасность', 
+        price: 'от 500 ₽', 
+        image: 'vpn-image.png',
+        aliases: ['впн', 'вин', 'vpn', 'вепеэн']
     }
 ];
 
@@ -191,68 +175,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Разбиваем запрос на слова
-            const queryWords = query.split(/\s+/).filter(word => word.length > 0);
-            
-            // Фильтруем и ранжируем товары
-            const scoredProducts = products.map(product => {
-                let score = 0;
-                const productName = product.name.toLowerCase();
-                const productCategory = (product.category || '').toLowerCase();
-                
-                // Проверяем каждое слово запроса
-                for (const word of queryWords) {
-                    // Точное совпадение с названием (высший приоритет)
-                    if (productName === word) {
-                        score += 100;
-                    }
-                    // Название начинается со слова
-                    else if (productName.startsWith(word)) {
-                        score += 50;
-                    }
-                    // Название содержит слово
-                    else if (productName.includes(word)) {
-                        score += 30;
-                    }
-                    
-                    // Проверка по алиасам
-                    if (product.aliases && product.aliases.length > 0) {
-                        for (const alias of product.aliases) {
-                            const aliasLower = alias.toLowerCase();
-                            if (aliasLower === word) {
-                                score += 40;
-                            } else if (aliasLower.startsWith(word)) {
-                                score += 25;
-                            } else if (aliasLower.includes(word)) {
-                                score += 15;
-                            }
-                        }
-                    }
-                    
-                    // Проверка по категории
-                    if (productCategory.includes(word)) {
-                        score += 10;
-                    }
-                }
-                
-                return { product, score };
-            }).filter(item => item.score > 0);
-            
-            // Сортируем по релевантности (сначала самые релевантные)
-            scoredProducts.sort((a, b) => b.score - a.score);
-            
-            // Убираем дубликаты (оставляем товар с наивысшим рейтингом)
-            const uniqueProducts = [];
-            const seenUrls = new Set();
-            for (const item of scoredProducts) {
-                if (!seenUrls.has(item.product.url)) {
-                    seenUrls.add(item.product.url);
-                    uniqueProducts.push(item.product);
-                }
-            }
+            // Фильтруем товары (ищем по названию, категории и алиасам)
+            const filteredProducts = products.filter(product => {
+                const nameMatch = product.name.toLowerCase().includes(query);
+                const categoryMatch = product.category && product.category.toLowerCase().includes(query);
+                const aliasMatch = product.aliases && product.aliases.some(alias => 
+                    alias.toLowerCase().includes(query)
+                );
+                return nameMatch || categoryMatch || aliasMatch;
+            });
             
             // Отображаем результаты
-            if (uniqueProducts.length === 0) {
+            if (filteredProducts.length === 0) {
                 searchResults.innerHTML = `
                     <div class="search-no-results">
                         <div class="no-results-icon">😔</div>
@@ -261,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `;
             } else {
-                searchResults.innerHTML = uniqueProducts.map(product => `
+                searchResults.innerHTML = filteredProducts.map(product => `
                     <a href="${product.url}" class="search-result-item">
                         <img src="${product.image}" alt="${product.name}" class="search-result-image">
                         <div class="search-result-info">
@@ -278,17 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Подсветка совпадений в тексте
 function highlightText(text, query) {
-    // Разбиваем запрос на слова и экранируем спецсимволы
-    const queryWords = query.split(/\s+/).filter(word => word.length > 0);
-    let highlightedText = text;
-    
-    // Подсвечиваем каждое слово из запроса
-    for (const word of queryWords) {
-        const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regex = new RegExp(`(${escapedWord})`, 'gi');
-        highlightedText = highlightedText.replace(regex, '<mark>$1</mark>');
-    }
-    
-    return highlightedText;
+    const regex = new RegExp(`(${query})`, 'gi');
+    return text.replace(regex, '<mark>$1</mark>');
 }
 
