@@ -2599,41 +2599,6 @@ body {
     }
 }
 
-/* Оптимизация для слабых устройств */
-.weak-device .hero {
-    animation: none !important;
-    background: linear-gradient(-45deg, #c5563d, #b5306a, #1c85b0, #1baa8a, #5363c3, #5d3c82) !important;
-    background-size: 100% 100% !important;
-}
-
-.weak-device .hero-snowflakes {
-    display: none !important;
-}
-
-.weak-device .hero-snowflake {
-    display: none !important;
-}
-
-.weak-device .promo-banner:hover {
-    transform: none !important;
-    box-shadow: 0 12px 50px rgba(102, 126, 234, 0.35) !important;
-}
-
-.weak-device .btn-primary:hover,
-.weak-device .btn-add-cart:hover,
-.weak-device .btn-buy-large:hover {
-    transform: none !important;
-}
-
-.weak-device .particles-container,
-.weak-device .particle {
-    display: none !important;
-}
-
-.weak-device .hero-snowflake {
-    text-shadow: 0 0 3px rgba(255, 255, 255, 0.6) !important;
-}
-
 /* Поддержка prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
     .hero {
