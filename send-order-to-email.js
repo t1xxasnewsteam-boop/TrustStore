@@ -60,7 +60,8 @@ console.log(`   Товары: ${orders.products}`);
 const products = JSON.parse(orders.products || '[]');
 const chatgptProduct = products.find(p => {
     const name = (p.name || p.productName || p.product_name || '').toLowerCase();
-    return name.includes('chatgpt') && name.includes('3');
+    const duration = (p.duration || '').toLowerCase();
+    return name.includes('chatgpt') && (duration.includes('3') || name.includes('3'));
 });
 
 if (!chatgptProduct) {
