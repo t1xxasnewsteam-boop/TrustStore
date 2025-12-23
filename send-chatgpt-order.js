@@ -1,132 +1,174 @@
-#!/usr/bin/env node
-
 const Database = require('better-sqlite3');
 const path = require('path');
-const https = require('https');
+require('dotenv').config();
 
-const db = new Database(path.join(__dirname, 'analytics.db'));
+// Импортируем функции отправки email из server.js
+const db = new Database('./analytics.db');
 
-try {
-    console.log('\n🔍 Поиск последнего заказа на ChatGPT...\n');
-    
-    // Ищем последний заказ с ChatGPT в названии товара
-    const order = db.prepare(`
-        SELECT * FROM orders 
-        WHERE products LIKE '%ChatGPT%' 
-           OR products LIKE '%chatgpt%'
-           OR products LIKE '%Chat GPT%'
-        ORDER BY created_at DESC 
-        LIMIT 1
-    `).get();
-    
-    if (!order) {
-        console.log('❌ Не найден заказ на ChatGPT');
-        
-        // Показываем последние 5 заказов
-        const recentOrders = db.prepare(`
-            SELECT order_id, customer_email, status, payment_method, total_amount, created_at, products
-            FROM orders 
-            ORDER BY created_at DESC 
-            LIMIT 5
-        `).all();
-        
-        if (recentOrders.length > 0) {
-            console.log('\n📋 Последние 5 заказов:');
-            recentOrders.forEach((o, i) => {
-                const products = JSON.parse(o.products || '[]');
-                const productNames = products.map(p => p.name || p.productName || p.product_name).join(', ');
-                console.log(`${i+1}. ${o.order_id} - ${o.status} - ${o.customer_email} - ${o.total_amount} ₽`);
-                console.log(`   Товары: ${productNames}`);
-                console.log(`   Дата: ${o.created_at}\n`);
-            });
-        }
-        
-        db.close();
-        process.exit(1);
-    }
-    
-    const products = JSON.parse(order.products || '[]');
-    const productNames = products.map(p => p.name || p.productName || p.product_name).join(', ');
-    
-    console.log('✅ Найден заказ на ChatGPT:');
-    console.log(`   🆔 Order ID: ${order.order_id}`);
-    console.log(`   👤 Клиент: ${order.customer_name}`);
-    console.log(`   📧 Email: ${order.customer_email}`);
-    console.log(`   💵 Сумма: ${order.total_amount} ₽`);
-    console.log(`   💳 Метод: ${order.payment_method || 'не указан'}`);
-    console.log(`   📊 Статус: ${order.status}`);
-    console.log(`   📦 Товары: ${productNames}`);
-    console.log(`   📅 Дата: ${order.created_at}`);
-    console.log(`\n🚀 Отправка заказа через API...\n`);
-    
-    // Отправляем заказ через API
-    const url = new URL('https://truststore.ru');
-    const options = {
-        hostname: url.hostname,
-        port: 443,
-        path: '/api/manual-send-last-order',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(JSON.stringify({ orderId: order.order_id }))
-        },
-        rejectUnauthorized: false
-    };
-    
-    const req = https.request(options, (res) => {
-        let data = '';
-        
-        res.on('data', (chunk) => {
-            data += chunk;
-        });
-        
-        res.on('end', () => {
-            try {
-                const result = JSON.parse(data);
-                
-                if (res.statusCode === 200 && result.success) {
-                    console.log('✅ ЗАКАЗ УСПЕШНО ОТПРАВЛЕН!\n');
-                    console.log('📊 Результаты:');
-                    console.log(`   🆔 Order ID: ${result.orderId}`);
-                    console.log(`   📧 Email клиента: ${result.email}`);
-                    console.log(`   ✅ Emails отправлено: ${result.emailsSent}`);
-                    console.log(`   ❌ Ошибок: ${result.emailsFailed}`);
-                    console.log(`   📱 Telegram: ${result.telegramSent ? '✅ отправлено' : '❌ не отправлено'}`);
-                    
-                    if (result.emailsFailed > 0) {
-                        console.log('\n⚠️  ВНИМАНИЕ: Были ошибки при отправке email!');
-                    }
-                } else {
-                    console.error('❌ ОШИБКА ОТПРАВКИ ЗАКАЗА\n');
-                    console.error('Детали:', result);
-                }
-            } catch (error) {
-                console.error('❌ Ошибка парсинга ответа:', error.message);
-                console.error('Ответ сервера:', data);
-            }
-            
-            db.close();
-            process.exit(0);
-        });
-    });
-    
-    req.on('error', (error) => {
-        console.error('❌ ОШИБКА ПОДКЛЮЧЕНИЯ К СЕРВЕРУ\n');
-        console.error(`   ${error.message}\n`);
-        db.close();
-        process.exit(1);
-    });
-    
-    req.write(JSON.stringify({ orderId: order.order_id }));
-    req.end();
-    
-} catch (error) {
-    console.error('❌ Ошибка:', error.message);
-    db.close();
+console.log('🔍 Поиск последнего заказа ChatGPT Plus 3 месяца...\n');
+
+// Ищем последний заказ с ChatGPT Plus 3 месяца
+const orders = db.prepare(`
+    SELECT * FROM orders 
+    WHERE products LIKE '%ChatGPT%' 
+    AND products LIKE '%3 месяц%'
+    ORDER BY created_at DESC 
+    LIMIT 10
+`).all();
+
+if (orders.length === 0) {
+    console.log('❌ Не найдено заказов ChatGPT Plus на 3 месяца');
     process.exit(1);
 }
 
+console.log(`✅ Найдено ${orders.length} заказов. Последний заказ:`);
+const lastOrder = orders[0];
 
+console.log(`   ID: ${lastOrder.order_id}`);
+console.log(`   Email: ${lastOrder.customer_email}`);
+console.log(`   Дата: ${lastOrder.created_at}`);
+console.log(`   Товары: ${lastOrder.products}`);
 
+const products = JSON.parse(lastOrder.products || '[]');
+const chatgptProduct = products.find(p => {
+    const name = (p.name || p.productName || p.product_name || '').toLowerCase();
+    return name.includes('chatgpt') && name.includes('3 месяц');
+});
 
+if (!chatgptProduct) {
+    console.log('❌ Не найден товар ChatGPT Plus 3 месяца в заказе');
+    process.exit(1);
+}
 
+console.log(`\n📦 Товар для отправки: ${chatgptProduct.name || chatgptProduct.productName || chatgptProduct.product_name}`);
+console.log(`📧 Email получателя: Aggel55555@gmail.com\n`);
+
+// Загружаем server.js чтобы использовать функции отправки
+const serverPath = path.join(__dirname, 'server.js');
+console.log('⏳ Загрузка функций отправки из server.js...');
+
+// Используем прямое подключение к SMTP/SendGrid
+const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
+
+if (process.env.SENDGRID_API_KEY) {
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
+
+// Создаем транспортер для SMTP
+const emailTransporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST || 'smtp.yandex.ru',
+    port: parseInt(process.env.EMAIL_PORT) || 465,
+    secure: process.env.EMAIL_SECURE === 'true' || true,
+    auth: {
+        user: process.env.EMAIL_USER || 'orders@truststore.ru',
+        pass: process.env.EMAIL_PASSWORD
+    },
+    tls: {
+        rejectUnauthorized: false,
+        ciphers: 'SSLv3'
+    }
+});
+
+// Получаем информацию о товаре из базы
+const productInfo = db.prepare('SELECT * FROM products WHERE name LIKE ?').get('ChatGPT%');
+
+// Функция создания HTML письма (упрощенная версия)
+function createOrderEmailHTML(data) {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+        .order-info { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .product { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Ваш заказ #${data.orderNumber}</h1>
+            <p>Спасибо за покупку!</p>
+        </div>
+        <div class="content">
+            <div class="order-info">
+                <h2>Информация о заказе</h2>
+                <p><strong>Номер заказа:</strong> ${data.orderNumber}</p>
+                <p><strong>Товар:</strong> ${data.productName}</p>
+            </div>
+            <div class="product">
+                <h2>${data.productName}</h2>
+                ${data.instructions ? `<p>${data.instructions}</p>` : '<p>Инструкции по использованию будут отправлены отдельно.</p>'}
+            </div>
+        </div>
+        <div class="footer">
+            <p>© ${new Date().getFullYear()} Trust Store. Все права защищены.</p>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+}
+
+// Функция отправки email
+async function sendEmail() {
+    const emailData = {
+        to: 'Aggel55555@gmail.com',
+        orderNumber: lastOrder.order_id,
+        productName: chatgptProduct.name || chatgptProduct.productName || chatgptProduct.product_name,
+        productImage: productInfo ? productInfo.image : null,
+        productCategory: productInfo ? productInfo.category : null,
+        productDescription: productInfo ? productInfo.description : null,
+        login: null,
+        password: null,
+        instructions: productInfo ? productInfo.description : 'Спасибо за покупку! Инструкции по использованию товара будут отправлены отдельно.'
+    };
+
+    // Попытка через SendGrid
+    if (process.env.SENDGRID_API_KEY) {
+        try {
+            const msg = {
+                to: emailData.to,
+                from: process.env.EMAIL_USER || 'orders@truststore.ru',
+                subject: `Ваш заказ #${emailData.orderNumber} | Trust Store`,
+                html: createOrderEmailHTML(emailData),
+                text: `Ваш заказ #${emailData.orderNumber}\n\nТовар: ${emailData.productName}\n\nСпасибо за покупку!`
+            };
+
+            await sgMail.send(msg);
+            console.log('✅ Email отправлен через SendGrid');
+            db.close();
+            process.exit(0);
+        } catch (error) {
+            console.error('❌ Ошибка SendGrid:', error.message);
+        }
+    }
+
+    // Попытка через SMTP
+    try {
+        const mailOptions = {
+            from: process.env.EMAIL_FROM || '"Trust Store" <orders@truststore.ru>',
+            to: emailData.to,
+            replyTo: 'orders@truststore.ru',
+            subject: `Ваш заказ #${emailData.orderNumber} | Trust Store`,
+            html: createOrderEmailHTML(emailData),
+            text: `Ваш заказ #${emailData.orderNumber}\n\nТовар: ${emailData.productName}\n\nСпасибо за покупку!`
+        };
+
+        const info = await emailTransporter.sendMail(mailOptions);
+        console.log(`✅ Email отправлен через SMTP (${info.messageId})`);
+    } catch (error) {
+        console.error('❌ Ошибка отправки email:', error.message);
+        process.exit(1);
+    }
+
+    db.close();
+}
+
+sendEmail();

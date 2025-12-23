@@ -381,8 +381,14 @@
                 </div>
                 
                 <div class="product-detail-info">
-                    <h1>ChatGPT Plus</h1>
-                    <p class="product-detail-desc">Оформление на ваш аккаунт без входа</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h1 style="margin: 0;">ChatGPT Plus</h1>
+                        <span style="font-size: 14px; color: #666; font-weight: 500;" data-sales="chatgpt">1 390 продаж</span>
+                    </div>
+                    <div style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 1px solid rgba(102, 126, 234, 0.2); border-radius: 12px; cursor: pointer; transition: all 0.3s ease; margin-bottom: 8px;" onclick="scrollToRequirements()" onmouseover="this.style.background='linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)'; this.style.borderColor='rgba(102, 126, 234, 0.4)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.2)'" onmouseout="this.style.background='linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)'; this.style.borderColor='rgba(102, 126, 234, 0.2)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                        <span style="font-size: 15px; color: #10b981; font-weight: 600;">✓</span>
+                        <span style="font-size: 15px; color: #1a1a1a; font-weight: 500;">Оформление на ваш аккаунт без входа</span>
+                    </div>
                     
                     <div class="pricing-options">
                         <h3>Выберите срок подписки:</h3>
@@ -503,7 +509,7 @@
                         <li>💬 Поддержка 24/7</li>
                     </ul>
                     
-                    <div class="info-block">
+                    <div class="info-block" id="requirements-block">
                         <h3>📋 Что нужно для оформления подписки?</h3>
                         <p>Для оформления подписки на ваш аккаунт нам требуется только <strong style="color: #000; font-weight: 700;">адрес электронной почты указанный в ChatGPT</strong>, никаких паролей не требуется</p>
                     </div>
@@ -777,6 +783,36 @@
         
         // При загрузке обновляем счетчик
         document.addEventListener('DOMContentLoaded', updateCartCount);
+        
+        // Функция для прокрутки к блоку "Что нужно для оформления подписки"
+        function scrollToRequirements() {
+            const block = document.getElementById('requirements-block');
+            if (block) {
+                const blockPosition = block.getBoundingClientRect().top + window.pageYOffset - 100;
+                const startPosition = window.pageYOffset;
+                const distance = blockPosition - startPosition;
+                const duration = 1200; // Увеличиваем время до 1.2 секунды
+                let start = null;
+                
+                function easeInOutCubic(t) {
+                    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+                }
+                
+                function animation(currentTime) {
+                    if (start === null) start = currentTime;
+                    const timeElapsed = currentTime - start;
+                    const progress = Math.min(timeElapsed / duration, 1);
+                    
+                    window.scrollTo(0, startPosition + distance * easeInOutCubic(progress));
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animation);
+                    }
+                }
+                
+                requestAnimationFrame(animation);
+            }
+        }
     </script>
     
     <script src="../cart.js"></script>
@@ -830,6 +866,7 @@
     
     <script src="../search.js"></script>
     <script src="../chat-widget.js"></script>
+    <script src="../sales-counter.js"></script>
 </body>
 </html>
 
