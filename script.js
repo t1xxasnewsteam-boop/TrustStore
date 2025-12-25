@@ -156,5 +156,81 @@ window.addEventListener('scroll', () => {
 
 // Ripple effect removed per user request
 
+// Определение активной ссылки навигации
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPath = window.location.pathname;
+    const currentFile = window.location.pathname.split('/').pop() || 'index.html';
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    navLinks.forEach(link => {
+        const linkPath = link.getAttribute('href');
+        // Убираем класс active со всех ссылок
+        link.classList.remove('active');
+        
+        // Проверяем, соответствует ли путь ссылки текущему пути
+        if (linkPath === '/') {
+            // Для главной страницы
+            if (currentPath === '/' || currentPath === '/index.html' || currentFile === 'index.html' || currentFile === 'main.html') {
+                link.classList.add('active');
+            }
+        } else if (linkPath === '/catalog' || linkPath === '/catalog.html') {
+            // Для каталога
+            if (currentPath.includes('catalog') || currentFile === 'catalog.html') {
+                link.classList.add('active');
+            }
+        } else if (linkPath === '/socials' || linkPath === '/socials.html') {
+            // Для соцсетей
+            if (currentPath.includes('socials') || currentFile === 'socials.html') {
+                link.classList.add('active');
+            }
+        }
+    });
+    
+    // Плавный переход между страницами
+    const allLinks = document.querySelectorAll('a[href]');
+    
+    allLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        
+        // Пропускаем якорные ссылки, внешние ссылки и специальные протоколы
+        if (!href || 
+            href.startsWith('#') || 
+            href.startsWith('http://') ||
+            href.startsWith('https://') ||
+            href.startsWith('mailto:') ||
+            href.startsWith('tel:') ||
+            href.startsWith('javascript:')) {
+            return;
+        }
+        
+        // Пропускаем ссылки на файлы (например, .pdf, .jpg)
+        if (href.match(/\.(pdf|jpg|jpeg|png|gif|zip|rar|doc|docx|xls|xlsx)$/i)) {
+            return;
+        }
+        
+        link.addEventListener('click', function(e) {
+            // Проверяем, что это действительно внутренняя ссылка
+            if (href.startsWith('/') || 
+                href.endsWith('.html') || 
+                href === 'catalog' || 
+                href === 'socials' ||
+                href === 'main' ||
+                href === 'index') {
+                
+                e.preventDefault();
+                
+                // Плавное исчезновение страницы перед переходом
+                document.body.style.opacity = '0';
+                document.body.style.transition = 'opacity 0.25s ease';
+                
+                // Небольшая задержка для плавности
+                setTimeout(() => {
+                    window.location.href = href;
+                }, 250);
+            }
+        });
+    });
+});
+
 console.log('Trust Store загружен успешно! 🎉');
 

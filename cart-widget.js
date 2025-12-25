@@ -168,17 +168,20 @@ function displayCartWidget() {
     
     // Update total with discount if applicable
     const totalElement = document.getElementById('cartWidgetTotalPrice');
+    const isDarkTheme = document.body.classList.contains('dark-theme');
+    const priceColor = isDarkTheme ? '#00ff88' : '#667eea';
+    
     if (originalTotalPrice > totalPrice) {
         // Есть скидка - показываем старую и новую цену
         totalElement.innerHTML = `
             <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="text-decoration: line-through; color: #999; font-size: 14px;">${originalTotalPrice.toLocaleString('ru-RU')} ₽</span>
-                <span style="color: #667eea; font-weight: 600;">${totalPrice.toLocaleString('ru-RU')} ₽</span>
+                <span style="text-decoration: line-through; color: ${isDarkTheme ? '#666' : '#999'}; font-size: 14px;">${originalTotalPrice.toLocaleString('ru-RU')} ₽</span>
+                <span style="color: ${priceColor}; font-weight: 600; ${isDarkTheme ? 'text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);' : ''}">${totalPrice.toLocaleString('ru-RU')} ₽</span>
             </div>
         `;
     } else {
         // Нет скидки - просто цена
-        totalElement.textContent = `${totalPrice.toLocaleString('ru-RU')} ₽`;
+        totalElement.innerHTML = `<span style="color: ${priceColor}; ${isDarkTheme ? 'text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);' : ''}">${totalPrice.toLocaleString('ru-RU')} ₽</span>`;
     }
 }
 

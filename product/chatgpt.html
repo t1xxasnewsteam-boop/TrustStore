@@ -11,8 +11,11 @@
     <link rel="stylesheet" href="../cart-widget.css">
     <link rel="stylesheet" href="../chat-widget.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="../theme-detector.js"></script>
+    <script>
+        // Предотвращение белой вспышки - применяем фон сразу
+        // (теперь это обрабатывается в theme-detector.js)
+    </script>
     <style>
         .product-page {
             padding: 40px 0 80px;
@@ -330,6 +333,291 @@
                 opacity: 0;
             }
         }
+        
+        /* Темная тема */
+        body.dark-theme .product-page {
+            background: #0a0a0a;
+        }
+        
+        body.dark-theme .back-link {
+            color: #00ff88;
+        }
+        
+        body.dark-theme .back-link:hover {
+            color: #00cc6a;
+        }
+        
+        body.dark-theme .product-detail-info h1 {
+            color: #ffffff;
+        }
+        
+        body.dark-theme .product-detail-desc {
+            color: #e5e5e5;
+        }
+        
+        body.dark-theme .price-large {
+            color: #00ff88;
+        }
+        
+        body.dark-theme .pricing-option {
+            background: #0a0a0a;
+            border-color: #1a1a1a;
+            color: #e5e5e5;
+        }
+        
+        body.dark-theme .pricing-option:hover {
+            border-color: rgba(0, 255, 136, 0.5);
+            background: #0f0f0f;
+        }
+        
+        body.dark-theme .pricing-option.active {
+            border-color: #00ff88;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 204, 106, 0.1) 100%);
+        }
+        
+        body.dark-theme .pricing-duration {
+            color: #ffffff;
+        }
+        
+        body.dark-theme .pricing-price {
+            color: #00ff88;
+        }
+        
+        body.dark-theme .pricing-per-month {
+            color: #e5e5e5;
+        }
+        
+        body.dark-theme .product-feature {
+            background: #0a0a0a;
+            border-color: #1a1a1a;
+            color: #e5e5e5;
+        }
+        
+        body.dark-theme .product-feature-title {
+            color: #ffffff;
+        }
+        
+        body.dark-theme .product-feature-text {
+            color: #e5e5e5;
+        }
+        
+        body.dark-theme .features-list li {
+            color: #ffffff !important;
+            border-bottom-color: #2a2a2a !important;
+        }
+        
+        body.dark-theme .features-list li:before {
+            color: #00ff88 !important;
+        }
+        
+        body.dark-theme .info-block {
+            background: #0a0a0a !important;
+            border: 1px solid #1a1a1a !important;
+        }
+        
+        body.dark-theme .info-block h3,
+        body.dark-theme h3:has(+ .features-list),
+        body.dark-theme .product-detail-info h3 {
+            color: #ffffff !important;
+        }
+        
+        body.dark-theme .info-block p {
+            color: #ffffff !important;
+        }
+        
+        body.dark-theme .info-block p strong,
+        body.dark-theme .info-block strong[style*="color: #000"] {
+            color: #00ff88 !important;
+        }
+        
+        body.dark-theme .custom-block {
+            background: #0a0a0a;
+            border-color: #1a1a1a;
+        }
+        
+        body.dark-theme .custom-block-title {
+            color: #ffffff;
+        }
+        
+        body.dark-theme .custom-block-text {
+            color: #e5e5e5;
+        }
+        
+        body.dark-theme .custom-block-text strong {
+            color: #00ff88;
+        }
+        
+        body.dark-theme .btn-add-cart,
+        body.dark-theme .btn-buy-large {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+            color: #000000;
+            border: 2px solid #00ff88 !important;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+        }
+        
+        body.dark-theme .btn-add-cart:hover,
+        body.dark-theme .btn-buy-large:hover {
+            background: linear-gradient(135deg, #00ff99 0%, #00dd77 100%);
+            border-color: #00ff99 !important;
+            box-shadow: 0 6px 20px rgba(0, 255, 136, 0.6);
+        }
+        
+        body.dark-theme .promo-code-section {
+            background: #0a0a0a;
+            border-color: #1a1a1a;
+        }
+        
+        body.dark-theme .promo-code-label {
+            color: #ffffff;
+        }
+        
+        body.dark-theme .promo-code-input {
+            background: #1a1a1a;
+            border-color: #2a2a2a;
+            color: #ffffff;
+        }
+        
+        body.dark-theme .promo-code-input:focus {
+            border-color: #00ff88;
+            box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.15);
+        }
+        
+        body.dark-theme .promo-code-button {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+            color: #000000;
+        }
+        
+        body.dark-theme .promo-code-button:hover {
+            background: linear-gradient(135deg, #00ff99 0%, #00dd77 100%);
+        }
+        
+        body.dark-theme input#promo-code {
+            background: #1a1a1a !important;
+            border-color: #2a2a2a !important;
+            color: #ffffff !important;
+        }
+        
+        body.dark-theme input#promo-code:focus {
+            border-color: #00ff88 !important;
+            box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.15) !important;
+            outline: none !important;
+        }
+        
+        body.dark-theme input#promo-code::placeholder {
+            color: #888888 !important;
+        }
+        
+        body.dark-theme button[onclick="applyPromoCode()"] {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%) !important;
+            color: #000000 !important;
+            border: none !important;
+        }
+        
+        body.dark-theme button[onclick="applyPromoCode()"]:hover {
+            background: linear-gradient(135deg, #00ff99 0%, #00dd77 100%) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.4) !important;
+        }
+        
+        body.dark-theme .sales-count {
+            color: #00ff88 !important;
+        }
+        
+        body.dark-theme [style*="color: #666"],
+        body.dark-theme [style*="color:#666"] {
+            color: #ffffff !important;
+        }
+        
+        body.dark-theme [style*="color: #888"],
+        body.dark-theme [style*="color:#888"] {
+            color: #ffffff !important;
+        }
+        
+        body.dark-theme [style*="color: #999"],
+        body.dark-theme [style*="color:#999"] {
+            color: #ffffff !important;
+        }
+        
+        body.dark-theme .pricing-options h3 {
+            color: #ffffff !important;
+        }
+        
+        /* Стили для кнопки "Оформление на ваш аккаунт без входа" */
+        body.dark-theme div[onclick="scrollToRequirements()"] {
+            border-color: #00ff88 !important;
+            background: transparent !important;
+        }
+        
+        body.dark-theme div[onclick="scrollToRequirements()"] span[style*="color: #ffffff"] {
+            color: #ffffff !important;
+        }
+        
+        body.dark-theme div[onclick="scrollToRequirements()"] span[style*="color: #00ff88"] {
+            color: #00ff88 !important;
+        }
+        
+        /* Стили для светлой темы */
+        body:not(.dark-theme) div[onclick="scrollToRequirements()"] {
+            border-color: #667eea !important;
+            background: transparent !important;
+        }
+        
+        body:not(.dark-theme) div[onclick="scrollToRequirements()"] span[style*="color: #ffffff"] {
+            color: #667eea !important;
+        }
+        
+        body:not(.dark-theme) div[onclick="scrollToRequirements()"] span[style*="color: #00ff88"] {
+            color: #667eea !important;
+        }
+        
+        /* Стили для баннера VPN предложения на светлой теме */
+        body:not(.dark-theme) #vpn-offer-banner {
+            background: #ffffff !important;
+            border: 1px solid rgba(102, 126, 234, 0.2) !important;
+        }
+        
+        body:not(.dark-theme) #vpn-offer-content {
+            background: #ffffff !important;
+        }
+        
+        body:not(.dark-theme) #vpn-offer-content div[style*="background: rgba(0, 255, 136, 0.1)"] {
+            background: rgba(102, 126, 234, 0.1) !important;
+            color: #667eea !important;
+            border: 1px solid rgba(102, 126, 234, 0.3) !important;
+        }
+        
+        body:not(.dark-theme) #vpn-offer-content h3[style*="color: #ffffff"] {
+            color: #1a1a1a !important;
+        }
+        
+        body:not(.dark-theme) #vpn-offer-content p[style*="color: #e5e5e5"] {
+            color: #666 !important;
+        }
+        
+        body:not(.dark-theme) #vpn-yes-btn,
+        body:not(.dark-theme) #vpn-no-btn {
+            background: #f3f4f6 !important;
+            color: #374151 !important;
+            border: 2px solid rgba(102, 126, 234, 0.3) !important;
+        }
+        
+        body:not(.dark-theme) #vpn-yes-btn:hover,
+        body:not(.dark-theme) #vpn-no-btn:hover {
+            background: rgba(102, 126, 234, 0.1) !important;
+            border-color: rgba(102, 126, 234, 0.5) !important;
+        }
+        
+        body:not(.dark-theme) #vpn-yes-btn.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: #ffffff !important;
+            border-color: #667eea !important;
+        }
+        
+        body:not(.dark-theme) #vpn-no-btn.selected {
+            background: #f3f4f6 !important;
+            color: #374151 !important;
+            border-color: rgba(102, 126, 234, 0.3) !important;
+        }
     </style>
 </head>
 <body>
@@ -356,6 +644,14 @@
                     </nav>
                 </div>
                 <div class="header-right">
+                                        <div class="theme-toggle-wrapper">
+                        <input type="checkbox" id="theme-toggle" class="theme-toggle">
+                        <label for="theme-toggle" class="theme-toggle-label">
+                            <span class="theme-icon theme-icon-sun">☀️</span>
+                            <span class="theme-icon theme-icon-moon">🌙</span>
+                            <span class="theme-toggle-slider"></span>
+                        </label>
+                    </div>
                     <div class="header-actions">
                         <button class="btn-icon">🔍</button>
                         <button class="btn-icon cart-button" onclick="toggleCartWidget()">🛒 <span class="badge cart-count">0</span></button>
@@ -385,9 +681,9 @@
                         <h1 style="margin: 0;">ChatGPT Plus</h1>
                         <span style="font-size: 14px; color: #666; font-weight: 500;" data-sales="chatgpt">1 390 продаж</span>
                     </div>
-                    <div style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 1px solid rgba(102, 126, 234, 0.2); border-radius: 12px; cursor: pointer; transition: all 0.3s ease; margin-bottom: 8px;" onclick="scrollToRequirements()" onmouseover="this.style.background='linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)'; this.style.borderColor='rgba(102, 126, 234, 0.4)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.2)'" onmouseout="this.style.background='linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)'; this.style.borderColor='rgba(102, 126, 234, 0.2)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-                        <span style="font-size: 15px; color: #10b981; font-weight: 600;">✓</span>
-                        <span style="font-size: 15px; color: #1a1a1a; font-weight: 500;">Оформление на ваш аккаунт без входа</span>
+                    <div id="account-setup-button" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: transparent; border: 1px solid #00ff88; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; margin-bottom: 8px;" onclick="scrollToRequirements()">
+                        <span id="account-setup-checkmark" style="font-size: 15px; color: #00ff88; font-weight: 600;">✓</span>
+                        <span id="account-setup-text" style="font-size: 15px; color: #ffffff; font-weight: 500;">Оформление на ваш аккаунт без входа</span>
                     </div>
                     
                     <div class="pricing-options">
@@ -454,7 +750,7 @@
                     </div>
                     
                     <!-- VPN Question -->
-                    <div style="margin: 30px 0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); background: #ffffff; border: 1px solid #f0f0f0;">
+                    <div id="vpn-offer-banner" style="margin: 30px 0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); background: #000000; border: 1px solid rgba(0, 255, 136, 0.2);">
                         <!-- Image Section -->
                         <div style="width: 100%; height: 220px; background-image: url('../banner-bg.png'); background-size: cover; background-position: center; background-repeat: no-repeat; position: relative; overflow: visible;">
                             <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0) 100%);"></div>
@@ -470,28 +766,28 @@
                             </div>
                         </div>
                         <!-- Content Section -->
-                        <div style="padding: 30px;">
+                        <div id="vpn-offer-content" style="padding: 30px; background: #000000;">
                             <div style="text-align: center; margin-bottom: 24px;">
-                                <div style="display: inline-block; background: #fff4e6; color: #d97706; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 12px;">🎄 Новогоднее предложение</div>
-                                <h3 style="font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0 0 8px 0;">🎁 VPN в подарок</h3>
-                                <p style="font-size: 16px; color: #666; margin: 0;">Хотите ли вы воспользоваться специальным предложением?</p>
+                                <div style="display: inline-block; background: rgba(0, 255, 136, 0.1); color: #00ff88; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 12px; border: 1px solid rgba(0, 255, 136, 0.3);">🎄 Новогоднее предложение</div>
+                                <h3 style="font-size: 24px; font-weight: 700; color: #ffffff; margin: 0 0 8px 0;">🎁 VPN в подарок</h3>
+                                <p style="font-size: 16px; color: #e5e5e5; margin: 0;">Хотите ли вы воспользоваться специальным предложением?</p>
                             </div>
                             <div style="display: flex; gap: 12px;">
                                 <button 
                                     id="vpn-yes-btn" 
                                     onclick="selectVPNOption(true)"
-                                    style="flex: 1; padding: 14px 24px; background: #f3f4f6; color: #374151; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
-                                    onmouseover="if(!this.classList.contains('selected')) {this.style.background='#e5e7eb'; this.style.borderColor='#d1d5db';}"
-                                    onmouseout="if(!this.classList.contains('selected')) {this.style.background='#f3f4f6'; this.style.borderColor='#e5e7eb';}"
+                                    style="flex: 1; padding: 14px 24px; background: #0a0a0a; color: #ffffff; border: 2px solid rgba(0, 255, 136, 0.3); border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
+                                    onmouseover="if(!this.classList.contains('selected')) {this.style.background='rgba(0, 255, 136, 0.1)'; this.style.borderColor='rgba(0, 255, 136, 0.5)';}"
+                                    onmouseout="if(!this.classList.contains('selected')) {this.style.background='#0a0a0a'; this.style.borderColor='rgba(0, 255, 136, 0.3)';}"
                                 >
                                     Да
                                 </button>
                                 <button 
                                     id="vpn-no-btn" 
                                     onclick="selectVPNOption(false)"
-                                    style="flex: 1; padding: 14px 24px; background: #f3f4f6; color: #374151; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
-                                    onmouseover="if(!this.classList.contains('selected')) {this.style.background='#e5e7eb'; this.style.borderColor='#d1d5db';}"
-                                    onmouseout="if(!this.classList.contains('selected')) {this.style.background='#f3f4f6'; this.style.borderColor='#e5e7eb';}"
+                                    style="flex: 1; padding: 14px 24px; background: #0a0a0a; color: #ffffff; border: 2px solid rgba(0, 255, 136, 0.3); border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
+                                    onmouseover="if(!this.classList.contains('selected')) {this.style.background='rgba(0, 255, 136, 0.1)'; this.style.borderColor='rgba(0, 255, 136, 0.5)';}"
+                                    onmouseout="if(!this.classList.contains('selected')) {this.style.background='#0a0a0a'; this.style.borderColor='rgba(0, 255, 136, 0.3)';}"
                                 >
                                     Нет
                                 </button>
@@ -693,20 +989,21 @@
             vpnSelected = selected;
             const yesBtn = document.getElementById('vpn-yes-btn');
             const noBtn = document.getElementById('vpn-no-btn');
+            const isDarkTheme = document.body.classList.contains('dark-theme');
             
             // Сбрасываем стили обеих кнопок
             yesBtn.classList.remove('selected');
             noBtn.classList.remove('selected');
-            yesBtn.style.background = '#f3f4f6';
-            yesBtn.style.borderColor = '#e5e7eb';
-            yesBtn.style.color = '#374151';
+            yesBtn.style.background = isDarkTheme ? '#0a0a0a' : '#f3f4f6';
+            yesBtn.style.borderColor = isDarkTheme ? 'rgba(0, 255, 136, 0.3)' : '#e5e7eb';
+            yesBtn.style.color = isDarkTheme ? '#ffffff' : '#374151';
             yesBtn.style.opacity = '1';
             yesBtn.style.transform = 'scale(1)';
             yesBtn.style.boxShadow = 'none';
             
-            noBtn.style.background = '#f3f4f6';
-            noBtn.style.borderColor = '#e5e7eb';
-            noBtn.style.color = '#374151';
+            noBtn.style.background = isDarkTheme ? '#0a0a0a' : '#f3f4f6';
+            noBtn.style.borderColor = isDarkTheme ? 'rgba(0, 255, 136, 0.3)' : '#e5e7eb';
+            noBtn.style.color = isDarkTheme ? '#ffffff' : '#374151';
             noBtn.style.opacity = '1';
             noBtn.style.transform = 'scale(1)';
             noBtn.style.boxShadow = 'none';
@@ -714,20 +1011,20 @@
             if (selected) {
                 // Выбрано "Да"
                 yesBtn.classList.add('selected');
-                yesBtn.style.background = '#667eea';
-                yesBtn.style.borderColor = '#667eea';
-                yesBtn.style.color = '#ffffff';
+                yesBtn.style.background = isDarkTheme ? '#00ff88' : '#667eea';
+                yesBtn.style.borderColor = isDarkTheme ? '#00ff88' : '#667eea';
+                yesBtn.style.color = isDarkTheme ? '#000000' : '#ffffff';
                 yesBtn.style.transform = 'scale(1.02)';
-                yesBtn.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.3)';
+                yesBtn.style.boxShadow = isDarkTheme ? '0 2px 8px rgba(0, 255, 136, 0.4)' : '0 2px 8px rgba(102, 126, 234, 0.3)';
                 noBtn.style.opacity = '0.6';
             } else {
                 // Выбрано "Нет"
                 noBtn.classList.add('selected');
-                noBtn.style.background = '#9ca3af';
-                noBtn.style.borderColor = '#9ca3af';
-                noBtn.style.color = '#ffffff';
+                noBtn.style.background = isDarkTheme ? '#0a0a0a' : '#9ca3af';
+                noBtn.style.borderColor = isDarkTheme ? 'rgba(0, 255, 136, 0.5)' : '#9ca3af';
+                noBtn.style.color = isDarkTheme ? '#ffffff' : '#ffffff';
                 noBtn.style.transform = 'scale(1.02)';
-                noBtn.style.boxShadow = '0 2px 8px rgba(156, 163, 175, 0.3)';
+                noBtn.style.boxShadow = isDarkTheme ? '0 2px 8px rgba(0, 255, 136, 0.2)' : '0 2px 8px rgba(156, 163, 175, 0.3)';
                 yesBtn.style.opacity = '0.6';
             }
         }
@@ -867,6 +1164,144 @@
     <script src="../search.js"></script>
     <script src="../chat-widget.js"></script>
     <script src="../sales-counter.js"></script>
+    <script>
+        // Переключение темы
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const body = document.body;
+            
+            // Загружаем сохраненную тему из localStorage
+            const savedTheme = localStorage.getItem('theme');
+            
+            // По умолчанию темная тема, если не указана светлая
+            if (savedTheme === 'light-theme' || savedTheme === 'light') {
+                body.classList.remove('dark-theme');
+                if (themeToggle) themeToggle.checked = false;
+            } else {
+                // Темная тема по умолчанию (если нет темы или если dark-theme)
+                body.classList.add('dark-theme');
+                if (themeToggle) themeToggle.checked = true;
+                // Сохраняем темную тему в localStorage, если её там не было
+                if (!savedTheme || savedTheme !== 'dark-theme') {
+                    localStorage.setItem('theme', 'dark-theme');
+                }
+            }
+            
+            // Обработчик переключения темы
+            if (themeToggle) {
+                themeToggle.addEventListener('change', function() {
+                    // Помечаем, что пользователь вручную изменил тему
+                    localStorage.setItem('userThemeChanged', 'true');
+                    
+                    if (this.checked) {
+                        body.classList.add('dark-theme');
+                        localStorage.setItem('theme', 'dark-theme');
+                    } else {
+                        body.classList.remove('dark-theme');
+                        localStorage.setItem('theme', 'light-theme');
+                    }
+                    updateAccountSetupButton();
+                });
+            }
+            
+            // Функция обновления стилей кнопки "Оформление на ваш аккаунт"
+            function updateAccountSetupButton() {
+                const button = document.getElementById('account-setup-button');
+                const checkmark = document.getElementById('account-setup-checkmark');
+                const text = document.getElementById('account-setup-text');
+                
+                if (!button || !checkmark || !text) return;
+                
+                const isDarkTheme = body.classList.contains('dark-theme');
+                
+                if (isDarkTheme) {
+                    // Темная тема
+                    button.style.borderColor = '#00ff88';
+                    checkmark.style.color = '#00ff88';
+                    text.style.color = '#ffffff';
+                    button.onmouseover = function() {
+                        this.style.borderColor = '#00cc6a';
+                        this.style.transform = 'translateY(-2px)';
+                        this.style.boxShadow = '0 4px 12px rgba(0, 255, 136, 0.3)';
+                    };
+                    button.onmouseout = function() {
+                        this.style.borderColor = '#00ff88';
+                        this.style.transform = 'translateY(0)';
+                        this.style.boxShadow = 'none';
+                    };
+                } else {
+                    // Светлая тема
+                    button.style.borderColor = '#667eea';
+                    checkmark.style.color = '#667eea';
+                    text.style.color = '#667eea';
+                    button.onmouseover = function() {
+                        this.style.borderColor = '#5a67d8';
+                        this.style.transform = 'translateY(-2px)';
+                        this.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
+                    };
+                    button.onmouseout = function() {
+                        this.style.borderColor = '#667eea';
+                        this.style.transform = 'translateY(0)';
+                        this.style.boxShadow = 'none';
+                    };
+                }
+            }
+            
+            // Обновляем стили при загрузке
+            updateAccountSetupButton();
+            updateVPNBanner();
+            
+            // Функция обновления стилей баннера VPN
+            function updateVPNBanner() {
+                const banner = document.getElementById('vpn-offer-banner');
+                const content = document.getElementById('vpn-offer-content');
+                const badge = content ? content.querySelector('div[style*="background: rgba(0, 255, 136, 0.1)"]') : null;
+                const title = content ? content.querySelector('h3[style*="color: #ffffff"]') : null;
+                const text = content ? content.querySelector('p[style*="color: #e5e5e5"]') : null;
+                
+                if (!banner || !content) return;
+                
+                const isDarkTheme = body.classList.contains('dark-theme');
+                
+                if (isDarkTheme) {
+                    // Темная тема
+                    banner.style.background = '#000000';
+                    banner.style.borderColor = 'rgba(0, 255, 136, 0.2)';
+                    content.style.background = '#000000';
+                    if (badge) {
+                        badge.style.background = 'rgba(0, 255, 136, 0.1)';
+                        badge.style.color = '#00ff88';
+                        badge.style.borderColor = 'rgba(0, 255, 136, 0.3)';
+                    }
+                    if (title) title.style.color = '#ffffff';
+                    if (text) text.style.color = '#e5e5e5';
+                } else {
+                    // Светлая тема
+                    banner.style.background = '#ffffff';
+                    banner.style.borderColor = 'rgba(102, 126, 234, 0.2)';
+                    content.style.background = '#ffffff';
+                    if (badge) {
+                        badge.style.background = 'rgba(102, 126, 234, 0.1)';
+                        badge.style.color = '#667eea';
+                        badge.style.borderColor = 'rgba(102, 126, 234, 0.3)';
+                    }
+                    if (title) title.style.color = '#1a1a1a';
+                    if (text) text.style.color = '#666';
+                }
+            }
+            
+            // Отслеживаем изменения темы
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.attributeName === 'class' && mutation.target === body) {
+                        updateAccountSetupButton();
+                        updateVPNBanner();
+                    }
+                });
+            });
+            observer.observe(body, { attributes: true });
+        });
+    </script>
 </body>
 </html>
 

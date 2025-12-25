@@ -321,6 +321,77 @@ notifStyle.textContent = `
             width: calc(100% - 40px);
         }
     }
+    
+    /* Темная тема для уведомления */
+    body.dark-theme .beautiful-notification {
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+        border: 1px solid rgba(0, 255, 136, 0.3);
+        box-shadow: 0 20px 60px rgba(0, 255, 136, 0.15), 
+                    0 0 0 1px rgba(0, 255, 136, 0.1) inset,
+                    0 0 30px rgba(0, 255, 136, 0.1);
+    }
+    
+    body.dark-theme .notification-content {
+        border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+    }
+    
+    body.dark-theme .notification-text h4 {
+        color: #00ff88;
+    }
+    
+    body.dark-theme .notification-text .product-name {
+        color: #e5e5e5;
+    }
+    
+    body.dark-theme .notification-price {
+        background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    body.dark-theme .btn-close-notif {
+        background: transparent;
+        color: #e5e5e5;
+        border: 1.5px solid rgba(0, 255, 136, 0.3);
+    }
+    
+    body.dark-theme .btn-close-notif:hover {
+        background: rgba(0, 255, 136, 0.1);
+        border-color: #00ff88;
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(0, 255, 136, 0.2);
+    }
+    
+    body.dark-theme .btn-view-cart-notif {
+        background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+        color: #000000;
+        box-shadow: 0 4px 14px rgba(0, 255, 136, 0.4);
+    }
+    
+    body.dark-theme .btn-view-cart-notif:hover {
+        background: linear-gradient(135deg, #00ff99 0%, #00dd77 100%);
+        box-shadow: 0 8px 24px rgba(0, 255, 136, 0.5);
+    }
+    
+    body.dark-theme .simple-notification {
+        background: #0a0a0a;
+        border-left: 4px solid #00ff88;
+        color: #ffffff;
+    }
+    
+    body.dark-theme .simple-notification-text {
+        color: #e5e5e5;
+    }
+    
+    body.dark-theme .simple-notification-close {
+        color: #888888;
+    }
+    
+    body.dark-theme .simple-notification-close:hover {
+        background: rgba(0, 255, 136, 0.1);
+        color: #00ff88;
+    }
 `;
 document.head.appendChild(notifStyle);
 

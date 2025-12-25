@@ -266,6 +266,100 @@
     background: #5568d3;
 }
 
+/* Темная тема */
+body.dark-theme #search-modal {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+body.dark-theme .search-modal-content {
+    background: #121212;
+    border: 1px solid #1a1a1a;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+}
+
+body.dark-theme .search-modal-header {
+    border-bottom: 1px solid #1a1a1a;
+}
+
+body.dark-theme .search-modal-header h2 {
+    color: #e5e5e5;
+}
+
+body.dark-theme #close-search {
+    color: #888888;
+}
+
+body.dark-theme #close-search:hover {
+    background: #1a1a1a;
+    color: #00ff88;
+}
+
+body.dark-theme #search-input {
+    background: #1a1a1a;
+    border: 2px solid #2a2a2a;
+    color: #e5e5e5;
+}
+
+body.dark-theme #search-input:focus {
+    border-color: #00ff88;
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+}
+
+body.dark-theme .search-input-icon {
+    color: #888888;
+}
+
+body.dark-theme .search-result-item {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+}
+
+body.dark-theme .search-result-item:hover {
+    background: #00ff88;
+    box-shadow: 0 8px 20px rgba(0, 255, 136, 0.4);
+}
+
+body.dark-theme .search-result-image {
+    background: #121212;
+}
+
+body.dark-theme .search-result-info h4 {
+    color: #e5e5e5;
+}
+
+body.dark-theme .search-result-info p {
+    color: #888888;
+}
+
+body.dark-theme .search-category {
+    background: #00ff88;
+    color: #000000;
+}
+
+body.dark-theme .search-result-arrow {
+    color: #888888;
+}
+
+body.dark-theme .search-no-results h3 {
+    color: #e5e5e5;
+}
+
+body.dark-theme .search-no-results p {
+    color: #888888;
+}
+
+body.dark-theme #search-results::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+body.dark-theme #search-results::-webkit-scrollbar-thumb {
+    background: #00ff88;
+}
+
+body.dark-theme #search-results::-webkit-scrollbar-thumb:hover {
+    background: #00cc6a;
+}
+
 /* Адаптивность */
 @media (max-width: 768px) {
     #search-modal {

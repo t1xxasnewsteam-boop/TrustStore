@@ -331,6 +331,161 @@
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
 }
 
+/* Темная тема */
+body.dark-theme .btn-view-full-cart {
+    background: #1a1a1a;
+    color: #00ff88;
+    border: 2px solid #00ff88;
+}
+
+body.dark-theme .btn-view-full-cart:hover {
+    background: rgba(0, 255, 136, 0.1);
+    border-color: #00ff99;
+    color: #00ff99;
+}
+
+body.dark-theme .btn-cart-checkout {
+    background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+    color: #000000;
+    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+}
+
+body.dark-theme .btn-cart-checkout:hover {
+    background: linear-gradient(135deg, #00ff99 0%, #00dd77 100%);
+    box-shadow: 0 8px 25px rgba(0, 255, 136, 0.6);
+}
+
+body.dark-theme .cart-widget {
+    background: #000000 !important;
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    box-shadow: 0 20px 60px rgba(0, 255, 136, 0.2),
+                0 0 30px rgba(0, 255, 136, 0.15),
+                inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-theme .cart-widget-header {
+    background: linear-gradient(135deg, #003d1f 0%, #001a0d 100%);
+    border-bottom: 2px solid rgba(0, 255, 136, 0.3);
+    color: #00ff88;
+}
+
+body.dark-theme .cart-widget-close {
+    background: rgba(0, 255, 136, 0.1);
+    color: #00ff88;
+    border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+body.dark-theme .cart-widget-close:hover {
+    background: rgba(0, 255, 136, 0.2);
+    border-color: rgba(0, 255, 136, 0.5);
+    color: #00ff99;
+}
+
+body.dark-theme .cart-widget-items {
+    background: #000000;
+}
+
+body.dark-theme .cart-widget-item {
+    background: #0a0a0a !important;
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 255, 136, 0.1);
+}
+
+body.dark-theme .cart-widget-item:hover {
+    background: #0f0f0f !important;
+    border-color: rgba(0, 255, 136, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 255, 136, 0.15);
+}
+
+body.dark-theme .cart-widget-item-image {
+    background: #000000;
+    border: 1px solid rgba(0, 255, 136, 0.2);
+}
+
+body.dark-theme .cart-widget-item-title {
+    color: #ffffff !important;
+}
+
+body.dark-theme .cart-widget-item-duration {
+    color: #888888 !important;
+}
+
+body.dark-theme .cart-widget-item-price {
+    color: #00ff88 !important;
+}
+
+body.dark-theme .widget-quantity-btn {
+    border: 1.5px solid #00ff88;
+    background: #000000;
+    color: #00ff88;
+}
+
+body.dark-theme .widget-quantity-btn:hover {
+    background: #00ff88;
+    color: #000000;
+}
+
+body.dark-theme .widget-quantity-input {
+    border: 1.5px solid rgba(0, 255, 136, 0.3);
+    background: #000000;
+    color: #ffffff;
+}
+
+body.dark-theme .widget-quantity-input:focus {
+    border-color: #00ff88;
+    background: #0f0f0f;
+}
+
+body.dark-theme .cart-widget-item-remove {
+    background: #000000;
+    border: 1.5px solid #ff4757;
+    color: #ff4757;
+}
+
+body.dark-theme .cart-widget-item-remove:hover {
+    background: #ff4757;
+    color: #ffffff;
+}
+
+body.dark-theme .cart-widget-empty {
+    background: #000000;
+}
+
+body.dark-theme .cart-widget-empty h4 {
+    color: #ffffff !important;
+}
+
+body.dark-theme .cart-widget-empty p {
+    color: #888888 !important;
+}
+
+body.dark-theme .cart-widget-empty-btn {
+    background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+    color: #000000;
+}
+
+body.dark-theme .cart-widget-empty-btn:hover {
+    box-shadow: 0 8px 20px rgba(0, 255, 136, 0.4);
+}
+
+body.dark-theme .cart-widget-footer {
+    background: #000000 !important;
+    border-top: 2px solid rgba(0, 255, 136, 0.3);
+}
+
+body.dark-theme .cart-widget-total-label {
+    color: #ffffff !important;
+}
+
+body.dark-theme .cart-widget-total-price {
+    color: #00ff88 !important;
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+}
+
+body.dark-theme .cart-widget-overlay {
+    background: rgba(0, 0, 0, 0.8);
+}
+
 /* Overlay */
 .cart-widget-overlay {
     position: fixed;

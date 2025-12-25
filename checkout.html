@@ -9,11 +9,17 @@
     <title>Оформление заказа - Trust Store</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="shortcut icon" type="image/png" href="favicon.png">
+    <link rel="preload" as="image" href="logo.png" fetchpriority="high">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="cart-widget.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="theme-detector.js"></script>
+    <script>
+        // Предотвращение белой вспышки - применяем фон сразу
+        // (теперь это обрабатывается в theme-detector.js)
+    </script>
     <style>
         .checkout-page {
             padding: 40px 0 60px;
@@ -931,6 +937,345 @@
                 opacity: 0;
             }
         }
+        
+        /* Темная тема для страницы оформления */
+        body.dark-theme {
+            background-color: #0a0a0a !important;
+        }
+        
+        body.dark-theme .checkout-page {
+            background: linear-gradient(135deg, #000000 0%, #0a0a0a 100%) !important;
+        }
+        
+        body.dark-theme .checkout-page::before {
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.1) 0%, transparent 70%);
+        }
+        
+        body.dark-theme .back-link {
+            color: #00ff88 !important;
+        }
+        
+        body.dark-theme .back-link:hover {
+            color: #00cc6a !important;
+        }
+        
+        body.dark-theme .checkout-header h1 {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: #00ff88 !important;
+        }
+        
+        body.dark-theme .order-summary {
+            background: #000000 !important;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 255, 136, 0.1);
+        }
+        
+        body.dark-theme .order-summary h2 {
+            color: #ffffff !important;
+        }
+        
+        body.dark-theme .order-item {
+            background: #0a0a0a !important;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+        
+        body.dark-theme .order-item:hover {
+            background: #0f0f0f !important;
+            border-color: rgba(0, 255, 136, 0.4);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.15);
+        }
+        
+        body.dark-theme .order-item-image {
+            background: #000000;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+        
+        body.dark-theme .order-item-name {
+            color: #ffffff !important;
+        }
+        
+        body.dark-theme .order-item-duration {
+            color: #888888 !important;
+        }
+        
+        body.dark-theme .order-item-price {
+            color: #00ff88 !important;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+        
+        body.dark-theme .quantity-btn {
+            border: 1.5px solid #00ff88;
+            background: #000000;
+            color: #00ff88;
+        }
+        
+        body.dark-theme .quantity-btn:hover {
+            background: #00ff88;
+            color: #000000;
+        }
+        
+        body.dark-theme .quantity-input {
+            border: 1.5px solid rgba(0, 255, 136, 0.3);
+            background: #000000;
+            color: #ffffff;
+        }
+        
+        body.dark-theme .quantity-input:focus {
+            border-color: #00ff88;
+            background: #0f0f0f;
+        }
+        
+        body.dark-theme .btn-remove-item {
+            background: #000000;
+            border: 1.5px solid #ff4757;
+            color: #ff4757;
+        }
+        
+        body.dark-theme .btn-remove-item:hover {
+            background: #ff4757;
+            color: #ffffff;
+        }
+        
+        body.dark-theme .order-total-section {
+            background: #000000 !important;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+        
+        body.dark-theme .order-total {
+            color: #00ff88 !important;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+        
+        body.dark-theme .promo-section {
+            background: #000000 !important;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+        
+        body.dark-theme .promo-section h4 {
+            color: #ffffff !important;
+        }
+        
+        body.dark-theme .promo-input {
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            background: #0a0a0a;
+            color: #ffffff;
+        }
+        
+        body.dark-theme .promo-input:focus {
+            border-color: #00ff88;
+            background: #0f0f0f;
+        }
+        
+        body.dark-theme .btn-apply-promo {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+            color: #000000;
+        }
+        
+        body.dark-theme .btn-apply-promo:hover {
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+        }
+        
+        body.dark-theme #checkout-form {
+            background: #000000 !important;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 255, 136, 0.1);
+        }
+        
+        body.dark-theme .form-group label {
+            color: #ffffff !important;
+        }
+        
+        body.dark-theme .form-group input,
+        body.dark-theme .form-group textarea {
+            background: #0a0a0a;
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            color: #ffffff;
+        }
+        
+        body.dark-theme .form-group input:focus,
+        body.dark-theme .form-group textarea:focus {
+            border-color: #00ff88;
+            background: #0f0f0f;
+            box-shadow: 0 0 0 4px rgba(0, 255, 136, 0.1), 0 10px 30px rgba(0, 255, 136, 0.2);
+        }
+        
+        body.dark-theme .form-group input::placeholder,
+        body.dark-theme .form-group textarea::placeholder {
+            color: #666666;
+        }
+        
+        body.dark-theme .form-group .hint {
+            color: #888888 !important;
+        }
+        
+        body.dark-theme .payment-method {
+            background: #0a0a0a !important;
+            border: 2px solid rgba(0, 255, 136, 0.2);
+        }
+        
+        body.dark-theme .payment-method:hover {
+            border-color: rgba(0, 255, 136, 0.5);
+            background: #0f0f0f !important;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.2);
+        }
+        
+        body.dark-theme .payment-method.selected {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.1) !important;
+        }
+        
+        body.dark-theme .payment-method-name {
+            color: #ffffff !important;
+        }
+        
+        body.dark-theme .payment-method-description {
+            color: #888888 !important;
+        }
+        
+        body.dark-theme .payment-method-desc {
+            color: #888888 !important;
+        }
+        
+        body.dark-theme .btn-pay {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%) !important;
+            color: #000000 !important;
+            box-shadow: 0 15px 40px rgba(0, 255, 136, 0.5) !important;
+        }
+        
+        body.dark-theme .btn-pay:hover {
+            box-shadow: 0 20px 50px rgba(0, 255, 136, 0.6) !important;
+        }
+        
+        body.dark-theme .btn-submit {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+            color: #000000;
+            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.4);
+        }
+        
+        body.dark-theme .btn-submit:hover {
+            box-shadow: 0 12px 35px rgba(0, 255, 136, 0.6);
+        }
+        
+        body.dark-theme .summary-row {
+            color: #e5e5e5;
+        }
+        
+        body.dark-theme .summary-row-label {
+            color: #ffffff;
+        }
+        
+        body.dark-theme .summary-row-value {
+            color: #00ff88;
+        }
+        
+        body.dark-theme .crypto-rate-info {
+            background: #0a0a0a;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            color: #ffffff;
+        }
+        
+        body.dark-theme .payment-method-info {
+            color: #888888;
+        }
+        
+        body.dark-theme .security-note {
+            color: #888888 !important;
+        }
+        
+        body.dark-theme .form-section h3 {
+            color: #ffffff !important;
+        }
+        
+        body.dark-theme .summary-row span:first-child {
+            color: #ffffff !important;
+        }
+        
+        body.dark-theme .summary-row span:last-child {
+            color: #00ff88 !important;
+        }
+        
+        body.dark-theme div[style*="color: #666"] {
+            color: #e5e5e5 !important;
+        }
+        
+        body.dark-theme div[style*="color: #667eea"] {
+            color: #00ff88 !important;
+        }
+        
+        body.dark-theme a[style*="color: #667eea"] {
+            color: #00ff88 !important;
+            background: none !important;
+            border: none !important;
+            border-bottom: none !important;
+            padding: 0 !important;
+        }
+        
+        body.dark-theme a[style*="color: #667eea"]:hover {
+            color: #00cc6a !important;
+            background: none !important;
+            border: none !important;
+            border-bottom: none !important;
+        }
+        
+        body.dark-theme span[style*="color: #667eea"] {
+            color: #00ff88 !important;
+        }
+        
+        body.dark-theme div[style*="background: rgba(102, 126, 234"] {
+            background: rgba(0, 255, 136, 0.1) !important;
+            border-left-color: #00ff88 !important;
+        }
+        
+        body.dark-theme .telegram-help-block {
+            background: rgba(0, 255, 136, 0.1) !important;
+            border-left-color: #00ff88 !important;
+        }
+        
+        body.dark-theme .telegram-help-block p {
+            color: #e5e5e5 !important;
+        }
+        
+        body.dark-theme .telegram-link {
+            color: #00ff88 !important;
+            background: none !important;
+            border: none !important;
+            border-bottom: none !important;
+            padding: 0 !important;
+            text-decoration: none !important;
+        }
+        
+        body.dark-theme .telegram-link:hover {
+            color: #00cc6a !important;
+            background: none !important;
+            border: none !important;
+            border-bottom: none !important;
+        }
+        
+        body.dark-theme .help-text {
+            color: #00ff88 !important;
+        }
+        
+        body.dark-theme .payment-total-row {
+            border-top-color: rgba(0, 255, 136, 0.2) !important;
+        }
+        
+        body.dark-theme .payment-total-label {
+            color: #ffffff !important;
+        }
+        
+        body.dark-theme .payment-total-value {
+            color: #00ff88 !important;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+        
+        body.dark-theme .summary-row {
+            color: #ffffff !important;
+        }
+        
+        body.dark-theme .summary-row span {
+            color: #ffffff !important;
+        }
     </style>
 </head>
 <body>
@@ -942,7 +1287,7 @@
                     <div class="logo-wrapper">
                         <a href="/" style="text-decoration: none;">
                             <div class="logo">
-                                <img src="logo.png" alt="Trust Store" class="logo-image">
+                                <img src="logo.png" alt="Trust Store" class="logo-image" loading="eager" fetchpriority="high" width="45" height="45">
                                 <h1>Trust Store</h1>
                             </div>
                         </a>
@@ -961,6 +1306,15 @@
                         <button class="btn-icon">🔍</button>
                         <button class="btn-icon cart-button" onclick="toggleCartWidget()">🛒 <span class="badge cart-count">0</span></button>
                         <script>(function(){try{var c=JSON.parse(localStorage.getItem('trustStoreCart')||'[]'),t=0;c.forEach(function(i){t+=(i.quantity||1)});var b=document.currentScript.previousElementSibling.querySelector('.cart-count');if(b)b.textContent=t;}catch(e){}})();</script>
+                        <!-- Theme Toggle -->
+                        <div class="theme-toggle-wrapper">
+                            <input type="checkbox" id="theme-toggle" class="theme-toggle">
+                            <label for="theme-toggle" class="theme-toggle-label">
+                                <span class="theme-icon theme-icon-sun">☀️</span>
+                                <span class="theme-icon theme-icon-moon">🌙</span>
+                                <span class="theme-toggle-slider"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1082,14 +1436,14 @@
                                 </div>
                             </div>
                         </div>
-                        <div style="margin-top: 20px; padding: 16px; background: rgba(102, 126, 234, 0.05); border-radius: 12px; border-left: 3px solid #667eea; text-align: center;">
+                        <div class="telegram-help-block" style="margin-top: 20px; padding: 16px; background: rgba(102, 126, 234, 0.05); border-radius: 12px; border-left: 3px solid #667eea; text-align: center;">
                             <p style="margin: 0; font-size: 14px; color: #666; line-height: 1.6;">
                                 💬 Если вы не нашли удобный для вас способ оплаты, напишите нам в Telegram: 
-                                <a href="https://t.me/truststore_admin" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 600; border-bottom: 1px solid #667eea; transition: all 0.3s ease;" onmouseover="this.style.color='#764ba2'; this.style.borderBottomColor='#764ba2'" onmouseout="this.style.color='#667eea'; this.style.borderBottomColor='#667eea'">
+                                <a href="https://t.me/truststore_admin" target="_blank" class="telegram-link" style="color: #667eea; text-decoration: none; font-weight: 600; background: none; border: none; padding: 0; transition: all 0.3s ease;" onmouseover="this.style.color='#00cc6a'" onmouseout="this.style.color='#00ff88'">
                                     @truststore_admin
                                 </a>
                                 <br>
-                                <span style="font-weight: 600; color: #667eea; margin-top: 6px; display: inline-block;">✨ Мы найдем решение для вас!</span>
+                                <span class="help-text" style="font-weight: 600; color: #667eea; margin-top: 6px; display: inline-block;">✨ Мы найдем решение для вас!</span>
                             </p>
                         </div>
                     </div>
@@ -1422,12 +1776,18 @@
             
             // Формируем итоговый блок с детализацией
             const totalSection = document.getElementById('order-total-section');
+            const isDarkTheme = document.body.classList.contains('dark-theme');
+            const borderColor = isDarkTheme ? 'rgba(0, 255, 136, 0.2)' : '#f0f0f0';
+            const textColor = isDarkTheme ? '#e5e5e5' : '#666';
+            const labelColor = isDarkTheme ? '#ffffff' : '#1a1a1a';
+            const paymentLabelColor = isDarkTheme ? '#ffffff' : '#667eea';
+            const paymentValueColor = isDarkTheme ? '#00ff88' : '#667eea';
             
             let summaryHTML = `
-                <div style="padding: 20px 0; border-top: 2px solid #f0f0f0;">
+                <div style="padding: 20px 0; border-top: 2px solid ${borderColor};">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                        <span style="font-size: 16px; color: #666;">Товары (${orderItems.length})</span>
-                        <span style="font-size: 16px; font-weight: 600;">${totalOriginalPrice.toLocaleString('ru-RU')} ₽</span>
+                        <span style="font-size: 16px; color: ${textColor};">Товары (${orderItems.length})</span>
+                        <span style="font-size: 16px; font-weight: 600; color: ${isDarkTheme ? '#00ff88' : '#1a1a1a'};">${totalOriginalPrice.toLocaleString('ru-RU')} ₽</span>
                     </div>
             `;
             
@@ -1436,21 +1796,23 @@
                 for (const [code, data] of promoSummary.entries()) {
                     summaryHTML += `
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span style="font-size: 16px; color: #10b981;">🎁 Промокод ${code} (-${data.discount}%)</span>
-                            <span style="font-size: 16px; font-weight: 600; color: #10b981;">-${data.totalSaved.toLocaleString('ru-RU')} ₽</span>
+                            <span style="font-size: 16px; color: #00ff88;">🎁 Промокод ${code} (-${data.discount}%)</span>
+                            <span style="font-size: 16px; font-weight: 600; color: #00ff88;">-${data.totalSaved.toLocaleString('ru-RU')} ₽</span>
                         </div>
                     `;
                 }
             }
             
+            const dividerColor = isDarkTheme ? 'rgba(0, 255, 136, 0.2)' : '#e5e7eb';
+            
             summaryHTML += `
-                    <div style="display: flex; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-                        <span style="font-size: 16px; font-weight: 600;">Итого</span>
-                        <span style="font-size: 16px; font-weight: 600;">${totalFinalPrice.toLocaleString('ru-RU')} ₽</span>
+                    <div style="display: flex; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid ${dividerColor};">
+                        <span style="font-size: 16px; font-weight: 600; color: ${labelColor};">Итого</span>
+                        <span style="font-size: 16px; font-weight: 600; color: ${isDarkTheme ? '#00ff88' : '#1a1a1a'};">${totalFinalPrice.toLocaleString('ru-RU')} ₽</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 20px; padding-top: 20px; border-top: 2px solid #f0f0f0;">
-                        <span style="font-size: 20px; font-weight: 700; color: #667eea;">К оплате:</span>
-                        <span style="font-size: 24px; font-weight: 700; color: #667eea;">${totalFinalPrice.toLocaleString('ru-RU')} ₽</span>
+                    <div class="payment-total-row" style="display: flex; justify-content: space-between; margin-top: 20px; padding-top: 20px; border-top: 2px solid ${borderColor};">
+                        <span class="payment-total-label" style="font-size: 20px; font-weight: 700; color: ${paymentLabelColor};">К оплате:</span>
+                        <span class="payment-total-value" style="font-size: 24px; font-weight: 700; color: ${paymentValueColor}; ${isDarkTheme ? 'text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);' : ''}">${totalFinalPrice.toLocaleString('ru-RU')} ₽</span>
                     </div>
                 </div>
             `;
@@ -1609,17 +1971,26 @@
         // Красивая анимация успешной активации промокода
         function showPromoSuccessAnimation(promoCode, discount) {
             // Создаем тонкое уведомление сверху
+            const isDarkTheme = document.body.classList.contains('dark-theme');
+            const bgGradient = isDarkTheme 
+                ? 'linear-gradient(135deg, #00ff88 0%, #00cc6a 100%)'
+                : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            const boxShadow = isDarkTheme
+                ? '0 10px 40px rgba(0, 255, 136, 0.4)'
+                : '0 10px 40px rgba(102, 126, 234, 0.4)';
+            const textColor = isDarkTheme ? '#000000' : 'white';
+            
             const notification = document.createElement('div');
             notification.style.cssText = `
                 position: fixed;
                 top: 80px;
                 left: 50%;
                 transform: translateX(-50%) translateY(-120%);
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
+                background: ${bgGradient};
+                color: ${textColor};
                 padding: 20px 40px;
                 border-radius: 16px;
-                box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+                box-shadow: ${boxShadow};
                 z-index: 100000;
                 display: flex;
                 align-items: center;
@@ -2166,6 +2537,43 @@
             const defaultSelected = document.querySelector('.payment-method.selected')?.dataset.method;
             console.log('📄 При загрузке страницы выбран:', defaultSelected);
         });
+        
+        // Переключение темы (светлая/темная)
+        (function() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const body = document.body;
+            
+            // Загружаем сохраненную тему из localStorage
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light-theme' || savedTheme === 'light') {
+                body.classList.remove('dark-theme');
+                body.classList.add('light-theme');
+                if (themeToggle) themeToggle.checked = false;
+            } else {
+                // Темная тема по умолчанию
+                body.classList.add('dark-theme');
+                body.classList.remove('light-theme');
+                if (themeToggle) themeToggle.checked = true;
+            }
+            
+            // Обработчик переключения темы
+            if (themeToggle) {
+                themeToggle.addEventListener('change', function() {
+                    // Помечаем, что пользователь вручную изменил тему
+                    localStorage.setItem('userThemeChanged', 'true');
+                    
+                    if (this.checked) {
+                        body.classList.add('dark-theme');
+                        body.classList.remove('light-theme');
+                        localStorage.setItem('theme', 'dark-theme');
+                    } else {
+                        body.classList.remove('dark-theme');
+                        body.classList.add('light-theme');
+                        localStorage.setItem('theme', 'light-theme');
+                    }
+                });
+            }
+        })();
     </script>
 </body>
 </html>
