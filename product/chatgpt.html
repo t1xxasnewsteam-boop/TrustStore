@@ -610,6 +610,20 @@
             color: #00ff88 !important;
         }
         
+        /* Стили для блока "Единоразовый платеж" в темной теме */
+        body.dark-theme div[style*="background: #f0f9ff"] {
+            background: #0a1a2a !important;
+            border-color: #00ff88 !important;
+        }
+        
+        body.dark-theme div[style*="color: #0c4a6e"] {
+            color: #00ff88 !important;
+        }
+        
+        body.dark-theme div[style*="color: #075985"] {
+            color: #e5e5e5 !important;
+        }
+        
         /* Стили для инструкции по почте */
         body.dark-theme .email-instruction-tabs {
             border-bottom-color: #1a1a1a !important;
@@ -967,6 +981,15 @@
                         </div>
                     </div>
                     
+                    <!-- Информация о платеже -->
+                    <div style="background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 12px; padding: 16px 20px; margin: 20px 0; display: flex; align-items: center; gap: 12px;">
+                        <div style="font-size: 24px;">💳</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #0c4a6e; margin-bottom: 4px; font-size: 15px;">Единоразовый платеж</div>
+                            <div style="color: #075985; font-size: 14px; line-height: 1.5;">Подписка оплачивается один раз. Автопродление отсутствует. После окончания срока подписка не будет автоматически продлена.</div>
+                        </div>
+                    </div>
+                    
                     <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px;">
                         <div class="price-large" id="selected-price">2 250 ₽</div>
                         <div id="old-price" style="display: none; font-size: 28px; font-weight: 600; color: #999; text-decoration: line-through; animation: strikethrough 0.5s ease;"></div>
@@ -1053,6 +1076,7 @@
                         <li>👤 Оформление на ваш аккаунт</li>
                         <li>🔒 Без входа в ваш аккаунт</li>
                         <li>⚡ Мгновенная активация после оплаты</li>
+                        <li>💳 Единоразовый платеж (без автопродления)</li>
                         <li>✅ Гарантия работы</li>
                         <li>💬 Поддержка 24/7</li>
                     </ul>
