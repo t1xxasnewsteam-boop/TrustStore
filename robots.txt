@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Disallow: /checkout.html
+Disallow: /cart.html
+Disallow: /success.html
+Disallow: /admin.html
+Disallow: /admin-old-backup.html
+Disallow: /test-*.html
+Disallow: /email-template-preview.html
+
+# Sitemap
+Sitemap: https://truststore.ru/sitemap.xml
+
+# Crawl-delay (опционально, можно убрать если не нужно)
+Crawl-delay: 1
+
