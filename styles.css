@@ -2868,6 +2868,7 @@ body.dark-theme .reviews-subtitle::after {
 
     .theme-toggle-wrapper {
         margin-left: 8px;
+        margin-top: 8px;
     }
 
     .theme-toggle-label {
@@ -3032,6 +3033,7 @@ body.dark-theme .reviews-subtitle::after {
 
     .theme-toggle-wrapper {
         margin-left: 6px;
+        margin-top: 8px;
     }
 
     .theme-toggle-label {

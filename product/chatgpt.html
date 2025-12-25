@@ -430,6 +430,69 @@
             color: #00ff88 !important;
         }
         
+        /* Стили для инструкции по почте */
+        body.dark-theme .email-instruction-tabs {
+            border-bottom-color: #1a1a1a !important;
+        }
+        
+        body.dark-theme .email-tab-btn {
+            color: #888 !important;
+        }
+        
+        body.dark-theme .email-tab-btn.active {
+            color: #00ff88 !important;
+            border-bottom-color: #00ff88 !important;
+        }
+        
+        body.dark-theme .email-tab-btn:hover {
+            color: #00ff88 !important;
+        }
+        
+        body.dark-theme .instruction-step h4 {
+            color: #ffffff !important;
+        }
+        
+        body.dark-theme .instruction-step p {
+            color: #e5e5e5 !important;
+        }
+        
+        body.dark-theme .instruction-image {
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.1) !important;
+        }
+        
+        /* Стили для блока инструкции */
+        body.dark-theme div[style*="background: #f8f9fa"] {
+            background: #1a1a1a !important;
+            border-left-color: #00ff88 !important;
+        }
+        
+        body.dark-theme div[style*="background: #f8f9fa"] p {
+            color: #e5e5e5 !important;
+        }
+        
+        body.dark-theme div[style*="background: #f8f9fa"] span[style*="color: #667eea"] {
+            color: #00ff88 !important;
+        }
+        
+        body.dark-theme div[style*="background: #f8f9fa"] strong {
+            color: #00ff88 !important;
+        }
+        
+        /* Стили для примечания о скрытой почте Apple */
+        body.dark-theme div[style*="background: #fff3cd"] {
+            background: #2a2419 !important;
+            border-left-color: #ffc107 !important;
+        }
+        
+        body.dark-theme div[style*="background: #fff3cd"] p {
+            color: #ffc107 !important;
+        }
+        
+        body.dark-theme div[style*="background: #fff3cd"] code {
+            background: rgba(255, 193, 7, 0.15) !important;
+            color: #ffc107 !important;
+        }
+        
         body.dark-theme .custom-block {
             background: #0a0a0a;
             border-color: #1a1a1a;
@@ -644,18 +707,18 @@
                     </nav>
                 </div>
                 <div class="header-right">
-                                        <div class="theme-toggle-wrapper">
-                        <input type="checkbox" id="theme-toggle" class="theme-toggle">
-                        <label for="theme-toggle" class="theme-toggle-label">
-                            <span class="theme-icon theme-icon-sun">☀️</span>
-                            <span class="theme-icon theme-icon-moon">🌙</span>
-                            <span class="theme-toggle-slider"></span>
-                        </label>
-                    </div>
                     <div class="header-actions">
                         <button class="btn-icon">🔍</button>
                         <button class="btn-icon cart-button" onclick="toggleCartWidget()">🛒 <span class="badge cart-count">0</span></button>
                         <script>(function(){try{var c=JSON.parse(localStorage.getItem('trustStoreCart')||'[]'),t=0;c.forEach(function(i){t+=(i.quantity||1)});var b=document.currentScript.previousElementSibling.querySelector('.cart-count');if(b)b.textContent=t;}catch(e){}})();</script>
+                        <div class="theme-toggle-wrapper">
+                            <input type="checkbox" id="theme-toggle" class="theme-toggle">
+                            <label for="theme-toggle" class="theme-toggle-label">
+                                <span class="theme-icon theme-icon-sun">☀️</span>
+                                <span class="theme-icon theme-icon-moon">🌙</span>
+                                <span class="theme-toggle-slider"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -808,6 +871,101 @@
                     <div class="info-block" id="requirements-block">
                         <h3>📋 Что нужно для оформления подписки?</h3>
                         <p>Для оформления подписки на ваш аккаунт нам требуется только <strong style="color: #000; font-weight: 700;">адрес электронной почты указанный в ChatGPT</strong>, никаких паролей не требуется</p>
+                    </div>
+                    
+                    <div class="info-block" style="margin-top: 30px;">
+                        <h3>📧 Где взять почту аккаунта ChatGPT?</h3>
+                        
+                        <div class="email-instruction-tabs" style="display: flex; gap: 10px; margin-top: 20px; margin-bottom: 20px; border-bottom: 2px solid #e5e5e5;">
+                            <button class="email-tab-btn active" onclick="switchEmailTab('browser')" style="padding: 12px 24px; background: transparent; border: none; border-bottom: 3px solid #667eea; color: #667eea; font-weight: 600; font-size: 16px; cursor: pointer; transition: all 0.3s ease;">
+                                В Браузере
+                            </button>
+                            <button class="email-tab-btn" onclick="switchEmailTab('app')" style="padding: 12px 24px; background: transparent; border: none; border-bottom: 3px solid transparent; color: #666; font-weight: 500; font-size: 16px; cursor: pointer; transition: all 0.3s ease;">
+                                В Приложении
+                            </button>
+                        </div>
+                        
+                        <div id="email-instruction-browser" class="email-instruction-content" style="display: block;">
+                            <div class="instruction-step" style="margin-bottom: 30px;">
+                                <h4 style="font-size: 18px; font-weight: 600; color: #1a1a1a; margin-bottom: 15px;">Шаг 1</h4>
+                                <div class="instruction-image" style="margin-bottom: 15px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                                    <img src="../instructions/chatgpt-email-browser-1.jpg" alt="Инструкция 1 - Браузер" style="width: 100%; height: auto; display: block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                    <div style="display: none; padding: 40px; text-align: center; background: #f5f5f5; color: #666;">
+                                        <p>Фото 1: Браузер - Шаг 1</p>
+                                        <p style="font-size: 14px; margin-top: 10px;">Загрузите фото: instructions/chatgpt-email-browser-1.jpg</p>
+                                    </div>
+                                </div>
+                                <div style="background: #f8f9fa; padding: 16px 20px; border-radius: 12px; border-left: 4px solid #667eea; margin-top: 12px;">
+                                    <p style="color: #1a1a1a; line-height: 1.8; margin: 0; font-size: 15px;">
+                                        <span style="font-weight: 600; color: #667eea;">1.</span> Нажмите на <strong>своё имя</strong> в левом нижнем углу<br>
+                                        <span style="font-weight: 600; color: #667eea;">2.</span> В открывшемся меню выберите <strong>«Настройки»</strong>
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="instruction-step" style="margin-bottom: 30px;">
+                                <h4 style="font-size: 18px; font-weight: 600; color: #1a1a1a; margin-bottom: 15px;">Шаг 2</h4>
+                                <div class="instruction-image" style="margin-bottom: 15px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                                    <img src="../instructions/chatgpt-email-browser-2.jpg" alt="Инструкция 2 - Браузер" style="width: 100%; height: auto; display: block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                    <div style="display: none; padding: 40px; text-align: center; background: #f5f5f5; color: #666;">
+                                        <p>Фото 2: Браузер - Шаг 2</p>
+                                        <p style="font-size: 14px; margin-top: 10px;">Загрузите фото: instructions/chatgpt-email-browser-2.jpg</p>
+                                    </div>
+                                </div>
+                                <div style="background: #f8f9fa; padding: 16px 20px; border-radius: 12px; border-left: 4px solid #667eea; margin-top: 12px;">
+                                    <p style="color: #1a1a1a; line-height: 1.8; margin: 0; font-size: 15px;">
+                                        <span style="font-weight: 600; color: #667eea;">1.</span> В настройках нажмите на вкладку <strong>«Учётная запись»</strong><br>
+                                        <span style="font-weight: 600; color: #667eea;">2.</span> Там, промотав вниз, вы увидите <strong>почту своего аккаунта ChatGPT</strong>
+                                    </p>
+                                </div>
+                                
+                                <div style="background: #fff3cd; padding: 14px 18px; border-radius: 10px; border-left: 4px solid #ffc107; margin-top: 16px;">
+                                    <p style="color: #856404; line-height: 1.6; margin: 0; font-size: 14px;">
+                                        <strong>💡 Примечание:</strong> Если ваша почта выглядит как <code style="background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px; font-family: monospace;">....@privaterelay.appleid.com</code>, это скрытая почта Apple. Не переживайте — приглашение автоматически придет на вашу основную почту, привязанную к Apple ID.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="email-instruction-app" class="email-instruction-content" style="display: none;">
+                            <div class="instruction-step" style="margin-bottom: 30px;">
+                                <h4 style="font-size: 18px; font-weight: 600; color: #1a1a1a; margin-bottom: 15px;">Шаг 1</h4>
+                                <div class="instruction-image" style="margin-bottom: 15px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center;">
+                                    <img src="../instructions/chatgpt-email-app-1.png" alt="Инструкция 1 - Приложение" style="max-width: 60%; height: auto; display: block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                    <div style="display: none; padding: 40px; text-align: center; background: #f5f5f5; color: #666;">
+                                        <p>Фото 1: Приложение - Шаг 1</p>
+                                        <p style="font-size: 14px; margin-top: 10px;">Загрузите фото: instructions/chatgpt-email-app-1.png</p>
+                                    </div>
+                                </div>
+                                <div style="background: #f8f9fa; padding: 16px 20px; border-radius: 12px; border-left: 4px solid #667eea; margin-top: 12px;">
+                                    <p style="color: #1a1a1a; line-height: 1.8; margin: 0; font-size: 15px;">
+                                        Нажмите на <strong>своё имя</strong> во вкладке всех чатов
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="instruction-step" style="margin-bottom: 30px;">
+                                <h4 style="font-size: 18px; font-weight: 600; color: #1a1a1a; margin-bottom: 15px;">Шаг 2</h4>
+                                <div class="instruction-image" style="margin-bottom: 15px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center;">
+                                    <img src="../instructions/chatgpt-email-app-2.png" alt="Инструкция 2 - Приложение" style="max-width: 60%; height: auto; display: block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                    <div style="display: none; padding: 40px; text-align: center; background: #f5f5f5; color: #666;">
+                                        <p>Фото 2: Приложение - Шаг 2</p>
+                                        <p style="font-size: 14px; margin-top: 10px;">Загрузите фото: instructions/chatgpt-email-app-2.png</p>
+                                    </div>
+                                </div>
+                                <div style="background: #f8f9fa; padding: 16px 20px; border-radius: 12px; border-left: 4px solid #667eea; margin-top: 12px;">
+                                    <p style="color: #1a1a1a; line-height: 1.8; margin: 0; font-size: 15px;">
+                                        В открывшейся вкладке вы увидите <strong>почту вашего аккаунта ChatGPT</strong>
+                                    </p>
+                                </div>
+                                
+                                <div style="background: #fff3cd; padding: 14px 18px; border-radius: 10px; border-left: 4px solid #ffc107; margin-top: 16px;">
+                                    <p style="color: #856404; line-height: 1.6; margin: 0; font-size: 14px;">
+                                        <strong>💡 Примечание:</strong> Если ваша почта выглядит как <code style="background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px; font-family: monospace;">....@privaterelay.appleid.com</code>, это скрытая почта Apple. Не переживайте — приглашение автоматически придет на вашу основную почту, привязанную к Apple ID.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="info-block">
@@ -1053,6 +1211,55 @@
         };
         
         // Функция добавления товара в корзину будет ниже после загрузки cart.js
+        
+        // Функция переключения между вкладками инструкции
+        function switchEmailTab(tab) {
+            // Скрываем все контенты
+            document.getElementById('email-instruction-browser').style.display = 'none';
+            document.getElementById('email-instruction-app').style.display = 'none';
+            
+            // Убираем активный класс со всех кнопок
+            const buttons = document.querySelectorAll('.email-tab-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.borderBottomColor = 'transparent';
+                btn.style.color = '#666';
+                btn.style.fontWeight = '500';
+            });
+            
+            // Показываем выбранный контент
+            if (tab === 'browser') {
+                document.getElementById('email-instruction-browser').style.display = 'block';
+                buttons[0].classList.add('active');
+                buttons[0].style.borderBottomColor = '#667eea';
+                buttons[0].style.color = '#667eea';
+                buttons[0].style.fontWeight = '600';
+            } else {
+                document.getElementById('email-instruction-app').style.display = 'block';
+                buttons[1].classList.add('active');
+                buttons[1].style.borderBottomColor = '#667eea';
+                buttons[1].style.color = '#667eea';
+                buttons[1].style.fontWeight = '600';
+            }
+            
+            // Обновляем стили для темной темы
+            updateEmailTabsStyles();
+        }
+        
+        // Функция обновления стилей вкладок для темной темы
+        function updateEmailTabsStyles() {
+            const isDarkTheme = document.body.classList.contains('dark-theme');
+            const buttons = document.querySelectorAll('.email-tab-btn');
+            
+            buttons.forEach(btn => {
+                if (btn.classList.contains('active')) {
+                    btn.style.borderBottomColor = isDarkTheme ? '#00ff88' : '#667eea';
+                    btn.style.color = isDarkTheme ? '#00ff88' : '#667eea';
+                } else {
+                    btn.style.color = isDarkTheme ? '#888' : '#666';
+                }
+            });
+        }
     </script>
     
     <script>
@@ -1296,10 +1503,16 @@
                     if (mutation.attributeName === 'class' && mutation.target === body) {
                         updateAccountSetupButton();
                         updateVPNBanner();
+                        updateEmailTabsStyles();
                     }
                 });
             });
             observer.observe(body, { attributes: true });
+            
+            // Инициализируем стили вкладок при загрузке
+            if (typeof updateEmailTabsStyles === 'function') {
+                updateEmailTabsStyles();
+            }
         });
     </script>
 </body>

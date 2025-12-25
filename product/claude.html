@@ -604,18 +604,18 @@
                     </nav>
                 </div>
                 <div class="header-right">
-                                        <div class="theme-toggle-wrapper">
-                        <input type="checkbox" id="theme-toggle" class="theme-toggle">
-                        <label for="theme-toggle" class="theme-toggle-label">
-                            <span class="theme-icon theme-icon-sun">☀️</span>
-                            <span class="theme-icon theme-icon-moon">🌙</span>
-                            <span class="theme-toggle-slider"></span>
-                        </label>
-                    </div>
-                    <div class="header-actions">
+                                        <div class="header-actions">
                         <button class="btn-icon">🔍</button>
                         <button class="btn-icon cart-button" onclick="toggleCartWidget()">🛒 <span class="badge cart-count">0</span></button>
                         <script>(function(){try{var c=JSON.parse(localStorage.getItem('trustStoreCart')||'[]'),t=0;c.forEach(function(i){t+=(i.quantity||1)});var b=document.currentScript.previousElementSibling.querySelector('.cart-count');if(b)b.textContent=t;}catch(e){}})();</script>
+                                            <div class="theme-toggle-wrapper">
+                            <input type="checkbox" id="theme-toggle" class="theme-toggle">
+                            <label for="theme-toggle" class="theme-toggle-label">
+                                <span class="theme-icon theme-icon-sun">☀️</span>
+                                <span class="theme-icon theme-icon-moon">🌙</span>
+                                <span class="theme-toggle-slider"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
