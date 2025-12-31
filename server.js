@@ -856,6 +856,35 @@ try {
     console.error('⚠️ Ошибка создания/обновления промокода GPT5:', error.message);
 }
 
+// Создаем/обновляем промокод 2026 с бессрочными активациями (скидка 10%)
+try {
+    const existing2026 = db.prepare('SELECT * FROM promo_codes WHERE code = ?').get('2026');
+    if (!existing2026) {
+        db.prepare(`
+            INSERT INTO promo_codes (code, discount, max_uses, current_uses, expires_at, is_active)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `).run('2026', 10, 999999999, 0, '2099-12-31 23:59:59', 1);
+        console.log('✅ Промокод 2026 создан: скидка 10%, бессрочные активации');
+    } else {
+        // Обновляем промокод, если он существует, чтобы убедиться, что он бессрочный
+        if (existing2026.max_uses !== 999999999) {
+            db.prepare(`
+                UPDATE promo_codes 
+                SET discount = 10, 
+                    max_uses = 999999999, 
+                    expires_at = '2099-12-31 23:59:59',
+                    is_active = 1
+                WHERE code = '2026'
+            `).run();
+            console.log('✅ Промокод 2026 обновлен: скидка 10%, бессрочные активации');
+        } else {
+            console.log('✅ Промокод 2026 уже существует с бессрочными активациями');
+        }
+    }
+} catch (error) {
+    console.error('⚠️ Ошибка создания/обновления промокода 2026:', error.message);
+}
+
 // Добавляем товары если их нет
 const productsCount = db.prepare('SELECT COUNT(*) as count FROM products').get();
 if (productsCount.count === 0) {
