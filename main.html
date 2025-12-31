@@ -1172,7 +1172,7 @@
         // Загружаем новости при загрузке страницы
         loadNews();
         
-        // Таймер обратного отсчета до 1 января 2026 00:00 МСК
+        // Таймер обратного отсчета до 15 января 2026 00:00 МСК
         (function() {
             const timerDays = document.getElementById('timer-days');
             const timerHours = document.getElementById('timer-hours');
@@ -1181,8 +1181,8 @@
             
             if (!timerDays || !timerHours || !timerMinutes || !timerSeconds) return;
             
-            // 1 января 2026 00:00 МСК = 31 декабря 2025 21:00 UTC
-            const expiryDate = new Date('2025-12-31T21:00:00Z');
+            // 15 января 2026 00:00 МСК = 14 января 2026 21:00 UTC
+            const expiryDate = new Date('2026-01-14T21:00:00Z');
             
             function updateTimer() {
                 const now = new Date();
